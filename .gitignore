@@ -1,0 +1,4 @@
+__pycache__
+
+# django generates this
+db.sqlite3
