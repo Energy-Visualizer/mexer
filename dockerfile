@@ -7,7 +7,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Bring in all the source code
-COPY ./eviz_site/ .
+# TODO: is the the best way to get the pgpass permissions to work
+COPY --chmod=0600 ./eviz_site/ .
+
 
 # Set environment variables
 ENV PGSERVICEFILE=/app/.pg_service.conf
