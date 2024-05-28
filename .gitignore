@@ -3,5 +3,5 @@ __pycache__
 # django generates this
 db.sqlite3
 
-.db_pgpass
+.pgpass
 .pg_service.conf
