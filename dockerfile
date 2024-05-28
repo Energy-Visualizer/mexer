@@ -7,7 +7,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Bring in all the source code
-COPY ./hello_world_site/ .
+COPY ./eviz_site/ .
 
 # Set environment variables
 ENV PGSERVICEFILE=/app/.pg_service.conf
