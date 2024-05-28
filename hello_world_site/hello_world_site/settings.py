@@ -78,8 +78,9 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "OPTIONS": {
-            "service": "db_service",
-            "passfile": ".db_pgpass"
+            "service": "db_service"
+            # All other information provided through environment variables
+            # PGSERVICEFILE and PGPASSFILE
         }
     }
 }

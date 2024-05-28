@@ -6,7 +6,8 @@ from django.shortcuts import render
 def hello_world_index(request):
 
     # Get 10 PSUT rows from db
-    rows = PSUT.objects.all()[:10]
+    rows = PSUT.objects.values("Year", "i", "j", "x", "Country").filter(Country=155, Year__lt=2015)[:10]
+
 
     context = { "psut_rows": rows }
 
