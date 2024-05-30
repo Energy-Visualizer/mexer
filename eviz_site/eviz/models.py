@@ -6,10 +6,7 @@ class PSUT(models.Model):
     class Meta:
         db_table = "PSUT"
 
-        # TODO: for migration only?
-        # managed = False # to use dataset as primary key
-
-    Dataset = models.PositiveSmallIntegerField() # primary_key=True
+    Dataset = models.PositiveSmallIntegerField()
     Country = models.PositiveSmallIntegerField()
     Method = models.PositiveSmallIntegerField()
     EnergyType = models.PositiveSmallIntegerField()
@@ -21,3 +18,11 @@ class PSUT(models.Model):
     i = models.PositiveSmallIntegerField()
     j = models.PositiveSmallIntegerField()
     x = models.FloatField()
+
+class Index(models.Model):
+
+    class Meta:
+        db_table = "Index"
+    
+    IndexID = models.PositiveSmallIntegerField()
+    Index = models.TextField()
