@@ -76,15 +76,15 @@ class PSUT(models.Model):
         # TODO: for migration only?
         # managed = False # to use dataset as primary key
 
-    Dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE, db_column='Dataset') # primary_key=True
-    Country = models.ForeignKey(Country, on_delete=models.CASCADE, db_column='Country')
-    Method = models.ForeignKey(Method, on_delete=models.CASCADE, db_column='Method')
-    EnergyType = models.ForeignKey(EnergyType, on_delete=models.CASCADE, db_column='EnergyType')
-    LastStage = models.ForeignKey(LastStage, on_delete=models.CASCADE, db_column='LastStage')
-    IEAMW = models.ForeignKey(IEAMW, on_delete=models.CASCADE, db_column='IEAMW')
-    IncludesNEU = models.ForeignKey(IncludesNEU, on_delete=models.CASCADE, db_column='IncludesNEU')
-    Year = models.ForeignKey(Year, on_delete=models.CASCADE, db_column='Year')
-    matname = models.ForeignKey(matname, on_delete=models.CASCADE, db_column='matname')
-    i = models.OneToOneField(Index, on_delete=models.CASCADE, db_column='i')
-    j = models.OneToOneField(Index, on_delete=models.CASCADE, db_column='j', related_name='j')
+    Dataset = models.PositiveSmallIntegerField() # primary_key=True
+    Country = models.PositiveSmallIntegerField()
+    Method = models.PositiveSmallIntegerField()
+    EnergyType = models.PositiveSmallIntegerField()
+    LastStage = models.PositiveSmallIntegerField()
+    IEAMW = models.PositiveSmallIntegerField()
+    IncludesNEU = models.PositiveSmallIntegerField()
+    Year = models.PositiveSmallIntegerField()
+    matname = models.PositiveSmallIntegerField()
+    i = models.PositiveSmallIntegerField()
+    j = models.PositiveSmallIntegerField()
     x = models.FloatField()

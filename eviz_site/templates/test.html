@@ -3,46 +3,12 @@
   <head></head>
 
   <body>
-    <h2>First RUVY:</h2>
-    <h2>R_matrix1:</h2>
-    {% for row in R_matrix1 %}
-    <h2>{{row.i}}: {{row.i__Index}}, {{row.j}}: {{row.j__Index}}, {{row.x}}</h2>
-    {% endfor %}
+    {% for row in psut_rows %}
 
-    <h2>U_matrix1:</h2>
-    {% for row in U_matrix1 %}
-    <h2>{{row.i}}: {{row.i__Index}}, {{row.j}}: {{row.j__Index}}, {{row.x}}</h2>
-    {% endfor %}
+    <h2>
+      {{row.Country}}, {{ row.Year }}, {{ row.i }}, {{ row.j }}, {{ row.x }}
+    </h2>
 
-    <h2>V_matrix1:</h2>
-    {% for row in V_matrix1 %}
-    <h2>{{row.i}}: {{row.i__Index}}, {{row.j}}: {{row.j__Index}}, {{row.x}}</h2>
-    {% endfor %}
-
-    <h2>Y_matrix1:</h2>
-    {% for row in Y_matrix1 %}
-    <h2>{{row.i}}: {{row.i__Index}}, {{row.j}}: {{row.j__Index}}, {{row.x}}</h2>
-    {% endfor %}
-
-    <h2>Second RUVY:</h2>
-    <h2>R_matrix2:</h2>
-    {% for row in R_matrix2 %}
-    <h2>{{row.i}}: {{row.i__Index}}, {{row.j}}: {{row.j__Index}}, {{row.x}}</h2>
-    {% endfor %}
-
-    <h2>U_matrix2:</h2>
-    {% for row in U_matrix2 %}
-    <h2>{{row.i}}: {{row.i__Index}}, {{row.j}}: {{row.j__Index}}, {{row.x}}</h2>
-    {% endfor %}
-
-    <h2>V_matrix2:</h2>
-    {% for row in V_matrix2 %}
-    <h2>{{row.i}}: {{row.i__Index}}, {{row.j}}: {{row.j__Index}}, {{row.x}}</h2>
-    {% endfor %}
-
-    <h2>Y_matrix2:</h2>
-    {% for row in Y_matrix2 %}
-    <h2>{{row.i}}: {{row.i__Index}}, {{row.j}}: {{row.j__Index}}, {{row.x}}</h2>
     {% endfor %}
   </body>
 </html>
