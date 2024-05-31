@@ -1,7 +1,9 @@
 from eviz.models import PSUT
 from django.shortcuts import render
 from eviz.utils import time_view, get_matrix, RUVY, IndexTranslator
+from django.core.cache import cache
 
+@time_view
 def eviz_index(request):
 
     rows = (
