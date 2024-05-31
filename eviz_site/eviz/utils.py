@@ -4,10 +4,13 @@ from eviz.models import PSUT, Index
 from scipy.sparse import csr_matrix
 
 def time_view(v):
-    '''
-    Wrapper to time how long it takes to deliver a view
+    '''Wrapper to time how long it takes to deliver a view
 
-    Results are printed to stdout
+    Inputs:
+        v, function: the view to time
+    
+    Outputs:
+        A function which will also print how long the given view took to run to stdout
     '''
 
     def wrap(*args, **kwargs):
@@ -26,17 +29,27 @@ class RUVY(Enum):
     Y = 7
 
 def get_matrix(
-        dataset,
-        country,
-        method,
-        energy_type,
-        last_stage,
-        ieamw,
-        includes_neu,
-        year,
+        dataset: int,
+        country: int,
+        method: int,
+        energy_type: int,
+        last_stage: int,
+        ieamw: int,
+        includes_neu: int,
+        year: int,
         matrix_name,
-    ):
-    '''Collects, constructs, and returns one of the RUVY matrices'''
+    ) -> csr_matrix:
+    '''Collects, constructs, and returns one of the RUVY matrices
+    
+    Inputs:
+        dataset, country, method, energy_type, last_stage, ieamw, inclues_neu, year:
+        ints to specify metadata for which matrix to get
+
+        matrix_name, RUVY enum name: specify which matrix to get
+
+    Outputs:
+        A scipy csr_matrix containing all the values from the specified query
+    '''
 
     # Get the sparse matrix representation
     # i, j, x for row, column, value
@@ -58,7 +71,7 @@ def get_matrix(
     )
 
     # Get dimensions for a matrix (rows and columns will be the same)
-    matrix_side_length = Index.objects.all().count() # len() would evaluate the query set, so use count() instead for better performance
+    matrix_nrow = Index.objects.all().count() # len() would evaluate the query set, so use count() instead for better performance
 
     # For each 3-tuple in sparse_matrix
     # Put together all the first values, all the second, etc.
@@ -68,5 +81,42 @@ def get_matrix(
     # Make and return the sparse matrix
     return csr_matrix(
         (val, (row, col)),
-        shape = (matrix_side_length, matrix_side_length),
+        shape = (matrix_nrow, matrix_nrow),
     )
+
+class IndexTranslator():
+
+    index_translations = None
+
+    @staticmethod
+    def translate(mat, row, col):
+        if IndexTranslator.index_translations == None:
+            indexes = Index.objects.values_list("IndexID", "Index")
+            IndexTranslator.index_translations = {name: id for id, name in indexes}
+        
+        # TODO: this is backwards with col, row... figure out why this is happening
+        return mat[IndexTranslator.index_translations[col], IndexTranslator.index_translations[row]]
+        
+
+
+# TODO: scrap this idea?
+class RUVY_Matrix(csr_matrix):
+
+    index_translations = None
+
+    def __init__(self, data, shape):
+        if self.index_translations == None:
+            indexes = Index.objects.values_list("IndexID", "Index")
+            self.index_translations = {name: id for id, name in indexes}
+        super().__init__(data, shape)
+    
+    def __getitem__(self, key):
+
+        print(key)
+
+        # if key is a string, translate it first
+        if type(key) == str:
+            return super().__getitem__(self.index_translations[key])
+        
+        # if key is an integer, run as normal
+        return super().__getitem__(key)
