@@ -1,6 +1,6 @@
 from time import time
 from enum import Enum
-from eviz.models import PSUT, Index
+from eviz.models import PSUT, Index, Dataset, Country, Method, EnergyType, LastStage, IEAMW, IncludesNEU, matname
 from scipy.sparse import csr_matrix
 
 def time_view(v):
@@ -29,14 +29,14 @@ class RUVY(Enum):
     Y = 7
 
 def get_matrix(
-        dataset: int,
-        country: int,
-        method: int,
-        energy_type: int,
-        last_stage: int,
-        ieamw: int,
-        includes_neu: int,
-        year: int,
+        dataset: str,
+        country: str,
+        method: str,
+        energy_type: str,
+        last_stage: str,
+        ieamw: str,
+        includes_neu: str,
+        year: str,
         matrix_name,
     ) -> csr_matrix:
     '''Collects, constructs, and returns one of the RUVY matrices
@@ -58,13 +58,13 @@ def get_matrix(
         PSUT.objects
         .values_list("i", "j", "x")
         .filter(
-            Dataset = dataset,
-            Country = country,
-            Method = method,
-            EnergyType = energy_type,
-            LastStage = last_stage,
-            IEAMW = ieamw,
-            IncludesNEU = includes_neu,
+            Dataset = Translator.index_translate(dataset),
+            Country = Translator.country_translate(country),
+            Method = Translator.method_translate(method),
+            EnergyType = Translator.energytype_translate(energy_type),
+            LastStage = Translator.laststage_translate(last_stage),
+            IEAMW = Translator.ieamw_translate(ieamw),
+            IncludesNEU = Translator.includesNEU_translate(includes_neu),
             Year = year,
             matname = matrix_name.value
         )
@@ -84,18 +84,87 @@ def get_matrix(
         shape = (matrix_nrow, matrix_nrow),
     )
 
-class IndexTranslator():
+class Translator():
 
-    index_translations = None
-
+    __index_translations = None
+    __country_translations = None
+    __method_translations = None
+    __energytype_translations = None
+    __laststage_translations = None
+    __IEAMW_translations = None
+    __matname_translations = None
+    __dataset_translations = None
     @staticmethod
-    def translate(mat, row, col):
-        if IndexTranslator.index_translations == None:
+    def index_translate(name: str)-> int:
+        if Translator.__index_translations == None:
             indexes = Index.objects.values_list("IndexID", "Index")
-            IndexTranslator.index_translations = {name: id for id, name in indexes}
+            Translator.__index_translations = {name: id for id, name in indexes}
         
         # TODO: this is backwards with col, row... figure out why this is happening
-        return mat[IndexTranslator.index_translations[col], IndexTranslator.index_translations[row]]
+        return Translator.__index_translations[name]
+    
+    @staticmethod
+    def dataset_translate(name: str)-> int:
+        if Translator.__dataset_translations == None:
+            datasets = Dataset.objects.values_list("DatasetID", "Dataset")
+            Translator.__dataset_translations = {name: id for id, name in datasets}
+        
+        # TODO: this is backwards with col, row... figure out why this is happening
+        return Translator.__dataset_translations[name]
+        
+    @staticmethod
+    def country_translate(name: str)-> int:
+        if Translator.__country_translations == None:
+            countries = Country.objects.values_list("CountryID", "Country")
+            Translator.__country_translations = {name: id for id, name in countries}
+        
+        # TODO: this is backwards with col, row... figure out why this is happening
+        return Translator.__country_translations[name]
+    
+    @staticmethod
+    def method_translate(name: str)-> int:
+        if Translator.__method_translations == None:
+            methods = Method.objects.values_list("MethodID", "Method")
+            Translator.__method_translations = {name: id for id, name in methods}
+        
+        # TODO: this is backwards with col, row... figure out why this is happening
+        return Translator.__method_translations[name]
+    
+    @staticmethod
+    def energytype_translate(name: str)-> int:
+        if Translator.__energytype_translations == None:
+            enerytpyes = EnergyType.objects.values_list("EnergyTypeID", "EnergyType")
+            Translator.__energytype_translations = {name: id for id, name in enerytpyes}
+        
+        # TODO: this is backwards with col, row... figure out why this is happening
+        return Translator.__energytype_translations[name]
+    @staticmethod
+    def laststage_translate(name: str)-> int:
+        if Translator.__laststage_translations == None:
+            laststages = LastStage.objects.values_list("ECCStageID", "ECCStage")
+            Translator.__laststage_translations = {name: id for id, name in laststages}
+        
+        # TODO: this is backwards with col, row... figure out why this is happening
+        return Translator.__laststage_translations[name]
+    @staticmethod
+    def ieamw_translate(name: str)-> int:
+        if Translator.__IEAMW_translations == None:
+            IEAMWs = IEAMW.objects.values_list("IEAMWID", "IEAMW")
+            Translator.__IEAMW_translations = {name: id for id, name in IEAMWs}
+        
+        # TODO: this is backwards with col, row... figure out why this is happening
+        return Translator.__IEAMW_translations[name]
+    @staticmethod
+    def includesNEU_translate(name: bool)-> int:
+        return int(name)
+    @staticmethod
+    def matname_translate(name: str)-> int:
+        if Translator.__matname_translations == None:
+            matnames = matname.objects.values_list("matnameID", "matname")
+            Translator.__matname_translations = {name: id for id, name in matnames}
+        
+        # TODO: this is backwards with col, row... figure out why this is happening
+        return Translator.__matname_translations[name]
         
 
 

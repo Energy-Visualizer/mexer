@@ -1,12 +1,32 @@
 <!DOCTYPE html>
 <html>
-  <head></head>
-
+  <head>
+    <title>PSUT Data</title>
+  </head>
   <body>
-    {% for row in psut_rows %}
+    <h1>PSUT Data</h1>
 
-    <h2>{{ row.i }}, {{ row.j }}, {{ row.x }}</h2>
-
-    {% endfor %}
+    {% if error %}
+    <p>{{ error }}</p>
+    {% else %}
+    <ul>
+      <h5>R</h5>
+      {% for row in psut_rows_r %}
+      <li>{{ row.i }}, {{ row.j }}, {{ row.x }}</li>
+      {% endfor %}
+      <h5>U</h5>
+      {% for row in psut_rows_u %}
+      <li>{{ row.i }}, {{ row.j }}, {{ row.x }}</li>
+      {% endfor %}
+      <h5>V</h5>
+      {% for row in psut_rows_v %}
+      <li>{{ row.i }}, {{ row.j }}, {{ row.x }}</li>
+      {% endfor %}
+      <h5>Y</h5>
+      {% for row in psut_rows_y %}
+      <li>{{ row.i }}, {{ row.j }}, {{ row.x }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
   </body>
 </html>
