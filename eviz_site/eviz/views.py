@@ -1,6 +1,7 @@
 from eviz.models import PSUT
 from django.shortcuts import render
-from eviz.utils import time_view, get_matrix, RUVY, IndexTranslator
+from eviz.utils import time_view, get_matrix, RUVY
+from eviz.tests import test_matrix_sum
 
 def eviz_index(request):
 
@@ -24,15 +25,8 @@ def eviz_index(request):
 
     return render(request, "./test.html", context)
 
-def test_matrix_sum(m):
-    
-    assert(m.size == 23)
-    assert(int(IndexTranslator.translate(m, "Charcoal", "Charcoal production plants")) == 16108)
-
-    return "Passed all tests"
-
 @time_view
-def _la_extraction(request):
+def la_extraction(request):
 
     mat_context = {
         "dataset":2, # CLPFU
@@ -66,11 +60,9 @@ def _la_extraction(request):
     )
 
     sum = u.T + v
-    print(sum)
 
-    product = u * v
-    # print(product)
+    s = str(sum).splitlines()
 
-    context = { "value": test_matrix_sum(sum) }
+    context = { "passed": test_matrix_sum(sum), "sum": s }
 
     return render(request, "./la_extract.html", context)
