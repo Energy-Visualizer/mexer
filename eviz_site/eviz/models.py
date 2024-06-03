@@ -4,29 +4,38 @@ from django.db import models
 class Dataset(models.Model):
     DatasetID = models.PositiveSmallIntegerField(primary_key=True)
     Dataset = models.TextField()
+    FullName = models.TextField()
+    Description = models.TextField()
     class Meta:
         db_table = "Dataset"
 class Country(models.Model):
     CountryID = models.PositiveSmallIntegerField(primary_key=True)
     Country = models.TextField()
+    
     class Meta:
         db_table = "Country"
 
 class Method(models.Model):
     MethodID = models.PositiveSmallIntegerField(primary_key=True)
     Method = models.TextField()
+    FullName = models.TextField()
+    Description = models.TextField()
     class Meta:
         db_table = "Method"
     
 class EnergyType(models.Model):
     EnergyTypeID = models.PositiveSmallIntegerField(primary_key=True)
     EnergyType = models.TextField()
+    FullName = models.TextField()
+    Description = models.TextField()
     class Meta:
         db_table = "EnergyType"
 
 class LastStage(models.Model):
     ECCStageID = models.PositiveSmallIntegerField(primary_key=True)
     ECCStage = models.TextField()
+    FullName = models.TextField()
+    Description = models.TextField()
     class Meta:
         db_table = "ECCStage"
     
