@@ -4,7 +4,7 @@ def test_matrix_sum(m):
 
     # All test values are rounded
     # as presented in the respective excel sheet 
-    
+
     assert(m.size == 23)
     assert(round(m.get("Biomass", "Farms")) == 55362)
     assert(round(m.get("Biomass", "Feed production")) == 4047)

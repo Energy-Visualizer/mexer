@@ -22,6 +22,10 @@ def get_psut_data(request):
     ieamw="IEA"
     includes_neu=True
     year=2015
+    choppedmat = "None"
+    choppedvar = "None"
+    productaggregation = "Grouped"
+    industryaggregation = "Despecified"
     mmatrix_name_r = RUVY.R
     matrix_name_u = RUVY.U
     matrix_name_v = RUVY.V
@@ -39,6 +43,10 @@ def get_psut_data(request):
             IEAMW = Translator.ieamw_translate(ieamw),
             IncludesNEU = Translator.includesNEU_translate(includes_neu),
             Year = 2015,
+            ChoppedMat = Translator.matname_translate(choppedmat),
+            ChoppedVat = Translator.index_translate(choppedvar),
+            ProductAggregation = Translator.productaggregation_translate(productaggregation),
+            IndustryAggregation = Translator.productaggregation_translate(industryaggregation),
             matname = mmatrix_name_r.value
         )
     )
@@ -55,6 +63,10 @@ def get_psut_data(request):
             IEAMW=Translator.ieamw_translate(ieamw),
             IncludesNEU=Translator.includesNEU_translate(includes_neu),
             Year=year,
+            ChoppedMat = Translator.matname_translate(choppedmat),
+            ChoppedVat = Translator.index_translate(choppedvar),
+            ProductAggregation = Translator.productaggregation_translate(productaggregation),
+            IndustryAggregation = Translator.productaggregation_translate(industryaggregation),
             matname=matrix_name_u.value
         )
     )
@@ -71,6 +83,10 @@ def get_psut_data(request):
             IEAMW=Translator.ieamw_translate(ieamw),
             IncludesNEU=Translator.includesNEU_translate(includes_neu),
             Year=year,
+            ChoppedMat = Translator.matname_translate(choppedmat),
+            ChoppedVat = Translator.index_translate(choppedvar),
+            ProductAggregation = Translator.productaggregation_translate(productaggregation),
+            IndustryAggregation = Translator.productaggregation_translate(industryaggregation),
             matname=matrix_name_v.value
         )
     )
@@ -87,6 +103,10 @@ def get_psut_data(request):
             IEAMW=Translator.ieamw_translate(ieamw),
             IncludesNEU=Translator.includesNEU_translate(includes_neu),
             Year=year,
+            ChoppedMat = Translator.matname_translate(choppedmat),
+            ChoppedVat = Translator.index_translate(choppedvar),
+            ProductAggregation = Translator.productaggregation_translate(productaggregation),
+            IndustryAggregation = Translator.productaggregation_translate(industryaggregation),
             matname=matrix_name_y.value
         )
     )
