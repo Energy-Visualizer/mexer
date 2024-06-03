@@ -35,12 +35,6 @@ class IEAMW(models.Model):
     IEAMW = models.TextField()
     class Meta:
         db_table = "IEAMW"
-        
-class IEAMW(models.Model):
-    IEAMWID = models.PositiveSmallIntegerField(primary_key=True)
-    IEAMW = models.TextField()
-    class Meta:
-        db_table = "IEAMW"
 
 class IncludesNEU(models.Model):
     IncludesNEUID = models.PositiveSmallIntegerField(primary_key=True)
@@ -85,11 +79,3 @@ class PSUT(models.Model):
     i = models.PositiveSmallIntegerField()
     j = models.PositiveSmallIntegerField()
     x = models.FloatField()
-
-class Index(models.Model):
-
-    class Meta:
-        db_table = "Index"
-    
-    IndexID = models.PositiveSmallIntegerField()
-    Index = models.TextField()
