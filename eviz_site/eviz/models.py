@@ -4,8 +4,7 @@ from django.db import models
 class Dataset(models.Model):
     DatasetID = models.PositiveSmallIntegerField(primary_key=True)
     Dataset = models.TextField()
-    FullName = models.TextField()
-    Description = models.TextField()
+    
     class Meta:
         db_table = "Dataset"
 class Country(models.Model):
