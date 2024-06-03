@@ -1,9 +1,16 @@
-from eviz.models import PSUT
+# Django imports
 from django.shortcuts import render
+
+# Eviz imports
 from eviz.tests import test_matrix_sum
 from eviz.utils import time_view, get_matrix, RUVY, Translator
-from django.core.cache import cache
+from eviz.models import PSUT, AggEtaPFU
 
+# Visualization imports
+from plotly.offline import plot
+import plotly.graph_objects as pgo
+
+# TODO: this is temp
 @time_view
 def get_psut_data(request):
     
@@ -92,8 +99,9 @@ def get_psut_data(request):
 
     return render(request, "./test.html", context)
 
+# TODO: hide this test
 @time_view
-def _la_extraction(request):
+def la_extraction(request):
 
     mat_context = {
         "dataset":2, # CLPFU
@@ -107,14 +115,14 @@ def _la_extraction(request):
     }
 
     test_mat_context = {
-        "dataset":2, # CLPFU
-        "country":49, # GHA
-        "method":1, # PCM
-        "energy_type":1, # E
-        "last_stage":2, # Final
-        "ieamw":3, # Both
-        "includes_neu":1, # True
-        "year":1995
+        "dataset": "CLPFUv2.0a1",
+        "country": "GHA",
+        "method": "PCM",
+        "energy_type": "E",
+        "last_stage": "Final",
+        "ieamw": "Both",
+        "includes_neu": True,
+        "year": 1995
     }
 
     u = get_matrix(
@@ -133,3 +141,33 @@ def _la_extraction(request):
     context = { "passed": test_matrix_sum(sum), "sum": s }
 
     return render(request, "./la_extract.html", context)
+
+# TODO: this is temp
+@time_view
+def temp_viz(request):
+
+    # REQUIRES ALPHA 2!
+
+    agg_data = AggEtaPFU.objects.filter(
+        Dataset = 3,
+        Country = 5,
+        Method = 1,
+        EnergyType = 2,
+        LastStage = 2,
+        IEAMW = 1,
+        IncludesNEU = 0,
+        ChoppedMat = 28,
+        ChoppedVar = 2728,
+        ProductAggregation = 1,
+        IndustryAggregation = 1,
+        GrossNet = 1
+    ).values_list("Year", "EXp", "EXf", "EXu", "etapf", "etafu", "etapu")
+
+    year, exp, exf, exu, etapf, etafu, etapu = zip(*agg_data)
+
+    scatterplot = pgo.Scatter(x=year,y=etapu)
+    
+    # idea for visualization rendering from this site: https://www.codingwithricky.com/2019/08/28/easy-django-plotly/
+    p = plot([scatterplot], output_type="div", include_plotlyjs="cdn")
+    
+    return render(request, "viz.html", context={"plot":p})

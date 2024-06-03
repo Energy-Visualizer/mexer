@@ -4,7 +4,7 @@ from django.db import models
 class Dataset(models.Model):
     DatasetID = models.PositiveSmallIntegerField(primary_key=True)
     Dataset = models.TextField()
-    
+
     class Meta:
         db_table = "Dataset"
 class Country(models.Model):
@@ -87,3 +87,29 @@ class PSUT(models.Model):
     i = models.PositiveSmallIntegerField()
     j = models.PositiveSmallIntegerField()
     x = models.FloatField()
+
+
+class AggEtaPFU(models.Model):
+
+    class Meta:
+        db_table = "AggEtaPFU"
+
+    Dataset = models.PositiveSmallIntegerField()
+    Country = models.PositiveSmallIntegerField()
+    Method = models.PositiveSmallIntegerField()
+    EnergyType = models.PositiveSmallIntegerField()
+    LastStage = models.PositiveSmallIntegerField()
+    IEAMW = models.PositiveSmallIntegerField()
+    IncludesNEU = models.PositiveSmallIntegerField()
+    Year = models.PositiveSmallIntegerField()
+    ChoppedMat = models.PositiveSmallIntegerField()
+    ChoppedVar = models.PositiveSmallIntegerField()
+    ProductAggregation = models.PositiveSmallIntegerField()
+    IndustryAggregation = models.PositiveSmallIntegerField()
+    GrossNet = models.PositiveSmallIntegerField()
+    EXp = models.FloatField()
+    EXf = models.FloatField()
+    EXu = models.FloatField()
+    etapf = models.FloatField()
+    etafu = models.FloatField()
+    etapu = models.FloatField()

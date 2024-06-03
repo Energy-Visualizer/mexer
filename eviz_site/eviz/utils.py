@@ -1,7 +1,7 @@
 from time import time
 from enum import Enum
 from eviz.models import PSUT, Index, Dataset, Country, Method, EnergyType, LastStage, IEAMW, IncludesNEU, matname
-from scipy.sparse import csr_matrix
+from scipy.sparse import csr_matrix, csc_matrix
 
 def time_view(v):
     '''Wrapper to time how long it takes to deliver a view
@@ -22,6 +22,7 @@ def time_view(v):
 
     return wrap
 
+# TODO: Probably get rid of this
 class RUVY(Enum):
     R = 1
     U = 2
@@ -58,7 +59,7 @@ def get_matrix(
         PSUT.objects
         .values_list("i", "j", "x")
         .filter(
-            Dataset = Translator.index_translate(dataset),
+            Dataset = Translator.dataset_translate(dataset),
             Country = Translator.country_translate(country),
             Method = Translator.method_translate(method),
             EnergyType = Translator.energytype_translate(energy_type),
@@ -78,6 +79,9 @@ def get_matrix(
     # All first values across the tupes are rows, second are columns, etc.
     row, col, val = zip(*sparse_matrix)
 
+    # TODO: remove
+    temp_add_get()
+
     # Make and return the sparse matrix
     return csr_matrix(
         (val, (row, col)),
@@ -94,13 +98,13 @@ class Translator():
     __IEAMW_translations = None
     __matname_translations = None
     __dataset_translations = None
+
     @staticmethod
     def index_translate(name: str)-> int:
         if Translator.__index_translations == None:
             indexes = Index.objects.values_list("IndexID", "Index")
             Translator.__index_translations = {name: id for id, name in indexes}
         
-        # TODO: this is backwards with col, row... figure out why this is happening
         return Translator.__index_translations[name]
     
     @staticmethod
@@ -109,7 +113,6 @@ class Translator():
             datasets = Dataset.objects.values_list("DatasetID", "Dataset")
             Translator.__dataset_translations = {name: id for id, name in datasets}
         
-        # TODO: this is backwards with col, row... figure out why this is happening
         return Translator.__dataset_translations[name]
         
     @staticmethod
@@ -118,7 +121,6 @@ class Translator():
             countries = Country.objects.values_list("CountryID", "Country")
             Translator.__country_translations = {name: id for id, name in countries}
         
-        # TODO: this is backwards with col, row... figure out why this is happening
         return Translator.__country_translations[name]
     
     @staticmethod
@@ -127,7 +129,6 @@ class Translator():
             methods = Method.objects.values_list("MethodID", "Method")
             Translator.__method_translations = {name: id for id, name in methods}
         
-        # TODO: this is backwards with col, row... figure out why this is happening
         return Translator.__method_translations[name]
     
     @staticmethod
@@ -136,56 +137,72 @@ class Translator():
             enerytpyes = EnergyType.objects.values_list("EnergyTypeID", "EnergyType")
             Translator.__energytype_translations = {name: id for id, name in enerytpyes}
         
-        # TODO: this is backwards with col, row... figure out why this is happening
         return Translator.__energytype_translations[name]
+    
     @staticmethod
     def laststage_translate(name: str)-> int:
         if Translator.__laststage_translations == None:
             laststages = LastStage.objects.values_list("ECCStageID", "ECCStage")
             Translator.__laststage_translations = {name: id for id, name in laststages}
         
-        # TODO: this is backwards with col, row... figure out why this is happening
         return Translator.__laststage_translations[name]
+    
     @staticmethod
     def ieamw_translate(name: str)-> int:
         if Translator.__IEAMW_translations == None:
             IEAMWs = IEAMW.objects.values_list("IEAMWID", "IEAMW")
             Translator.__IEAMW_translations = {name: id for id, name in IEAMWs}
         
-        # TODO: this is backwards with col, row... figure out why this is happening
         return Translator.__IEAMW_translations[name]
+    
     @staticmethod
     def includesNEU_translate(name: bool)-> int:
         return int(name)
+    
     @staticmethod
     def matname_translate(name: str)-> int:
         if Translator.__matname_translations == None:
             matnames = matname.objects.values_list("matnameID", "matname")
             Translator.__matname_translations = {name: id for id, name in matnames}
         
-        # TODO: this is backwards with col, row... figure out why this is happening
         return Translator.__matname_translations[name]
         
 
-
-# TODO: scrap this idea?
+# TODO: scrap this?
 class RUVY_Matrix(csr_matrix):
 
-    index_translations = None
-
-    def __init__(self, data, shape):
-        if self.index_translations == None:
-            indexes = Index.objects.values_list("IndexID", "Index")
-            self.index_translations = {name: id for id, name in indexes}
-        super().__init__(data, shape)
-    
     def __getitem__(self, key):
+        ''' Gets an item from a RUVY matrix
+        
+        Use is matrix["row_name", "col_name"] or matrix[row_number, col_number]
 
-        print(key)
+        Inputs:
+            key, tuple: a 2-tuple denoting the desired row name or number followed by the column name or number
 
-        # if key is a string, translate it first
-        if type(key) == str:
-            return super().__getitem__(self.index_translations[key])
+        Outputs:
+            the value at that key in the cooresponding RUVY matrix
+        '''
+        
+        if type(key) != tuple[str | int] or len(key) != 2:
+            raise ValueError("Getting item from RUVY matrix must be as follows: matrix['row_name', 'column_name'] or matrix[row_number, col_number]")
+
+        # if key is strings, translate it first
+        if type(key[0]) == str:
+            return super()[Translator.index_translate(key[0]), Translator.index_translate(key[1])]
         
         # if key is an integer, run as normal
-        return super().__getitem__(key)
+        return super()[key[0], key[1]]
+    
+def temp_add_get():
+
+    def mat_get(self, row, col):
+            if type(row) != str or type(col) != str:
+                raise ValueError("Getting item from RUVY matrix must be as follows: matrix['row_name', 'column_name'] or matrix[row_number, col_number]")
+
+            if type(self) == csc_matrix:
+                return self[Translator.index_translate(col), Translator.index_translate(row)]
+            return self[Translator.index_translate(row), Translator.index_translate(col)]
+    
+    if not hasattr(csr_matrix, "get"): csr_matrix.get = mat_get
+    
+    if not hasattr(csc_matrix, "get"): csc_matrix.get = mat_get
