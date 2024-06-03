@@ -1,6 +1,6 @@
 from time import time
 from enum import Enum
-from eviz.models import PSUT, Index, Dataset, Country, Method, EnergyType, LastStage, IEAMW, IncludesNEU, matname
+from eviz.models import PSUT, Index, Dataset, Country, Method, EnergyType, LastStage, IEAMW, IncludesNEU, matname, AggLevel
 from scipy.sparse import csr_matrix
 
 def time_view(v):
@@ -37,6 +37,10 @@ def get_matrix(
         ieamw: str,
         includes_neu: str,
         year: str,
+        choppedmat: str,
+        choppedvar: str,
+        productaggregation: str,
+        industryaggregation: str,
         matrix_name,
     ) -> csr_matrix:
     '''Collects, constructs, and returns one of the RUVY matrices
@@ -66,6 +70,10 @@ def get_matrix(
             IEAMW = Translator.ieamw_translate(ieamw),
             IncludesNEU = Translator.includesNEU_translate(includes_neu),
             Year = year,
+            ChoppedMat = Translator.matname_translate(choppedmat),
+            ChoppedVar = Translator.index_translate(choppedvar),
+            ProductAggregation = Translator.productaggregation_translate(productaggregation),
+            IndustryAggregation = Translator.productaggregation_translate(industryaggregation),
             matname = matrix_name.value
         )
     )
@@ -94,10 +102,11 @@ class Translator():
     __IEAMW_translations = None
     __matname_translations = None
     __dataset_translations = None
+    __productaggregation_translations = None
     @staticmethod
     def index_translate(name: str)-> int:
         if Translator.__index_translations == None:
-            indexes = Index.objects.values_list("IndexID", "Index")
+            indexes = Index.objects.filter("IndexID", "Index").values_list()
             Translator.__index_translations = {name: id for id, name in indexes}
         
         # TODO: this is backwards with col, row... figure out why this is happening
@@ -106,7 +115,7 @@ class Translator():
     @staticmethod
     def dataset_translate(name: str)-> int:
         if Translator.__dataset_translations == None:
-            datasets = Dataset.objects.values_list("DatasetID", "Dataset")
+            datasets = Dataset.objects.filter("DatasetID", "Dataset").values_list()
             Translator.__dataset_translations = {name: id for id, name in datasets}
         
         # TODO: this is backwards with col, row... figure out why this is happening
@@ -115,7 +124,7 @@ class Translator():
     @staticmethod
     def country_translate(name: str)-> int:
         if Translator.__country_translations == None:
-            countries = Country.objects.values_list("CountryID", "Country")
+            countries = Country.objects.filter("CountryID", "Country").values_list()
             Translator.__country_translations = {name: id for id, name in countries}
         
         # TODO: this is backwards with col, row... figure out why this is happening
@@ -124,7 +133,7 @@ class Translator():
     @staticmethod
     def method_translate(name: str)-> int:
         if Translator.__method_translations == None:
-            methods = Method.objects.values_list("MethodID", "Method")
+            methods = Method.objects.filter("MethodID", "Method").values_list()
             Translator.__method_translations = {name: id for id, name in methods}
         
         # TODO: this is backwards with col, row... figure out why this is happening
@@ -133,7 +142,7 @@ class Translator():
     @staticmethod
     def energytype_translate(name: str)-> int:
         if Translator.__energytype_translations == None:
-            enerytpyes = EnergyType.objects.values_list("EnergyTypeID", "EnergyType")
+            enerytpyes = EnergyType.objects.filter("EnergyTypeID", "EnergyType").values_list()
             Translator.__energytype_translations = {name: id for id, name in enerytpyes}
         
         # TODO: this is backwards with col, row... figure out why this is happening
@@ -141,7 +150,7 @@ class Translator():
     @staticmethod
     def laststage_translate(name: str)-> int:
         if Translator.__laststage_translations == None:
-            laststages = LastStage.objects.values_list("ECCStageID", "ECCStage")
+            laststages = LastStage.objects.filter("ECCStageID", "ECCStage").values_list()
             Translator.__laststage_translations = {name: id for id, name in laststages}
         
         # TODO: this is backwards with col, row... figure out why this is happening
@@ -149,7 +158,7 @@ class Translator():
     @staticmethod
     def ieamw_translate(name: str)-> int:
         if Translator.__IEAMW_translations == None:
-            IEAMWs = IEAMW.objects.values_list("IEAMWID", "IEAMW")
+            IEAMWs = IEAMW.objects.filter("IEAMWID", "IEAMW").values_list()
             Translator.__IEAMW_translations = {name: id for id, name in IEAMWs}
         
         # TODO: this is backwards with col, row... figure out why this is happening
@@ -157,10 +166,22 @@ class Translator():
     @staticmethod
     def includesNEU_translate(name: bool)-> int:
         return int(name)
+    
+        
+    @staticmethod
+    def productaggregation_translate(name: str)-> int:
+        if Translator.__productaggregation_translations == None:
+            productaggregations = matname.objects.filter("ProductAggregationID", "ProductAggregation").values_list("ProductAggregationID", "ProductAggregation")
+            Translator.__productaggregation_translations = {name: id for id, name in productaggregations}
+        
+        # TODO: this is backwards with col, row... figure out why this is happening
+        return Translator.__productaggregation_translations[name]
+    
+    
     @staticmethod
     def matname_translate(name: str)-> int:
         if Translator.__matname_translations == None:
-            matnames = matname.objects.values_list("matnameID", "matname")
+            matnames = matname.objects.filter("matnameID", "matname").values_list("matnameID", "matname")
             Translator.__matname_translations = {name: id for id, name in matnames}
         
         # TODO: this is backwards with col, row... figure out why this is happening
@@ -169,23 +190,23 @@ class Translator():
 
 
 # TODO: scrap this idea?
-class RUVY_Matrix(csr_matrix):
+# class RUVY_Matrix(csr_matrix):
 
-    index_translations = None
+#     index_translations = None
 
-    def __init__(self, data, shape):
-        if self.index_translations == None:
-            indexes = Index.objects.values_list("IndexID", "Index")
-            self.index_translations = {name: id for id, name in indexes}
-        super().__init__(data, shape)
+#     def __init__(self, data, shape):
+#         if self.index_translations == None:
+#             indexes = Index.objects.values_list("IndexID", "Index")
+#             self.index_translations = {name: id for id, name in indexes}
+#         super().__init__(data, shape)
     
-    def __getitem__(self, key):
+#     def __getitem__(self, key):
 
-        print(key)
+#         print(key)
 
-        # if key is a string, translate it first
-        if type(key) == str:
-            return super().__getitem__(self.index_translations[key])
+#         # if key is a string, translate it first
+#         if type(key) == str:
+#             return super().__getitem__(self.index_translations[key])
         
-        # if key is an integer, run as normal
-        return super().__getitem__(key)
+#         # if key is an integer, run as normal
+#         return super().__getitem__(key)

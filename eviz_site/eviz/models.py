@@ -4,13 +4,18 @@ from django.db import models
 class Dataset(models.Model):
     DatasetID = models.PositiveSmallIntegerField(primary_key=True)
     Dataset = models.TextField()
-    
+    FullName = models.TextField()
+    Description = models.TextField()
     class Meta:
         db_table = "Dataset"
 class Country(models.Model):
     CountryID = models.PositiveSmallIntegerField(primary_key=True)
     Country = models.TextField()
-    
+    FullName = models.TextField()
+    Description = models.TextField()
+    IsCountry = models.BooleanField()
+    IsAggregation = models.BooleanField()
+    IsContinent = models.BooleanField()
     class Meta:
         db_table = "Country"
 
@@ -41,12 +46,16 @@ class LastStage(models.Model):
 class IEAMW(models.Model):
     IEAMWID = models.PositiveSmallIntegerField(primary_key=True)
     IEAMW = models.TextField()
+    FullName = models.TextField()
+    Description = models.TextField()
     class Meta:
         db_table = "IEAMW"
 
 class IncludesNEU(models.Model):
     IncludesNEUID = models.PositiveSmallIntegerField(primary_key=True)
     IncludesNEU = models.BooleanField()
+    FullName = models.TextField()
+    Description = models.TextField()
     class Meta:
         db_table = "IncludesNEU"
 
@@ -55,12 +64,23 @@ class Year(models.Model):
     Year = models.PositiveSmallIntegerField()
     class Meta:
         db_table = "Year"
+        
+class AggLevel(models.Model):
+    AggLevelID = models.PositiveSmallIntegerField(primary_key=True)
+    AggLevel = models.TextField()
+    FullName = models.TextField()
+    Description = models.TextField()
+    class Meta:
+        db_table = "AggLevel"
 
 class matname(models.Model):
     matnameID = models.PositiveSmallIntegerField(primary_key=True)
     matname = models.TextField()
+    FullName = models.TextField()
+    Description = models.TextField()
     class Meta:
         db_table = "matname"
+
         
 class Index(models.Model):
     IndexID = models.PositiveSmallIntegerField(primary_key=True)
@@ -73,7 +93,7 @@ class PSUT(models.Model):
 
     # define meta attributes
     class Meta:
-        db_table = "PSUT"
+        db_table = "PSUTReAllChopAllDsAllGrAll"
 
     Dataset = models.PositiveSmallIntegerField()
     Country = models.PositiveSmallIntegerField()
@@ -83,6 +103,10 @@ class PSUT(models.Model):
     IEAMW = models.PositiveSmallIntegerField()
     IncludesNEU = models.PositiveSmallIntegerField()
     Year = models.PositiveSmallIntegerField()
+    ChoppedMat = models.PositiveSmallIntegerField()
+    ChoppedVar = models.PositiveSmallIntegerField()
+    ProductAggregation = models.PositiveSmallIntegerField()
+    IndustryAggregation = models.PositiveSmallIntegerField()
     matname = models.PositiveSmallIntegerField()
     i = models.PositiveSmallIntegerField()
     j = models.PositiveSmallIntegerField()
