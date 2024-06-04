@@ -5,26 +5,27 @@
   </head>
   <body>
     <h1>PSUT Data</h1>
+    <h2>{{ query }}</h2>
 
     {% if error %}
     <p>{{ error }}</p>
     {% else %}
     <ul>
       <h5>R</h5>
-      {% for row in psut_rows_r %}
-      <li>{{ row.i }}, {{ row.j }}, {{ row.x }}</li>
+      {% for row in r_mat.data %}
+      <li>{{ row }}</li>
       {% endfor %}
       <h5>U</h5>
-      {% for row in psut_rows_u %}
-      <li>{{ row.i }}, {{ row.j }}, {{ row.x }}</li>
+      {% for row in u_mat.data %}
+      <li>{{ row }}</li>
       {% endfor %}
       <h5>V</h5>
-      {% for row in psut_rows_v %}
-      <li>{{ row.i }}, {{ row.j }}, {{ row.x }}</li>
+      {% for row in v_mat.data %}
+      <li>{{ row }}</li>
       {% endfor %}
       <h5>Y</h5>
-      {% for row in psut_rows_y %}
-      <li>{{ row.i }}, {{ row.j }}, {{ row.x }}</li>
+      {% for row in y_mat.data %}
+      <li>{{ row }}</li>
       {% endfor %}
     </ul>
     {% endif %}

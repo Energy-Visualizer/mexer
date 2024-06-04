@@ -31,11 +31,11 @@ def get_matrix(
         ieamw: str,
         includes_neu: str,
         year: str,
-        choppedmat: str,
-        choppedvar: str,
-        productaggregation: str,
-        industryaggregation: str,
-        matrix_name,
+        chopped_mat: str,
+        chopped_var: str,
+        product_aggregation: str,
+        industry_aggregation: str,
+        matrix_name: str,
     ) -> csr_matrix:
     '''Collects, constructs, and returns one of the RUVY matrices
     
@@ -64,11 +64,11 @@ def get_matrix(
             IEAMW = Translator.ieamw_translate(ieamw),
             IncludesNEU = Translator.includesNEU_translate(includes_neu),
             Year = year,
-            ChoppedMat = Translator.matname_translate(choppedmat),
-            ChoppedVar = Translator.index_translate(choppedvar),
-            ProductAggregation = Translator.productaggregation_translate(productaggregation),
-            IndustryAggregation = Translator.productaggregation_translate(industryaggregation),
-            matname = matrix_name.value
+            ChoppedMat = Translator.matname_translate(chopped_mat),
+            ChoppedVar = Translator.index_translate(chopped_var),
+            ProductAggregation = Translator.agglevel_translate(product_aggregation),
+            IndustryAggregation = Translator.agglevel_translate(industry_aggregation),
+            matname = Translator.matname_translate(matrix_name)
         )
     )
 
@@ -80,7 +80,7 @@ def get_matrix(
     # All first values across the tupes are rows, second are columns, etc.
     row, col, val = zip(*sparse_matrix)
 
-    # TODO: remove
+    # TODO: move this to a better place
     temp_add_get()
 
     # Make and return the sparse matrix
@@ -104,7 +104,7 @@ class Translator():
     @staticmethod
     def index_translate(name: str)-> int:
         if Translator.__index_translations == None:
-            indexes = Index.objects.filter("IndexID", "Index").values_list()
+            indexes = Index.objects.values_list("IndexID", "Index")
             Translator.__index_translations = {name: id for id, name in indexes}
         
         return Translator.__index_translations[name]
@@ -112,7 +112,7 @@ class Translator():
     @staticmethod
     def dataset_translate(name: str)-> int:
         if Translator.__dataset_translations == None:
-            datasets = Dataset.objects.filter("DatasetID", "Dataset").values_list()
+            datasets = Dataset.objects.values_list("DatasetID", "Dataset")
             Translator.__dataset_translations = {name: id for id, name in datasets}
         
         return Translator.__dataset_translations[name]
@@ -120,7 +120,7 @@ class Translator():
     @staticmethod
     def country_translate(name: str)-> int:
         if Translator.__country_translations == None:
-            countries = Country.objects.filter("CountryID", "Country").values_list()
+            countries = Country.objects.values_list("CountryID", "Country")
             Translator.__country_translations = {name: id for id, name in countries}
         
         return Translator.__country_translations[name]
@@ -128,7 +128,7 @@ class Translator():
     @staticmethod
     def method_translate(name: str)-> int:
         if Translator.__method_translations == None:
-            methods = Method.objects.filter("MethodID", "Method").values_list()
+            methods = Method.objects.values_list("MethodID", "Method")
             Translator.__method_translations = {name: id for id, name in methods}
         
         return Translator.__method_translations[name]
@@ -136,7 +136,7 @@ class Translator():
     @staticmethod
     def energytype_translate(name: str)-> int:
         if Translator.__energytype_translations == None:
-            enerytpyes = EnergyType.objects.filter("EnergyTypeID", "EnergyType").values_list()
+            enerytpyes = EnergyType.objects.values_list("EnergyTypeID", "EnergyType")
             Translator.__energytype_translations = {name: id for id, name in enerytpyes}
         
         return Translator.__energytype_translations[name]
@@ -144,7 +144,7 @@ class Translator():
     @staticmethod
     def laststage_translate(name: str)-> int:
         if Translator.__laststage_translations == None:
-            laststages = LastStage.objects.filter("ECCStageID", "ECCStage").values_list()
+            laststages = LastStage.objects.values_list("ECCStageID", "ECCStage")
             Translator.__laststage_translations = {name: id for id, name in laststages}
         
         return Translator.__laststage_translations[name]
@@ -152,7 +152,7 @@ class Translator():
     @staticmethod
     def ieamw_translate(name: str)-> int:
         if Translator.__IEAMW_translations == None:
-            IEAMWs = IEAMW.objects.filter("IEAMWID", "IEAMW").values_list()
+            IEAMWs = IEAMW.objects.values_list("IEAMWID", "IEAMW")
             Translator.__IEAMW_translations = {name: id for id, name in IEAMWs}
         
         return Translator.__IEAMW_translations[name]
@@ -162,24 +162,21 @@ class Translator():
         return int(name)
     
     @staticmethod
-    def productaggregation_translate(name: str)-> int:
+    def agglevel_translate(name: str)-> int:
         if Translator.__productaggregation_translations == None:
-            productaggregations = matname.objects.filter("ProductAggregationID", "ProductAggregation").values_list("ProductAggregationID", "ProductAggregation")
+            productaggregations = AggLevel.objects.values_list("AggLevelID", "AggLevel")
             Translator.__productaggregation_translations = {name: id for id, name in productaggregations}
         
-        # TODO: this is backwards with col, row... figure out why this is happening
         return Translator.__productaggregation_translations[name]
     
     
     @staticmethod
     def matname_translate(name: str)-> int:
         if Translator.__matname_translations == None:
-            matnames = matname.objects.filter("matnameID", "matname").values_list("matnameID", "matname")
+            matnames = matname.objects.values_list("matnameID", "matname")
             Translator.__matname_translations = {name: id for id, name in matnames}
         
         return Translator.__matname_translations[name]
-        
-    # TODO: add RUVY matrix translation
 
 # TODO: scrap this?
 class RUVY_Matrix(csr_matrix):
