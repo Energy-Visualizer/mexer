@@ -12,23 +12,86 @@ import plotly.express as px
 import pandas.io.sql as pd_sql
 
 # TODO: this is temp
+from random import choice
 @time_view
 def get_psut_data(request):
     
-    query = dict(
-        dataset="CLPFUv2.0a2",
-        country="BGR",
-        method="PCM",
-        energy_type="X",
-        last_stage="Useful",
-        ieamw="IEA",
-        includes_neu=True,
-        year=2016,
+    query0 = dict(
+        dataset = "CLPFUv2.0a2",
+        country = "KEN",
+        method = "PCM",
+        energy_type = "E",
+        last_stage = "Final",
+        ieamw = "Both",
+        includes_neu = False,
+        year = 1985,
+        chopped_mat = "None",
+        chopped_var = "None",
+        product_aggregation = "Specified",
+        industry_aggregation = "Specified"
+    )
+
+    query1 = dict(
+        dataset = "CLPFUv2.0a2",
+        country = "FRA",
+        method = "PCM",
+        energy_type = "E",
+        last_stage = "Useful",
+        ieamw = "Both",
+        includes_neu = False,
+        year = 1985,
+        chopped_mat = "None",
+        chopped_var = "None",
+        product_aggregation = "Despecified",
+        industry_aggregation = "Despecified"
+    )
+
+    query2 = dict(
+        dataset = "CLPFUv2.0a2",
+        country = "LTU",
+        method = "PCM",
+        energy_type = "E",
+        last_stage = "Useful",
+        ieamw = "IEA",
+        includes_neu = False,
+        year = 2019,
+        chopped_mat = "None",
+        chopped_var = "None",
+        product_aggregation = "Despecified",
+        industry_aggregation = "Despecified"
+    )
+
+    query3 = dict(
+        dataset = "CLPFUv2.0a2",
+        country = "JAM",
+        method = "PCM",
+        energy_type = "X",
+        last_stage = "Final",
+        ieamw = "Both",
+        includes_neu = False,
+        year = 2002,
         chopped_mat = "None",
         chopped_var = "None",
         product_aggregation = "Grouped",
         industry_aggregation = "Despecified"
     )
+
+    query4 = dict(
+        dataset = "CLPFUv2.0a2",
+        country = "UnDEU",
+        method = "PCM",
+        energy_type = "X",
+        last_stage = "Useful",
+        ieamw = "IEA",
+        includes_neu = True,
+        year = 1961,
+        chopped_mat = "None",
+        chopped_var = "None",
+        product_aggregation = "Despecified",
+        industry_aggregation = "Despecified"
+    )
+
+    query = choice([query0, query1, query2, query3, query4])
 
     rows_r = get_matrix(**query, matrix_name="R")
 
@@ -37,7 +100,6 @@ def get_psut_data(request):
     rows_v = get_matrix(**query, matrix_name="V")
     
     rows_y = get_matrix(**query, matrix_name="Y")
-    
     
     context = {
         "query": query,
