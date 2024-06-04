@@ -9,6 +9,7 @@ class Dataset(models.Model):
 
     class Meta:
         db_table = "Dataset"
+        managed = False
         
 class Country(models.Model):
     CountryID = models.PositiveSmallIntegerField(primary_key=True)
@@ -20,6 +21,7 @@ class Country(models.Model):
     IsContinent = models.BooleanField()
     class Meta:
         db_table = "Country"
+        managed = False
 
 class Method(models.Model):
     MethodID = models.PositiveSmallIntegerField(primary_key=True)
@@ -28,6 +30,7 @@ class Method(models.Model):
     Description = models.TextField()
     class Meta:
         db_table = "Method"
+        managed = False
     
 class EnergyType(models.Model):
     EnergyTypeID = models.PositiveSmallIntegerField(primary_key=True)
@@ -36,6 +39,7 @@ class EnergyType(models.Model):
     Description = models.TextField()
     class Meta:
         db_table = "EnergyType"
+        managed = False
 
 class LastStage(models.Model):
     ECCStageID = models.PositiveSmallIntegerField(primary_key=True)
@@ -44,6 +48,7 @@ class LastStage(models.Model):
     Description = models.TextField()
     class Meta:
         db_table = "ECCStage"
+        managed = False
     
 class IEAMW(models.Model):
     IEAMWID = models.PositiveSmallIntegerField(primary_key=True)
@@ -52,6 +57,7 @@ class IEAMW(models.Model):
     Description = models.TextField()
     class Meta:
         db_table = "IEAMW"
+        managed = False
 
 class IncludesNEU(models.Model):
     IncludesNEUID = models.PositiveSmallIntegerField(primary_key=True)
@@ -60,12 +66,14 @@ class IncludesNEU(models.Model):
     Description = models.TextField()
     class Meta:
         db_table = "IncludesNEU"
+        managed = False
 
 class Year(models.Model):
     YearID = models.PositiveSmallIntegerField(primary_key=True)
     Year = models.PositiveSmallIntegerField()
     class Meta:
         db_table = "Year"
+        managed = False
         
 class AggLevel(models.Model):
     AggLevelID = models.PositiveSmallIntegerField(primary_key=True)
@@ -74,6 +82,7 @@ class AggLevel(models.Model):
     Description = models.TextField()
     class Meta:
         db_table = "AggLevel"
+        managed = False
 
 class matname(models.Model):
     matnameID = models.PositiveSmallIntegerField(primary_key=True)
@@ -82,6 +91,7 @@ class matname(models.Model):
     Description = models.TextField()
     class Meta:
         db_table = "matname"
+        managed = False
 
         
 class Index(models.Model):
@@ -89,6 +99,7 @@ class Index(models.Model):
     Index = models.TextField()
     class Meta:
         db_table = "Index"
+        managed = False
         
 
 class PSUT(models.Model):
@@ -96,6 +107,7 @@ class PSUT(models.Model):
     # define meta attributes
     class Meta:
         db_table = "PSUTReAllChopAllDsAllGrAll"
+        managed = False
 
     Dataset = models.PositiveSmallIntegerField()
     Country = models.PositiveSmallIntegerField()
@@ -118,7 +130,8 @@ class PSUT(models.Model):
 class AggEtaPFU(models.Model):
 
     class Meta:
-        db_table = "AggEtaPFU"
+        db_table = "AggEtaPFU",
+        managed = False
 
     Dataset = models.PositiveSmallIntegerField()
     Country = models.PositiveSmallIntegerField()
@@ -139,3 +152,5 @@ class AggEtaPFU(models.Model):
     etapf = models.FloatField()
     etafu = models.FloatField()
     etapu = models.FloatField()
+    
+

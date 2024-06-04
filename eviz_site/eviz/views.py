@@ -1,10 +1,13 @@
 # Django imports
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 # Eviz imports
 from eviz.tests import test_matrix_sum
 from eviz.utils import time_view, get_matrix, Translator
 from eviz.models import PSUT, AggEtaPFU
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login, logout 
+from .forms import SignupForm, LoginForm
 
 # Visualization imports
 from plotly.offline import plot
@@ -108,3 +111,52 @@ def temp_viz(request):
     p = plot([scatterplot], output_type="div", include_plotlyjs="cdn")
     
     return render(request, "viz.html", context={"plot":p})
+
+# def signup(request):
+#     if request.method == 'POST':
+#         email= request.POST['email']
+#         password = request.POST['password']
+
+#         user = User.objects.db_manager('users').create_user(password=password, email=email)
+#         user.save(using='users')
+#         return redirect('temp_viz')
+#     return render(request, 'sign_up.html')
+
+def index(request):
+    return render(request, 'index.html')
+def user_signup(request):
+    if request.method == 'POST':
+        form = SignupForm(request.POST)
+        if form.is_valid():
+            instance =form.save(commit=False)
+            instance.save(using='users')
+            return redirect('login')
+    else:
+        form = SignupForm()
+    return render(request, 'signup.html', {'form': form})
+
+# login page
+def user_login(request):
+    if request.method == 'POST':
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            user = authenticate(request, username=username, password=password)
+            if user:
+                login(request, user)    
+                return redirect('home')
+    else:
+        form = LoginForm()
+    return render(request, 'login.html', {'form': form})
+
+# logout page
+def user_logout(request):
+    logout(request)
+    return redirect('login')
+
+# def account(request):
+#     user = User.objects.db_manager('users').create_user(username="username", password="password", email="email", first_name="first_name", last_name="last_name")
+#     user.save(using='users')
+#     new_user=User.objects.values("email")
+#     return render(request, "register.html", context={"new_user": new_user})
