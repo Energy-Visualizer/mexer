@@ -1,6 +1,5 @@
 from time import time
-from enum import Enum
-from eviz.models import PSUT, Index, Dataset, Country, Method, EnergyType, LastStage, IEAMW, IncludesNEU, matname, AggLevel
+from eviz.models import PSUT, Index, Dataset, Country, Method, EnergyType, LastStage, IEAMW, matname, AggLevel
 from scipy.sparse import csr_matrix, csc_matrix
 
 def time_view(v):
@@ -177,31 +176,6 @@ class Translator():
             Translator.__matname_translations = {name: id for id, name in matnames}
         
         return Translator.__matname_translations[name]
-
-# TODO: scrap this?
-class RUVY_Matrix(csr_matrix):
-
-    def __getitem__(self, key):
-        ''' Gets an item from a RUVY matrix
-        
-        Use is matrix["row_name", "col_name"] or matrix[row_number, col_number]
-
-        Inputs:
-            key, tuple: a 2-tuple denoting the desired row name or number followed by the column name or number
-
-        Outputs:
-            the value at that key in the cooresponding RUVY matrix
-        '''
-        
-        if type(key) != tuple[str | int] or len(key) != 2:
-            raise ValueError("Getting item from RUVY matrix must be as follows: matrix['row_name', 'column_name'] or matrix[row_number, col_number]")
-
-        # if key is strings, translate it first
-        if type(key[0]) == str:
-            return super()[Translator.index_translate(key[0]), Translator.index_translate(key[1])]
-        
-        # if key is an integer, run as normal
-        return super()[key[0], key[1]]
     
 def temp_add_get():
 
@@ -216,3 +190,30 @@ def temp_add_get():
     if not hasattr(csr_matrix, "get"): csr_matrix.get = mat_get
     
     if not hasattr(csc_matrix, "get"): csc_matrix.get = mat_get
+
+
+# Silent context manager
+from os import devnull # for silencing stdout warnings (pandas using psycopg2 connection right now)
+import sys
+
+class Silent():
+    '''Used as a context manager to silence anything in its block'''
+
+    real_stdout = sys.stdout
+    real_stderr = sys.stderr
+    instance = None
+
+    def __new__(cls):
+        if cls.instance == None:
+            cls.instance = super().__new__(cls)
+        return cls.instance
+    
+    def __enter__(self):
+        self.dn = open(devnull, "w")
+        sys.stdout = self.dn
+        sys.stderr = self.dn
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        self.dn.close()
+        sys.stdout = self.real_stdout
+        sys.stderr = self.real_stderr

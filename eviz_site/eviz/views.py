@@ -3,12 +3,11 @@ from django.shortcuts import render
 from django.db import connection # for low-level psycopg2 connection. to access other db connections, import connections
 
 # Eviz imports
-from eviz.utils import time_view, get_matrix, Translator
-from eviz.models import PSUT, AggEtaPFU
+from eviz.utils import time_view, get_matrix, Silent
+from eviz.models import AggEtaPFU
 
 # Visualization imports
 from plotly.offline import plot
-import plotly.graph_objects as pgo
 import plotly.express as px
 import pandas.io.sql as pd_sql
 
@@ -54,8 +53,6 @@ def get_psut_data(request):
 @time_view
 def temp_viz(request):
 
-    # REQUIRES ALPHA 2!
-
     agg_query = AggEtaPFU.objects.filter(
         Dataset = 3,
         Country = 5,
@@ -69,10 +66,11 @@ def temp_viz(request):
         ProductAggregation = 1,
         IndustryAggregation = 1,
         GrossNet = 1
-    ).values_list("Year", "EXp", "EXf", "EXu", "etapf", "etafu", "etapu").query
+    ).values("Year", "EXp", "EXf", "EXu", "etapf", "etafu", "etapu").query
 
     # TODO: pandas only defines support for SQLAlechemy connection, it currently works with psycopg2, but could be dangerous
-    df = pd_sql.read_sql_query(str(agg_query), con=connection.cursor().connection) # clunky, but gives access to the low-level psycopg2 connection
+    with Silent():
+        df = pd_sql.read_sql_query(str(agg_query), con=connection.cursor().connection) # clunky, but gives access to the low-level psycopg2 connection
 
     scatterplot = px.scatter(
         df, x = "Year", y = "etapu",
