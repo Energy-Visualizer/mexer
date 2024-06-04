@@ -3,7 +3,6 @@ from django.shortcuts import render
 from django.db import connection # for low-level psycopg2 connection. to access other db connections, import connections
 
 # Eviz imports
-from eviz.tests import test_matrix_sum
 from eviz.utils import time_view, get_matrix, Translator
 from eviz.models import PSUT, AggEtaPFU
 
@@ -51,44 +50,13 @@ def get_psut_data(request):
 
     return render(request, "./test.html", context)
 
-# TODO: hide this test
-@time_view
-def la_extraction(request):
-
-    # TODO: broken after moving to a2
-    test_mat_context = {
-        "dataset": "CLPFUv2.0a1",
-        "country": "GHA",
-        "method": "PCM",
-        "energy_type": "E",
-        "last_stage": "Final",
-        "ieamw": "Both",
-        "includes_neu": True,
-        "year": 1995,
-    }
-
-    u = get_matrix(
-        **test_mat_context
-    )
-    v = get_matrix(
-        **test_mat_context
-    )
-
-    sum = u.T + v
-
-    s = str(sum).splitlines()
-
-    context = { "passed": test_matrix_sum(sum), "sum": s }
-
-    return render(request, "./la_extract.html", context)
-
 # TODO: this is temp
 @time_view
 def temp_viz(request):
 
     # REQUIRES ALPHA 2!
 
-    agg_data = AggEtaPFU.objects.filter(
+    agg_query = AggEtaPFU.objects.filter(
         Dataset = 3,
         Country = 5,
         Method = 1,
@@ -101,10 +69,10 @@ def temp_viz(request):
         ProductAggregation = 1,
         IndustryAggregation = 1,
         GrossNet = 1
-    ).values_list("Year", "EXp", "EXf", "EXu", "etapf", "etafu", "etapu")
+    ).values_list("Year", "EXp", "EXf", "EXu", "etapf", "etafu", "etapu").query
 
     # TODO: pandas only defines support for SQLAlechemy connection, it currently works with psycopg2, but could be dangerous
-    df = pd_sql.read_sql_query(str(agg_data.query), con=connection.cursor().connection) # clunky, but gives access to the low-level psycopg2 connection
+    df = pd_sql.read_sql_query(str(agg_query), con=connection.cursor().connection) # clunky, but gives access to the low-level psycopg2 connection
 
     scatterplot = px.scatter(
         df, x = "Year", y = "etapu",
