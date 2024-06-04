@@ -1,5 +1,6 @@
 # Django imports
 from django.shortcuts import render
+from django.db import connection # for low-level psycopg2 connection. to access other db connections, import connections
 
 # Eviz imports
 from eviz.tests import test_matrix_sum
@@ -9,6 +10,8 @@ from eviz.models import PSUT, AggEtaPFU
 # Visualization imports
 from plotly.offline import plot
 import plotly.graph_objects as pgo
+import plotly.express as px
+import pandas.io.sql as pd_sql
 
 # TODO: this is temp
 @time_view
@@ -100,11 +103,16 @@ def temp_viz(request):
         GrossNet = 1
     ).values_list("Year", "EXp", "EXf", "EXu", "etapf", "etafu", "etapu")
 
-    year, exp, exf, exu, etapf, etafu, etapu = zip(*agg_data)
+    # TODO: pandas only defines support for SQLAlechemy connection, it currently works with psycopg2, but could be dangerous
+    df = pd_sql.read_sql_query(str(agg_data.query), con=connection.cursor().connection) # clunky, but gives access to the low-level psycopg2 connection
 
-    scatterplot = pgo.Scatter(x=year,y=etapu)
+    scatterplot = px.scatter(
+        df, x = "Year", y = "etapu",
+        title="Efficiency of primary to useful by year for random query",
+        template="plotly_dark"
+    )
     
     # idea for visualization rendering from this site: https://www.codingwithricky.com/2019/08/28/easy-django-plotly/
-    p = plot([scatterplot], output_type="div", include_plotlyjs="cdn")
+    p = plot(scatterplot, output_type="div", include_plotlyjs="cdn")
     
     return render(request, "viz.html", context={"plot":p})
