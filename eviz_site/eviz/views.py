@@ -112,24 +112,14 @@ def temp_viz(request):
     
     return render(request, "viz.html", context={"plot":p})
 
-# def signup(request):
-#     if request.method == 'POST':
-#         email= request.POST['email']
-#         password = request.POST['password']
-
-#         user = User.objects.db_manager('users').create_user(password=password, email=email)
-#         user.save(using='users')
-#         return redirect('temp_viz')
-#     return render(request, 'sign_up.html')
-
 def index(request):
     return render(request, 'index.html')
+
 def user_signup(request):
     if request.method == 'POST':
         form = SignupForm(request.POST)
         if form.is_valid():
-            instance =form.save(commit=False)
-            instance.save(using='users')
+            instance =form.save()
             return redirect('login')
     else:
         form = SignupForm()
