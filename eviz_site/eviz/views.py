@@ -16,7 +16,7 @@ import pandas.io.sql as pd_sql
 @time_view
 def index(request):
 
-    return render(request, "index.html", context={})
+    return render(request, "index.html")
 
 
 # TODO: this is temp
@@ -188,5 +188,5 @@ def user_logout(request):
 
 from django.conf import settings
 def handle_css_static(request, filepath):
-    with open(f"{settings.STATICFILES_DIRS[0]}/{filepath}", "rb") as f:
+    with open(f"{settings.STATICFILES_DIRS[1]}/{filepath}", "rb") as f:
         return HttpResponse(f.read(), headers = {"Content-Type": "text/css"})
