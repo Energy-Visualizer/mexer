@@ -13,6 +13,12 @@ from plotly.offline import plot
 import plotly.express as px
 import pandas.io.sql as pd_sql
 
+@time_view
+def index(request):
+
+    return render(request, "index.html", context={})
+
+
 # TODO: this is temp
 from random import choice
 @time_view
