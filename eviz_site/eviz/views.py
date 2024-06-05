@@ -1,5 +1,5 @@
 # Django imports
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, HttpResponse
 from django.db import connection # for low-level psycopg2 connection. to access other db connections, import connections
 from django.contrib.auth import authenticate, login, logout 
 
@@ -185,3 +185,8 @@ def user_login(request):
 def user_logout(request):
     logout(request)
     return redirect('login')
+
+from django.conf import settings
+def handle_css_static(request, filepath):
+    with open(f"{settings.STATICFILES_DIRS[0]}/{filepath}", "rb") as f:
+        return HttpResponse(f.read(), headers = {"Content-Type": "text/css"})
