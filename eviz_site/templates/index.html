@@ -1,16 +1,36 @@
-<head><link rel="stylesheet" href="../static/css/index.css" type="text/css"/></head>
+<head>
+  <link rel="stylesheet" href="../static/css/index.css" type="text/css"/>
+  <link rel="stylesheet" href="../static/css/toolbar.css" type="text/css"/>
+</head>
 
 <body>
+
   <div class="topbar">
     <div class="left">
-      <a class="main">EVIZ</a>
+      <a class="main" href="{% url 'home' %}">EVIZ</a>
     </div>
     <div class="right">
       <a class="links" href="{% url 'viz' %}">Vizualizer</a>
       <a class="links">About</a>
-      <a class="links">Sign In</a>
+      <a class="links" href="{% url 'login' %}">Sign In</a>
     </div>
   </div>
 
-  Welcome to EVIZ!
+  <h1>Welcome to EVIZ</h1>
+  <h2>Energy Visualizer</h2>
+
+  <div class="center-item">
+    <a href="{% url 'viz' %}">
+      <button id="get-started" >Get Started</button>
+    </a>
+  </div>
+
+  <h3>What is EVIZ?</h3>
+  <div class="center-item">
+    <div class="highlight">
+    <p>
+      EVIZ (short for <b>E</b>nergy <b>Vis</b>ualizer) is a website made to allow users the freedom to explore questions related to the energy story.
+    </p>
+    </div>
+  </div>
 </body>

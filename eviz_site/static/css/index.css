@@ -1,85 +1,78 @@
-body,
-html {
+body {
     margin: 0;
     padding: 0;
-    width: 100%;
-    height: 100%;
-}
-
-.topbar {
-    background-color: #393e46;
-    overflow: hidden;
-    justify-content: space-between;
-    align-items: center;
-    box-sizing: border-box;
-    width: 100%;
-    display: flex;
-}
-
-.topbar .left {
-    display: flex;
-    align-items: center;
-}
-
-.topbar .right {
-    display: flex;
-    align-items: center;
-}
-
-.topbar a {
     font-family: Arial, Helvetica, sans-serif;
+    background-color: #afcdcf;
+}
+
+h1 {
     text-align: center;
-    padding: 15px;
-    width: 75px;
-    color: #00adb5;
-    text-decoration: none;
+    margin-bottom: 0%;
+    font-size: 75px;
 }
 
-.topbar a.main {
+h2 {
+    text-align: center;
+    margin-top: 0%;
+    margin-bottom: 5%;
+    font-size: 35px;
+}
+
+h3 {
+    text-align: center;
     font-size: 30px;
-    text-align: left;
-    padding: 15px 0;
+    margin-top: 5%;
 }
 
-.content {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    height: calc(100vh - 60px);
-    /* Adjust based on topbar height */
-    padding: 20px;
+p {
+    display: inline-block;
+    width: 80%;
+    font-size: 25px;
 }
 
-.login-box {
-    background-color: #f1f1f1;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    width: 300px;
+.center-item {
+    text-align: center;
 }
 
-.login-box h2 {
-    margin-top: 0;
+.highlight:hover {
+    background-color: #393E46;
+    color: #00ADB5;
 }
 
-.login-box input {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+.highlight {
+    color: #393E46;
+    background-color: #97c8ca;
+    width: 50%;
+    display: inline-block;
+    transition: background-color 1s ease, color 1s ease;
+    box-shadow: #393E46 0px 0px 10px;
+    border-radius: 20px;
 }
 
-.login-box button {
-    width: 100%;
-    padding: 10px;
-    background-color: #00adb5;
-    color: white;
-    border: none;
-    border-radius: 4px;
+
+#get-started {
+    background-color: #00ADB5;
+    border-radius: 30px;
+    border-width: 0;
+    color: #e3e7ee;
     cursor: pointer;
+    font-size: 80px;
+    height: 15%;
+    width: 30%;
+    box-shadow: 50px 100px #393E46;
+
+    /* shine */
+    mask-image: linear-gradient(45deg, #000 25%, rgba(0, 0, 0, .2) 50%, #000 75%);
+    mask-size: 500%;
+    mask-position: 0;
 }
 
-.login-box button:hover {
-    background-color: #007a7e;
+#get-started:hover {
+    transition: mask-position 1.5s ease,-webkit-mask-position 1.5s ease;
+    mask-position: 120%;
+    opacity: 1;
+}
+
+#get-started:active {
+    box-shadow: inset 0px 0px 5px #c1c1c1;
 }
