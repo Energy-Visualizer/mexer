@@ -130,7 +130,7 @@ class PSUT(models.Model):
 class AggEtaPFU(models.Model):
 
     class Meta:
-        db_table = "AggEtaPFU",
+        db_table = "AggEtaPFU"
         managed = False
 
     Dataset = models.PositiveSmallIntegerField()
