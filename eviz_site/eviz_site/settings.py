@@ -82,8 +82,17 @@ DATABASES = {
             # All other information provided through environment variables
             # PGSERVICEFILE and PGPASSFILE
         }
+    },
+    'users': {
+        'ENGINE': 'django.db.backends.postgresql',
+        "OPTIONS":{
+            "service": "users"
+        }
     }
+
 }
+
+DATABASE_ROUTERS = ["eviz.routers.DatabaseRouter"]
 
 
 # Password validation
