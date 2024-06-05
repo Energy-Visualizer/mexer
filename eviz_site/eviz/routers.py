@@ -2,16 +2,16 @@ class DatabaseRouter:
 
     def db_for_read(self, model, **hints):
 
-        # specifically for user db
-        if model.__name__ == "User":
+        # everything for user auth
+        if model._meta.app_label in ["auth", "sessions"]:
             return "users"
         return None # None will go to default db
 
 
     def db_for_write(self, model, **hints):
 
-        # specifically for user db
-        if model.__name__ == "User":
+        # everything for user auth
+        if model._meta.app_label in ["auth", "sessions"]:
             return "users"
         return None # None will go to default db
 
