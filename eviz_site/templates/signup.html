@@ -15,11 +15,12 @@
     </div>
   </div>
   <div class="content">
-    <div class="image-container">
-      <img src="../static/images/imag.png" alt="Image Description" />
+    <div class="energy-visulizer">
+      <h1>Energy Visualizer</h1>
+        <p>Discover how energy flows and transforms with our powerful visualization tools.</p>
     </div>
     <div class="login-box">
-      <h1>Signup</h1>
+      <h1>Sign up</h1>
       <form method="POST">
         {% csrf_token %}
         <div class="form-group">
@@ -31,9 +32,11 @@
         <div class="form-group">
           {{ form.password2.label_tag }} {{ form.password2 }}
         </div>
-        <button type="submit">Signup</button>
+        <button type="submit">Sign up</button>
         <p>Already have account? <a href="{% url 'login' %}">Log In</a></p>
       </form>
     </div>
   </div>
+<div>
+  <h2> 
 </body>
