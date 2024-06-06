@@ -44,7 +44,7 @@ p {
     background-color: #97c8ca;
     width: 50%;
     display: inline-block;
-    transition: background-color 1s ease, color 1s ease;
+    transition: background-color 0.5s ease, color 1s ease;
     box-shadow: #393E46 0px 0px 10px;
     border-radius: 20px;
 }
@@ -74,5 +74,5 @@ p {
 }
 
 #get-started:active {
-    box-shadow: inset 0px 0px 5px #c1c1c1;
+    filter: contrast(150%);
 }
