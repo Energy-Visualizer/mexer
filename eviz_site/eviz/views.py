@@ -155,6 +155,8 @@ def temp_viz(request):
 
 def index(request):
     return render(request, 'index.html')
+def about(request):
+    return render(request, 'about.html')
 
 def user_signup(request):
     if request.method == 'POST':
