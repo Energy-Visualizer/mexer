@@ -1,7 +1,8 @@
 # Django imports
 from django.shortcuts import render, redirect, HttpResponse
 from django.db import connection # for low-level psycopg2 connection. to access other db connections, import connections
-from django.contrib.auth import authenticate, login, logout 
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 
 # Eviz imports
 from eviz.utils import time_view, get_matrix, Silent
@@ -120,6 +121,7 @@ def get_psut_data(request):
     return render(request, "./test.html", context)
 
 # TODO: this is temp
+@login_required(login_url="/login")
 @time_view
 def temp_viz(request):
 
