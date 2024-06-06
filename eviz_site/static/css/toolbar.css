@@ -1,3 +1,11 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    width: 100%;
+    background-color: #afcdcf
+}
+
 .topbar {
     background-color: #393e46;
     overflow: hidden;

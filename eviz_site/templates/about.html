@@ -1,17 +1,17 @@
 <head>
   <title>Eviz About</title>
-  <link rel="stylesheet" href="../static/css/index.css" type="text/css" />
+  <link rel="stylesheet" href="../static/css/toolbar.css" type="text/css" />
   <link rel="stylesheet" href="../static/css/about.css" type="text/css" />
 </head>
 <body>
   <div class="topbar">
     <div class="left">
-      <a class="main">EVIZ</a>
+      <a class="main" href="{% url 'home' %}">EVIZ</a>
     </div>
     <div class="right">
-      <a class="links" href="index.html">Visualizer</a>
-      <a class="links" href="about.html">About</a>
-      <a class="links" href="signin.html">Sign In</a>
+      <a class="links" href="{% url 'viz' %}">Visualizer</a>
+      <!-- <a class="links" href="{% url 'about' %}">About</a> -->
+      <a class="links" href="{% url 'login' %}">Sign In</a>
     </div>
   </div>
 
