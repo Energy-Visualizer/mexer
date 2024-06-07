@@ -11,7 +11,7 @@
       <a class="main" href="{% url 'home' %}">EVIZ</a>
     </div>
     <div class="right">
-      <a class="links" href="{% url 'viz' %}">Vizualizer</a>
+      <a class="links" href="{% url 'visualizer' %}">Vizualizer</a>
       <a class="links" href="{% url 'about' %}" >About</a>
       {% if request.user.is_authenticated %}
       <a class="links" href="{% url 'logout' %}">Sign Out</a>
@@ -35,7 +35,7 @@
     
 
     <div class="center-item">
-      <a href="{% url 'viz' %}">
+      <a href="{% url 'visualizer' %}">
         <button id="get-started">Get Started</button>
       </a>
     </div>

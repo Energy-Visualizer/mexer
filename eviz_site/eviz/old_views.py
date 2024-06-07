@@ -32,3 +32,35 @@
 #     context = { "passed": test_matrix_sum(sum), "sum": s }
 
 #     return render(request, "./la_extract.html", context)
+
+# def visualizer(request):
+
+#     agg_query = AggEtaPFU.objects.filter(
+#         Dataset = 3,
+#         Country = 5,
+#         Method = 1,
+#         EnergyType = 2,
+#         LastStage = 2,
+#         IEAMW = 1,
+#         IncludesNEU = 0,
+#         ChoppedMat = 28,
+#         ChoppedVar = 2728,
+#         ProductAggregation = 1,
+#         IndustryAggregation = 1,
+#         GrossNet = 1
+#     ).values("Year", "EXp", "EXf", "EXu", "etapf", "etafu", "etapu").query
+
+#     # TODO: pandas only defines support for SQLAlechemy connection, it currently works with psycopg2, but could be dangerous
+#     with Silent():
+#         df = pd_sql.read_sql_query(str(agg_query), con=connection.cursor().connection) # clunky, but gives access to the low-level psycopg2 connection
+
+#     scatterplot = px.scatter(
+#         df, x = "Year", y = "etapu",
+#         title="Efficiency of primary to useful by year for random query",
+#         template="plotly_dark"
+#     )
+    
+#     # idea for visualization rendering from this site: https://www.codingwithricky.com/2019/08/28/easy-django-plotly/
+#     p = plot(scatterplot, output_type="div", include_plotlyjs="cdn")
+    
+#     return render(request, "viz.html", context={"plot":p})
