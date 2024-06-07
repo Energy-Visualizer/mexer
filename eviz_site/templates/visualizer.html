@@ -1,14 +1,110 @@
-<h1>Test Vizualization</h1>
+<head>
+    <link rel="stylesheet" href="../static/css/toolbar.css" type="text/css" />
+    <link rel="stylesheet" href="../static/css/visualizer.css" type="text/css" />
+</head>
 
-<p>
-From dataset
-<select>
-    <option value="CLPFUv2.0a2">CLPFUv2.0a2</option>
-</select>
-get country
-<select>
-    <option value="GHA">GHA</option>
-</select>
-</p>
+<body>
+    <div class="topbar">
+        <div class="left">
+            <a class="main" href="{% url 'home' %}">EVIZ</a>
+        </div>
+        <div class="right">
+            <!-- <a class="links" href="{% url 'visualizer' %}">Visualizer</a> -->
+            <a class="links" href="{% url 'about' %}">About</a>
+            {% if request.user.is_authenticated %}
+            <a class="links" href="{% url 'logout' %}">Sign Out</a>
+            {% else %}
+            <a class="links" href="{% url 'login' %}">Sign In</a>
+            {% endif %}
+        </div>
+    </div>
+    <svg viewBox="0 0 500 10" preserveAspectRatio="xMinYMin meet">
+        <path d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z" style="stroke: none; fill:#393E46;"></path>
+    </svg>
 
-{{ plot|safe }}
+    <form method="post">
+    {% csrf_token %}
+    <p>
+        From dataset
+        <select name="dataset" required>
+            {% for dataset in datasets %}
+            <option value="{{ dataset }}">{{ dataset }}</option>
+            {% endfor %}
+        </select>
+        get country
+        <select name="country" required>
+            {% for country in countries %}
+            <option value="{{ country }}">{{ country }}</option>
+            {% endfor %}
+        </select>
+    </p>
+    <p>
+        Selected by method
+        <select name="method">
+            <option value selected hidden>Please select something</option>
+            {% for method in methods %}
+            <option value="{{ method }}">{{ method }}</option>
+            {% endfor %}
+        </select>
+    </p>
+    <p>
+        For energy type
+        <select name="energy_type">
+            <option value selected hidden>Please select something</option>
+            {% for energy_type in energy_types %}
+            <option value="{{ energy_type }}">{{ energy_type }}</option>
+            {% endfor %}
+        </select>
+    </p>
+    <p>
+        To last stage
+        <select name="last_stage">
+            <option value selected hidden>Please select something</option>
+            {% for last_stage in last_stages %}
+            <option value="{{ last_stage }}">{{ last_stage }}</option>
+            {% endfor %}
+        </select>
+    </p>
+    <p>
+        With IEAMW
+        <select name="ieamw">
+            <option value selected hidden>Please select something</option>
+            {% for ieamw in ieamws %}
+            <option value="{{ ieamw }}">{{ ieamw }}</option>
+            {% endfor %}
+        </select>
+    </p>
+    <p>
+        Including NEU
+        <select name="includes_neu">
+            <option value selected hidden>Please select something</option>
+            {% for includes_neu in includes_neus %}
+            <option value="{{ includes_neu }}">{{ includes_neu }}</option>
+            {% endfor %}
+        </select>
+    </p>
+    <p>
+        For year(s)
+        <select name="year">
+            <option value selected hidden>Please select something</option>
+            {% for year in years %}
+            <option value="{{ year }}">{{ year }}</option>
+            {% endfor %}
+        </select>
+    </p>
+    <p>
+        Matrix
+        <select name="matname">
+            <option value selected hidden>Please select something</option>
+            {% for matname in matnames %}
+            <option value="{{ matname }}">{{ matname }}</option>
+            {% endfor %}
+        </select>
+    </p>
+    <button type="submit">GET</button>
+    </form>
+
+    <div id="plot-section">
+        {{ plot|safe }}
+    </div>
+</body>
