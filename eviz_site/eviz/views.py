@@ -166,11 +166,15 @@ def user_signup(request):
     return render(request, 'signup.html', {'form': form})
 
 def user_login(request):
-    
     # for if a user is stopped and asked to log in first
     if request.method == 'GET':
         # get where they were trying to go
         requested_url = request.GET.get("next", None)
+        if requested_url:
+            request.session['requested_url'] = requested_url
+        else:
+            request.session['requested_url'] = None
+        form = LoginForm()
 
     # for if the user submitted their login form
     if request.method == 'POST':
@@ -183,7 +187,9 @@ def user_login(request):
             # if user was successfully authenticated
             if user:
                 login(request, user)
+                requested_url = request.session.get('requested_url')
                 if requested_url: # if user was trying to go somewhere else originally
+                    request.session['requested_url'] = None
                     return redirect(requested_url)
                 # else just send them to the home page
                 return redirect('home')
