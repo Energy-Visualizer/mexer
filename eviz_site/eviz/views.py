@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 
 # Eviz imports
-from eviz.utils import time_view, get_matrix, Silent, Translator
+from eviz.utils import time_view, get_matrix, Silent, Translator, get_matrix_from_post_request
 from eviz.models import AggEtaPFU
 from eviz.forms import SignupForm, LoginForm
 
@@ -122,9 +122,27 @@ def get_psut_data(request):
 @time_view
 def visualizer(request):
 
+    mat = "" # empty string for displaying purposes, should be thought of as None
+    if request.method == "POST":
+        mat = get_matrix_from_post_request(request)
+        if mat == None: mat = "No cooresponding data"
+
     datasets = Translator.get_datasets()
+    countries = list(Translator.get_countries())
+    countries.sort()
+    methods = Translator.get_methods()
+    energy_types = Translator.get_energytypes()
+    last_stages = Translator.get_laststages()
+    ieamws = Translator.get_ieamws()
+    includes_neus = Translator.get_includesNEUs()
+    years = range(1800,2021)
+    matnames = list(Translator.get_matnames())
+    matnames.sort(key=len) # sort matrix names by how long they are... seems reasonable
     
-    context = {"datasets":datasets}
+    context = {"datasets":datasets, "countries":countries, "methods":methods,
+            "energy_types":energy_types, "last_stages":last_stages, "ieamws":ieamws,
+            "includes_neus":includes_neus, "years":years, "matnames":matnames, "plot":mat
+            }
 
     return render(request, "visualizer.html", context)
 

@@ -34,19 +34,53 @@ def get_matrix(
         chopped_var: str,
         product_aggregation: str,
         industry_aggregation: str,
-        matrix_name: str,
+        matname: str,
     ) -> csr_matrix:
     '''Collects, constructs, and returns one of the RUVY matrices
     
     Inputs:
-        dataset, country, method, energy_type, last_stage, ieamw, inclues_neu, year:
-        ints to specify metadata for which matrix to get
+        dataset, country, method, energy_type, last_stage, ieamw, matrix_name:
+        strings of their database names to specify metadata for which matrix to get
+        all use abbreviations, except for country, which uses the FullName
 
-        matrix_name, RUVY enum name: specify which matrix to get
+        inclues_neu, bool: metadata for which matrix
+
+        year, int: metadata for which matrix
 
     Outputs:
         A scipy csr_matrix containing all the values from the specified query
+        or None if the given query related to no data 
     '''
+
+    # set up the query
+    # a dictionary that will have all the keyword arguments for the filter function below
+    query = dict()
+    if dataset != None:
+        query["Dataset"] = Translator.dataset_translate(dataset)
+    if country != None:
+        query["Country"] = Translator.country_translate(country)
+    if method != None:
+        query["Method"] = Translator.method_translate(method)
+    if energy_type != None:
+        query["EnergyType"] = Translator.energytype_translate(energy_type)
+    if last_stage != None:
+        query["LastStage"] = Translator.laststage_translate(last_stage)
+    if ieamw != None:
+        query["IEAMW"] = Translator.ieamw_translate(ieamw)
+    if includes_neu != None:
+        query["IncludesNEU"] = Translator.includesNEU_translate(includes_neu)
+    if year != None:
+        query["Year"] = year
+    if chopped_mat != None:
+        query["ChoppedMat"] = Translator.matname_translate(chopped_mat)
+    if chopped_var != None:
+        query["ChoppedVar"] = Translator.index_translate(chopped_var)
+    if product_aggregation != None:
+        query["ProductAggregation"] = Translator.agglevel_translate(product_aggregation)
+    if industry_aggregation != None:
+        query["IndustryAggregation"] = Translator.agglevel_translate(industry_aggregation)
+    if matname != None:
+        query["matname"] = Translator.matname_translate(matname)
 
     # Get the sparse matrix representation
     # i, j, x for row, column, value
@@ -54,22 +88,12 @@ def get_matrix(
     sparse_matrix = (
         PSUT.objects
         .values_list("i", "j", "x")
-        .filter(
-            Dataset = Translator.dataset_translate(dataset),
-            Country = Translator.country_translate(country),
-            Method = Translator.method_translate(method),
-            EnergyType = Translator.energytype_translate(energy_type),
-            LastStage = Translator.laststage_translate(last_stage),
-            IEAMW = Translator.ieamw_translate(ieamw),
-            IncludesNEU = Translator.includesNEU_translate(includes_neu),
-            Year = year,
-            ChoppedMat = Translator.matname_translate(chopped_mat),
-            ChoppedVar = Translator.index_translate(chopped_var),
-            ProductAggregation = Translator.agglevel_translate(product_aggregation),
-            IndustryAggregation = Translator.agglevel_translate(industry_aggregation),
-            matname = Translator.matname_translate(matrix_name)
-        )
+        .filter(**query)
     )
+    
+    # if nothing was returned
+    if not sparse_matrix:
+        return None
 
     # Get dimensions for a matrix (rows and columns will be the same)
     matrix_nrow = Index.objects.all().count() # len() would evaluate the query set, so use count() instead for better performance
@@ -87,6 +111,41 @@ def get_matrix(
         (val, (row, col)),
         shape = (matrix_nrow, matrix_nrow),
     )
+
+def get_matrix_from_post_request(
+        request
+    ) -> csr_matrix:
+    '''Get a RUVY matrix from a Django POST request 
+    
+    Input:
+        post_request, a Django HttpRequest with the POST method
+          -- NO preformatting required
+          -- needs all relevant PSUT meta column information
+        
+    Output:
+        A scipy csr_matrix containing all values of the specified query
+    '''
+
+    info = dict(request.POST)
+    del info["csrfmiddlewaretoken"] # get rid of security token, don't need it to get matrix
+    info["chopped_mat"] = ["None"]
+    info["chopped_var"] = ["None"]
+    info["product_aggregation"] = ["Despecified"]
+    info["industry_aggregation"] = ["Grouped"]
+    for k, v in info.items():
+        # convert from list (if need be)
+        if len(v) == 1: info[k] = v[0]
+
+        # if empty choice, get rid of it for the query
+        if info[k] == '': info[k] = None
+
+    # special typed metadata
+    if info["includes_neu"] != None:
+        info["includes_neu"] = bool(info["includes_neu"])
+    if info["year"] != None:
+        info["year"] = int(info["year"])
+
+    return get_matrix(**info)
 
 class Translator():
 
@@ -128,10 +187,19 @@ class Translator():
     @staticmethod
     def country_translate(name: str)-> int:
         if Translator.__country_translations == None:
-            countries = Country.objects.values_list("CountryID", "Country")
+            countries = Country.objects.values_list("CountryID", "FullName")
             Translator.__country_translations = {name: id for id, name in countries}
         
         return Translator.__country_translations[name]
+    
+
+    @staticmethod
+    def get_countries() -> list[str]:
+        if Translator.__country_translations == None:
+            countries = Country.objects.values_list("CountryID", "FullName")
+            Translator.__country_translations = {name: id for id, name in countries}
+        
+        return Translator.__country_translations.keys()
     
     @staticmethod
     def method_translate(name: str)-> int:
@@ -141,6 +209,15 @@ class Translator():
         
         return Translator.__method_translations[name]
     
+
+    @staticmethod
+    def get_methods() -> list[str]:
+        if Translator.__method_translations == None:
+            methods = Method.objects.values_list("MethodID", "Method")
+            Translator.__method_translations = {name: id for id, name in methods}
+        
+        return Translator.__method_translations.keys()
+    
     @staticmethod
     def energytype_translate(name: str)-> int:
         if Translator.__energytype_translations == None:
@@ -148,6 +225,15 @@ class Translator():
             Translator.__energytype_translations = {name: id for id, name in enerytpyes}
         
         return Translator.__energytype_translations[name]
+    
+
+    @staticmethod
+    def get_energytypes() -> list[str]:
+        if Translator.__energytype_translations == None:
+            enerytpyes = EnergyType.objects.values_list("EnergyTypeID", "EnergyType")
+            Translator.__energytype_translations = {name: id for id, name in enerytpyes}
+        
+        return Translator.__energytype_translations.keys()
     
     @staticmethod
     def laststage_translate(name: str)-> int:
@@ -157,6 +243,15 @@ class Translator():
         
         return Translator.__laststage_translations[name]
     
+
+    @staticmethod
+    def get_laststages() -> list[str]:
+        if Translator.__laststage_translations == None:
+            laststages = LastStage.objects.values_list("ECCStageID", "ECCStage")
+            Translator.__laststage_translations = {name: id for id, name in laststages}
+        
+        return Translator.__laststage_translations.keys()
+    
     @staticmethod
     def ieamw_translate(name: str)-> int:
         if Translator.__IEAMW_translations == None:
@@ -165,9 +260,22 @@ class Translator():
         
         return Translator.__IEAMW_translations[name]
     
+
+    @staticmethod
+    def get_ieamws() -> list[str]:
+        if Translator.__IEAMW_translations == None:
+            IEAMWs = IEAMW.objects.values_list("IEAMWID", "IEAMW")
+            Translator.__IEAMW_translations = {name: id for id, name in IEAMWs}
+        
+        return Translator.__IEAMW_translations.keys()
+    
     @staticmethod
     def includesNEU_translate(name: bool)-> int:
         return int(name)
+    
+    @staticmethod
+    def get_includesNEUs() -> list[str]:
+        return ["True", "False"]
     
     @staticmethod
     def agglevel_translate(name: str)-> int:
@@ -176,6 +284,14 @@ class Translator():
             Translator.__productaggregation_translations = {name: id for id, name in productaggregations}
         
         return Translator.__productaggregation_translations[name]
+
+    @staticmethod
+    def get_agglevels() -> list[str]:
+        if Translator.__productaggregation_translations == None:
+            productaggregations = AggLevel.objects.values_list("AggLevelID", "AggLevel")
+            Translator.__productaggregation_translations = {name: id for id, name in productaggregations}
+        
+        return Translator.__productaggregation_translations.keys()
     
     
     @staticmethod
@@ -185,6 +301,14 @@ class Translator():
             Translator.__matname_translations = {name: id for id, name in matnames}
         
         return Translator.__matname_translations[name]
+    
+    @staticmethod
+    def get_matnames() -> list[str]:
+        if Translator.__matname_translations == None:
+            matnames = matname.objects.values_list("matnameID", "matname")
+            Translator.__matname_translations = {name: id for id, name in matnames}
+        
+        return Translator.__matname_translations.keys()
     
 def temp_add_get():
 
