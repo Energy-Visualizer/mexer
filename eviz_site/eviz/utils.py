@@ -128,6 +128,7 @@ def get_matrix_from_post_request(
 
     info = dict(request.POST)
     del info["csrfmiddlewaretoken"] # get rid of security token, don't need it to get matrix
+    # TODO: these should be options on the actual page!
     info["chopped_mat"] = ["None"]
     info["chopped_var"] = ["None"]
     info["product_aggregation"] = ["Despecified"]
@@ -148,8 +149,15 @@ def get_matrix_from_post_request(
     return get_matrix(**info)
 
 class Translator():
+    '''Contains the tools for translating PSUT metadata
+
+    Translations go from human readable name -> integer representation in the PSUT table
+
+    Reverse translations go from integer representation -> human readable name
+    '''
 
     __index_translations = None
+    __index_reverse_translations = None
     __country_translations = None
     __method_translations = None
     __energytype_translations = None
@@ -160,12 +168,24 @@ class Translator():
     __productaggregation_translations = None
 
     @staticmethod
-    def index_translate(name: str)-> int:
+    def index_translate(name: str) -> int:
         if Translator.__index_translations == None:
             indexes = Index.objects.values_list("IndexID", "Index")
+            # get both regular and reverse to limit queries
             Translator.__index_translations = {name: id for id, name in indexes}
+            Translator.__index_reverse_translations = {id: name for id, name in indexes}
         
         return Translator.__index_translations[name]
+    
+    @staticmethod
+    def index_reverse_translate(number: int) -> str:
+        if Translator.__index_reverse_translations == None:
+            indexes = Index.objects.values_list("IndexID", "Index")
+            # get both regular and reverse to limit queries
+            Translator.__index_translations = {name: id for id, name in indexes}
+            Translator.__index_reverse_translations = {id: name for id, name in indexes}
+        
+        return Translator.__index_reverse_translations[number]
     
     @staticmethod
     def dataset_translate(name: str)-> int:

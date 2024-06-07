@@ -12,6 +12,7 @@ from eviz.forms import SignupForm, LoginForm
 # Visualization imports
 from plotly.offline import plot
 import plotly.express as px
+import plotly.graph_objects as pgo
 import pandas.io.sql as pd_sql
 
 @time_view
@@ -122,10 +123,63 @@ def get_psut_data(request):
 @time_view
 def visualizer(request):
 
-    mat = "" # empty string for displaying purposes, should be thought of as None
+    sankey_diagram = "" # empty string for displaying purposes, should be thought of as None
     if request.method == "POST":
         mat = get_matrix_from_post_request(request)
-        if mat == None: mat = "No cooresponding data"
+        if mat == None:
+            sankey_diagram = "No cooresponding data"
+        else:
+            # construct the sankey diagram
+            mat = mat.tocoo()
+
+            label_to_index = dict()
+            next_index = 0
+
+            labels = list()
+            sources = list()
+            targets = list()
+            magnitudes = list()
+
+            for row, col, data in zip(mat.row, mat.col, mat.data):
+                translated_row = Translator.index_reverse_translate(row)
+                translated_col = Translator.index_reverse_translate(col)
+
+                # Get the row (source) label's index and make the start of a connection
+                idx = label_to_index.get(translated_row, -1)
+                if idx == -1: # label is new
+                    labels.append(translated_row)
+                    label_to_index[translated_row] = idx = next_index
+                    next_index += 1
+                sources.append(idx)
+
+                # Get the col (target) label's index and make the end of a connection
+                idx = label_to_index.get(translated_col, -1)
+                if idx == -1: # label is new
+                    labels.append(translated_col)
+                    label_to_index[translated_col] = idx = next_index
+                    next_index += 1
+                targets.append(idx)
+
+                # Finish the connection with the magnitude of the connection
+                magnitudes.append(data)
+
+            sankey_diagram = pgo.Figure(data=[pgo.Sankey(
+                node = dict(
+                pad = 15,
+                thickness = 20,
+                line = dict(color = "black", width = 0.5),
+                label = labels,
+                color = "blue"
+                ),
+                link = dict(
+                source = sources,
+                target = targets,
+                value = magnitudes
+            ))])
+
+            sankey_diagram.update_layout(title_text="Test Sankey", font_size=10)
+
+            sankey_diagram = plot(sankey_diagram, output_type="div", include_plotlyjs="cdn")
 
     datasets = Translator.get_datasets()
     countries = list(Translator.get_countries())
@@ -141,7 +195,7 @@ def visualizer(request):
     
     context = {"datasets":datasets, "countries":countries, "methods":methods,
             "energy_types":energy_types, "last_stages":last_stages, "ieamws":ieamws,
-            "includes_neus":includes_neus, "years":years, "matnames":matnames, "plot":mat
+            "includes_neus":includes_neus, "years":years, "matnames":matnames, "plot":sankey_diagram
             }
 
     return render(request, "visualizer.html", context)
