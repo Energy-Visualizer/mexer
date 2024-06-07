@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 
 # Eviz imports
-from eviz.utils import time_view, get_matrix, Silent
+from eviz.utils import time_view, get_matrix, Silent, Translator
 from eviz.models import AggEtaPFU
 from eviz.forms import SignupForm, LoginForm
 
@@ -118,39 +118,15 @@ def get_psut_data(request):
 
     return render(request, "./test.html", context)
 
-@login_required(login_url="/login")
+# @login_required(login_url="/login")
 @time_view
 def visualizer(request):
 
-    agg_query = AggEtaPFU.objects.filter(
-        Dataset = 3,
-        Country = 5,
-        Method = 1,
-        EnergyType = 2,
-        LastStage = 2,
-        IEAMW = 1,
-        IncludesNEU = 0,
-        ChoppedMat = 28,
-        ChoppedVar = 2728,
-        ProductAggregation = 1,
-        IndustryAggregation = 1,
-        GrossNet = 1
-    ).values("Year", "EXp", "EXf", "EXu", "etapf", "etafu", "etapu").query
-
-    # TODO: pandas only defines support for SQLAlechemy connection, it currently works with psycopg2, but could be dangerous
-    with Silent():
-        df = pd_sql.read_sql_query(str(agg_query), con=connection.cursor().connection) # clunky, but gives access to the low-level psycopg2 connection
-
-    scatterplot = px.scatter(
-        df, x = "Year", y = "etapu",
-        title="Efficiency of primary to useful by year for random query",
-        template="plotly_dark"
-    )
+    datasets = Translator.get_datasets()
     
-    # idea for visualization rendering from this site: https://www.codingwithricky.com/2019/08/28/easy-django-plotly/
-    p = plot(scatterplot, output_type="div", include_plotlyjs="cdn")
-    
-    return render(request, "visualizer.html", context={"plot":p})
+    context = {"datasets":datasets}
+
+    return render(request, "visualizer.html", context)
 
 def about(request):
     return render(request, 'about.html')

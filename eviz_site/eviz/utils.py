@@ -115,6 +115,15 @@ class Translator():
             Translator.__dataset_translations = {name: id for id, name in datasets}
         
         return Translator.__dataset_translations[name]
+    
+
+    @staticmethod
+    def get_datasets() -> list[str]:
+        if Translator.__dataset_translations == None:
+            datasets = Dataset.objects.values_list("DatasetID", "Dataset")
+            Translator.__dataset_translations = {name: id for id, name in datasets}
+        
+        return Translator.__dataset_translations.keys()
         
     @staticmethod
     def country_translate(name: str)-> int:

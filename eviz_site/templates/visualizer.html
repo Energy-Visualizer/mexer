@@ -3,7 +3,9 @@
 <p>
 From dataset
 <select>
-    <option value="CLPFUv2.0a2">CLPFUv2.0a2</option>
+    {% for dataset in datasets %}
+    <option value="{{ dataset }}">{{ dataset }}</option>
+    {% endfor %}
 </select>
 get country
 <select>
