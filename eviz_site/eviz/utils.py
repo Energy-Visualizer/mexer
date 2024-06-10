@@ -181,7 +181,13 @@ def get_query_from_post_request(
     del shaped_query["csrfmiddlewaretoken"] # get rid of security token, is not part of a query
 
     for k, v in shaped_query.items():
-        # convert from list (if need be)
+        # get rid of null values
+        v = [val for val in v if val != ""]
+
+        # get rid of values that were only null values
+        if len(v) == 0: shaped_query[k] = None
+
+        # convert from list (if just one item in list)
         if len(v) == 1: shaped_query[k] = v[0]
 
         # if empty choice, get rid of it for the query

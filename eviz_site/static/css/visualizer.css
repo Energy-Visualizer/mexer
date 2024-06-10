@@ -1,3 +1,7 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
 #plot-section {
     max-width: 95%;
     height: 100%;
@@ -20,4 +24,45 @@
     margin: auto;
     display: block;
     height: 80%;
+}
+
+.styled-dropdown {
+    cursor: pointer;
+    background-color: rgb(181, 221, 246);
+    border:0;
+    box-shadow: 0px 0px 5px;
+}
+
+.optional-dropdown {
+    display: none;
+}
+
+.remove-button {
+    background-color: rgb(255, 129, 129);
+    border: 0;
+    border-radius: 50%;
+    width: 15px;
+    height: 15px;
+    margin-right: 0.5%;
+}
+
+.remove-button:hover {
+    background-color: rgb(255, 0, 0);
+}
+
+#get {
+    background-color: #00ADB5;
+    border-radius: 30px;
+    border:0;
+    width: 100px;
+    height: 50px;
+    font-size: 25px;
+}
+
+#get:hover {
+    background-color: #30cbd3;
+}
+
+#get:active {
+    box-shadow: inset 0px 0px 10px;
 }
