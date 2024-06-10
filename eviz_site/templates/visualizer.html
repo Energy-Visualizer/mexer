@@ -1,9 +1,10 @@
 <head>
     <link rel="stylesheet" href="../static/css/toolbar.css" type="text/css" />
     <link rel="stylesheet" href="../static/css/visualizer.css" type="text/css" />
+    <script src="../static/js/visualizer.js"></script>
 </head>
 
-<body>
+<body onload="initialize()">
     <div class="topbar">
         <div class="left">
             <a class="main" href="{% url 'home' %}">EVIZ</a>
@@ -22,19 +23,19 @@
         <path d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z" style="stroke: none; fill:#393E46;"></path>
     </svg>
 
-    <p>Select type of plot: <select><option value="sankey">Sankey</option></select></p>
+    <p>Select type of plot: <select class="styled-dropdown"><option value="sankey">Sankey</option></select></p>
 
     <form method="post">
     {% csrf_token %}
     <p>
         From dataset
-        <select name="dataset" required>
+        <select name="dataset" id="dataset-dropdown" class="styled-dropdown" required>
             {% for dataset in datasets %}
             <option value="{{ dataset }}">{{ dataset }}</option>
             {% endfor %}
         </select>
         get country
-        <select name="country" required>
+        <select name="country" id="country-dropdown" class="styled-dropdown" required>
             {% for country in countries %}
             <option value="{{ country }}">{{ country }}</option>
             {% endfor %}
@@ -42,68 +43,70 @@
     </p>
     <p>
         Selected by method
-        <select name="method">
+        <select name="method" id="method-dropdown" class="optional-dropdown styled-dropdown">
             <option value selected hidden>Please select something</option>
             {% for method in methods %}
             <option value="{{ method }}">{{ method }}</option>
             {% endfor %}
         </select>
+        <button onclick="showDropdown('method')" type="button">+</button>
     </p>
     <p>
         For energy type
-        <select name="energy_type">
+        <select name="energy_type" id="energy_type-dropdown" class="optional-dropdown styled-dropdown">
             <option value selected hidden>Please select something</option>
             {% for energy_type in energy_types %}
             <option value="{{ energy_type }}">{{ energy_type }}</option>
             {% endfor %}
         </select>
+        <button onclick="showDropdown('energy_type')" type="button">+</button>
     </p>
     <p>
         To last stage
-        <select name="last_stage">
+        <select name="last_stage" id="last_stage-dropdown" class="optional-dropdown styled-dropdown">
             <option value selected hidden>Please select something</option>
             {% for last_stage in last_stages %}
             <option value="{{ last_stage }}">{{ last_stage }}</option>
             {% endfor %}
         </select>
+        <button onclick="showDropdown('last_stage')" type="button">+</button>
     </p>
     <p>
         With IEAMW
-        <select name="ieamw">
+        <select name="ieamw" id="ieamw-dropdown" class="optional-dropdown styled-dropdown">
             <option value selected hidden>Please select something</option>
             {% for ieamw in ieamws %}
             <option value="{{ ieamw }}">{{ ieamw }}</option>
             {% endfor %}
         </select>
+        <button onclick="showDropdown('ieamw')" type="button">+</button>
     </p>
     <p>
         Including NEU
-        <select name="includes_neu">
+        <select name="includes_neu" id="includes_neu-dropdown" class="optional-dropdown styled-dropdown">
             <option value selected hidden>Please select something</option>
             {% for includes_neu in includes_neus %}
             <option value="{{ includes_neu }}">{{ includes_neu }}</option>
             {% endfor %}
         </select>
+        <button onclick="showDropdown('includes_neu')" type="button">+</button>
     </p>
     <p>
         For year(s)
-        <select name="year">
-            <option value selected hidden>Please select something</option>
-            {% for year in years %}
-            <option value="{{ year }}">{{ year }}</option>
-            {% endfor %}
-        </select>
+        <input name="year" id="year-dropdown" class="optional-dropdown styled-dropdown"></input>
+        <button onclick="showDropdown('year')" type="button">+</button>
     </p>
     <p>
         Matrix
-        <select name="matname">
+        <select name="matname" id="matname-dropdown" class="optional-dropdown styled-dropdown">
             <option value selected hidden>Please select something</option>
             {% for matname in matnames %}
             <option value="{{ matname }}">{{ matname }}</option>
             {% endfor %}
         </select>
+        <button onclick="showDropdown('matname')" type="button">+</button>
     </p>
-    <button type="submit">GET</button>
+    <button type="submit" id="get">GET</button>
     </form>
 
     <div id="plot-section">
