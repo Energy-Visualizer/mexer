@@ -107,6 +107,10 @@
     </form>
 
     <div id="plot-section">
+        {% if plot == None %}
+        <div class="center-container"><img src="../static/images/logo.svg" alt="EVIZ"/></div>
+        {% else %}
         {{ plot|safe }}
+        {% endif %}
     </div>
 </body>

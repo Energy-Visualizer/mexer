@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="50.000004mm"
+   height="59.999996mm"
+   viewBox="0 0 188.9764 226.77164"
+   version="1.1"
+   id="svg1"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1">
+    <linearGradient
+       id="linearGradient7">
+      <stop
+         style="stop-color:#0000ff;stop-opacity:1"
+         offset="0"
+         id="stop7" />
+      <stop
+         style="stop-color:#000080;stop-opacity:1"
+         offset="0.75"
+         id="stop8" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient5">
+      <stop
+         style="stop-color:#ceffff;stop-opacity:1;"
+         offset="0"
+         id="stop6" />
+      <stop
+         style="stop-color:#00ffff;stop-opacity:1;"
+         offset="0.60000002"
+         id="stop5" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3">
+      <stop
+         style="stop-color:#0000ff;stop-opacity:1;"
+         offset="0"
+         id="stop3" />
+      <stop
+         style="stop-color:#00ffff;stop-opacity:1"
+         offset="1"
+         id="stop4" />
+    </linearGradient>
+    <linearGradient
+       xlink:href="#linearGradient3"
+       id="linearGradient4"
+       x1="302.36221"
+       y1="226.77165"
+       x2="302.36221"
+       y2="170.07874"
+       gradientUnits="userSpaceOnUse"
+       spreadMethod="pad"
+       gradientTransform="translate(5e-6)" />
+    <linearGradient
+       xlink:href="#linearGradient5"
+       id="linearGradient6"
+       x1="302.36221"
+       y1="94.48819"
+       x2="302.36221"
+       y2="151.18111"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       xlink:href="#linearGradient7"
+       id="linearGradient8"
+       x1="302.36221"
+       y1="226.77165"
+       x2="302.36221"
+       y2="321.25986"
+       gradientUnits="userSpaceOnUse" />
+  </defs>
+  <g
+     id="layer1"
+     transform="translate(-207.87401,-94.488196)">
+    <path
+       style="fill:url(#linearGradient6);stroke-width:0.790569"
+       d="M 207.87402,94.48819 H 396.85041 V 151.1811 H 243.3071 Z"
+       id="path1" />
+    <path
+       style="fill:url(#linearGradient4);fill-opacity:1;fill-rule:nonzero;stroke-width:0.790569"
+       d="M 207.87402,170.07875 H 396.8504 v 56.6929 H 243.30709 Z"
+       id="path2" />
+    <path
+       style="fill:url(#linearGradient8);stroke-width:0.790569"
+       d="m 243.3071,226.77166 -35.43308,37.79527 35.43308,56.69292 H 396.85041 V 264.56693 H 243.3071 Z"
+       id="path3" />
+  </g>
+</svg>

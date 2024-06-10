@@ -1,6 +1,7 @@
 from time import time
 from eviz.models import PSUT, Index, Dataset, Country, Method, EnergyType, LastStage, IEAMW, matname, AggLevel
 from scipy.sparse import csr_matrix, csc_matrix
+import plotly.graph_objects as pgo
 
 def time_view(v):
     '''Wrapper to time how long it takes to deliver a view
@@ -20,6 +21,52 @@ def time_view(v):
         return ret
 
     return wrap
+
+def psut_translate(
+        dataset: str = None,
+        country: str = None,
+        method: str = None,
+        energy_type: str = None,
+        last_stage: str = None,
+        ieamw: str = None,
+        includes_neu: str = None,
+        year: str = None,
+        chopped_mat: str = None,
+        chopped_var: str = None,
+        product_aggregation: str = None,
+        industry_aggregation: str = None,
+        matname: str = None
+    ) -> dict:
+
+    query = dict()
+    if dataset != None:
+        query["Dataset"] = Translator.dataset_translate(dataset)
+    if country != None:
+        query["Country"] = Translator.country_translate(country)
+    if method != None:
+        query["Method"] = Translator.method_translate(method)
+    if energy_type != None:
+        query["EnergyType"] = Translator.energytype_translate(energy_type)
+    if last_stage != None:
+        query["LastStage"] = Translator.laststage_translate(last_stage)
+    if ieamw != None:
+        query["IEAMW"] = Translator.ieamw_translate(ieamw)
+    if includes_neu != None:
+        query["IncludesNEU"] = Translator.includesNEU_translate(includes_neu)
+    if year != None:
+        query["Year"] = year
+    if chopped_mat != None:
+        query["ChoppedMat"] = Translator.matname_translate(chopped_mat)
+    if chopped_var != None:
+        query["ChoppedVar"] = Translator.index_translate(chopped_var)
+    if product_aggregation != None:
+        query["ProductAggregation"] = Translator.agglevel_translate(product_aggregation)
+    if industry_aggregation != None:
+        query["IndustryAggregation"] = Translator.agglevel_translate(industry_aggregation)
+    if matname != None:
+        query["matname"] = Translator.matname_translate(matname)
+
+    return query
 
 def get_matrix(
         dataset: str,
@@ -54,33 +101,7 @@ def get_matrix(
 
     # set up the query
     # a dictionary that will have all the keyword arguments for the filter function below
-    query = dict()
-    if dataset != None:
-        query["Dataset"] = Translator.dataset_translate(dataset)
-    if country != None:
-        query["Country"] = Translator.country_translate(country)
-    if method != None:
-        query["Method"] = Translator.method_translate(method)
-    if energy_type != None:
-        query["EnergyType"] = Translator.energytype_translate(energy_type)
-    if last_stage != None:
-        query["LastStage"] = Translator.laststage_translate(last_stage)
-    if ieamw != None:
-        query["IEAMW"] = Translator.ieamw_translate(ieamw)
-    if includes_neu != None:
-        query["IncludesNEU"] = Translator.includesNEU_translate(includes_neu)
-    if year != None:
-        query["Year"] = year
-    if chopped_mat != None:
-        query["ChoppedMat"] = Translator.matname_translate(chopped_mat)
-    if chopped_var != None:
-        query["ChoppedVar"] = Translator.index_translate(chopped_var)
-    if product_aggregation != None:
-        query["ProductAggregation"] = Translator.agglevel_translate(product_aggregation)
-    if industry_aggregation != None:
-        query["IndustryAggregation"] = Translator.agglevel_translate(industry_aggregation)
-    if matname != None:
-        query["matname"] = Translator.matname_translate(matname)
+    query = psut_translate(dataset, country, method, energy_type, last_stage, ieamw, includes_neu, year, chopped_mat, chopped_var, product_aggregation, industry_aggregation, matname)
 
     # Get the sparse matrix representation
     # i, j, x for row, column, value
@@ -147,6 +168,90 @@ def get_matrix_from_post_request(
         info["year"] = int(info["year"])
 
     return get_matrix(**info)
+
+def get_query_from_post_request(
+        request
+    ) -> dict:
+    '''Turn a Django POST request into a ready to use query in a dictionary
+
+    TODO
+    '''
+
+    shaped_query = dict(request.POST)
+    del shaped_query["csrfmiddlewaretoken"] # get rid of security token, is not part of a query
+
+    for k, v in shaped_query.items():
+        # convert from list (if need be)
+        if len(v) == 1: shaped_query[k] = v[0]
+
+        # if empty choice, get rid of it for the query
+        if shaped_query[k] == '': shaped_query[k] = None
+
+    # special typed metadata
+    if shaped_query.get("includes_neu", None) != None:
+        shaped_query["includes_neu"] = bool(shaped_query["includes_neu"])
+    if shaped_query.get("year", None) != None:
+        shaped_query["year"] = int(shaped_query["year"])
+
+    return shaped_query
+
+def get_sankey_for_RUVY(query: dict) -> pgo.Figure:
+    '''TODO'''
+    
+    # we do a little shaping
+    if "matname" in query.keys(): del query["matname"]
+
+    # get all four matrices to make the full RUVY matrix
+    data = PSUT.objects.values_list("i", "j", "x").filter(**query, matname__in = [1,2,6,7])
+
+    # if no cooresponding data, return as such
+    if not data: return None
+
+    # begin constructing the sankey
+    label_to_index = dict() # used to know which human-readable label is where in the label list
+    next_index = 0 # used to keep track of where a new label is added in the label list
+
+    labels = list() # used to keep track of all the labels 
+    sources = list() # used to keep track of all the sources (from-nodes)
+    targets = list() # used to keep track of all the targets (to-nodes)
+    magnitudes = list() # used to keep track of all the magnitudes between the nodes
+
+    for row, col, magnitude in data:
+        translated_row = Translator.index_reverse_translate(row)
+        translated_col = Translator.index_reverse_translate(col)
+
+        # Get the row (source) label's index and make the start of a connection
+        idx = label_to_index.get(translated_row, -1)
+        if idx == -1: # label is new
+            labels.append(translated_row)
+            label_to_index[translated_row] = idx = next_index
+            next_index += 1
+        sources.append(idx)
+
+        # Get the col (target) label's index and make the end of a connection
+        idx = label_to_index.get(translated_col, -1)
+        if idx == -1: # label is new
+            labels.append(translated_col)
+            label_to_index[translated_col] = idx = next_index
+            next_index += 1
+        targets.append(idx)
+
+        # Finish the connection with the magnitude of the connection
+        magnitudes.append(magnitude)
+
+    return pgo.Figure(data=[pgo.Sankey(
+        node = dict(
+        pad = 15,
+        thickness = 20,
+        line = dict(color = "black", width = 0.5),
+        label = labels,
+        color = "blue"
+        ),
+        link = dict(
+        source = sources,
+        target = targets,
+        value = magnitudes
+    ))])
 
 class Translator():
     '''Contains the tools for translating PSUT metadata
