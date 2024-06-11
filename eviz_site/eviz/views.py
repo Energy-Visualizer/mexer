@@ -126,6 +126,7 @@ def visualizer(request):
     if request.method == "POST":
         # Sankey diagram selected
         query = get_query_from_post_request(request)
+        print(query)
         query = psut_translate(**query)
         sankey_diagram = get_sankey_for_RUVY(query)
         if sankey_diagram == None:
