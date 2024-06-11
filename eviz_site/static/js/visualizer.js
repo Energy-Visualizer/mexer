@@ -1,6 +1,3 @@
-let methodDropdown;
-let cloneID = 0;
-
 const initialize = () => {
     methodDropdown = document.getElementById("method-dropdown");
     energyTypeDropdown = document.getElementById("energy_type-dropdown")

@@ -128,7 +128,7 @@ def visualizer(request):
         query = get_query_from_post_request(request)
         query = psut_translate(**query)
         sankey_diagram = get_sankey_for_RUVY(query)
-        sankey_diagram.update_layout(title_text="Test Sankey")
+        sankey_diagram.update_layout(title_text="Test Sankey", font_size=10)
         sankey_diagram = plot(sankey_diagram, output_type="div", include_plotlyjs="cdn")
 
     datasets = Translator.get_datasets()

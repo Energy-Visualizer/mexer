@@ -208,7 +208,7 @@ def get_sankey_for_RUVY(query: dict) -> pgo.Figure:
     if "matname" in query.keys(): del query["matname"]
 
     # get all four matrices to make the full RUVY matrix
-    data = PSUT.objects.values_list("i", "j", "x").filter(**query, matname__in = [1,2,6,7])
+    data = PSUT.objects.values_list("i", "j", "x").filter(**query, matname__in = [Translator.matname_translate("R"),Translator.matname_translate("U"),Translator.matname_translate("V"),Translator.matname_translate("Y")])
 
     # if no cooresponding data, return as such
     if not data: return None
@@ -217,7 +217,11 @@ def get_sankey_for_RUVY(query: dict) -> pgo.Figure:
     label_to_index = dict() # used to know which human-readable label is where in the label list
     next_index = 0 # used to keep track of where a new label is added in the label list
 
-    labels = list() # used to keep track of all the labels 
+    possible_colors = ["red", "pink", "green", "blue"]
+    clridx = 0
+    colors = list()
+
+    labels = list() # used to keep track of all the labels
     sources = list() # used to keep track of all the sources (from-nodes)
     targets = list() # used to keep track of all the targets (to-nodes)
     magnitudes = list() # used to keep track of all the magnitudes between the nodes
@@ -245,18 +249,21 @@ def get_sankey_for_RUVY(query: dict) -> pgo.Figure:
         # Finish the connection with the magnitude of the connection
         magnitudes.append(magnitude)
 
+        colors.append(possible_colors[clridx])
+        clridx = (clridx + 1) % len(possible_colors)
+
     return pgo.Figure(data=[pgo.Sankey(
         node = dict(
         pad = 15,
         thickness = 20,
-        line = dict(color = "black", width = 0.5),
         label = labels,
         color = "blue"
         ),
         link = dict(
         source = sources,
         target = targets,
-        value = magnitudes
+        value = magnitudes,
+        color = "rgba(255,0,0,0.5)"
     ))])
 
 class Translator():

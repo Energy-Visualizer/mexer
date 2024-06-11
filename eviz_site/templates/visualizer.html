@@ -113,7 +113,8 @@
         {% if plot == None %}
         <div class="center-container"><img src="../static/images/logo.svg" alt="EVIZ"/></div>
         {% else %}
-        {{ plot|safe }}
+        <div id="plot-div">{{ plot|safe }}</div>
         {% endif %}
     </div>
+    <script src="../static/js/plotUtil.js"></script>
 </body>
