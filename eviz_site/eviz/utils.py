@@ -200,10 +200,11 @@ def get_query_from_post_request(
         shaped_query["year"] = int(shaped_query["year"])
     
     # To stop any getting of iea data
-    # if shaped_query.get("dataset", None) == "IEAEWEB2022":
-    #     return None
-    # if shaped_query.get("ieamw", None) == "IEA" or shaped_query.get("ieamw", None) == "Both":
-    #     return None
+    # TODO: make this actually check via user permissions
+    if shaped_query.get("dataset", None) == "IEAEWEB2022":
+        return None
+    if shaped_query.get("ieamw", None) == "IEA" or shaped_query.get("ieamw", None) == "Both":
+        return None
 
     return shaped_query
 
@@ -266,13 +267,13 @@ def get_sankey_for_RUVY(query: dict) -> pgo.Figure:
         pad = 15,
         thickness = 20,
         label = labels,
-        color = "green"
+        color = colors
         ),
         link = dict(
         source = sources,
         target = targets,
         value = magnitudes,
-        color = "rgba(100,100,100,0.5)"
+        color = colors #"rgba(100,100,100,0.5)"
     ))])
 
 class Translator():
