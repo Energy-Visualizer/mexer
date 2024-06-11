@@ -257,13 +257,13 @@ def get_sankey_for_RUVY(query: dict) -> pgo.Figure:
         pad = 15,
         thickness = 20,
         label = labels,
-        color = "blue"
+        color = "green"
         ),
         link = dict(
         source = sources,
         target = targets,
         value = magnitudes,
-        color = "rgba(255,0,0,0.5)"
+        color = "rgba(100,100,100,0.5)"
     ))])
 
 class Translator():

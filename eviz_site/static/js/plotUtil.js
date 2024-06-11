@@ -10,9 +10,15 @@ var dragging = false;
 var originX, originY;
 
 const updatePlot = () => {
-    plotSection.style.transform = "scale(" + plotZoom + ") translate(" + plotPanX + "px," + plotPanY + "px)";
-    console.log("scale(" + plotZoom + ") translate(" + plotPanX + "px," + plotPanY + "px)");
-    // plotSection.style.transformOrigin = "0 0";
+    // devide by plotZoom so that the image doesn't move relatively faster the more zoomed a user is
+    plotSection.style.transform = "scale(" + plotZoom + ") translate(" + plotPanX  / plotZoom + "px," + plotPanY  / plotZoom + "px)";
+}
+
+const resetPlot = () => {
+    plotSection.style.transform = "scale(1) translate(0px,0px)";
+    plotZoom = 1;
+    plotPanX = plotPanY = 0;
+    dragging = false;
 }
 
 // zooming
@@ -27,6 +33,8 @@ plotSection.onwheel = (event) => {
     else
         plotZoom /= 1.1;
 
+    // TODO: zoom into where the user's mouse points
+    // plotSection.style.transformOrigin = event.clientX / plotZoom + "px " + event.clientY / plotZoom + "px";
     updatePlot();
 }
 
@@ -34,9 +42,14 @@ plotSection.onwheel = (event) => {
 
 // get mouse down to start panning
 plotSection.onmousedown = (event) => {
-    dragging = true;
-    originX = event.clientX - plotPanX;
-    originY = event.clientY - plotPanY;
+
+    // if middle mouse button was clicked
+    if (event.which == 2 || event.button == 4) {
+        event.preventDefault()
+        dragging = true;
+        originX = event.clientX - plotPanX;
+        originY = event.clientY - plotPanY;
+    }
 }
 
 // get mouse up to stop panning
