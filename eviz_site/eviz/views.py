@@ -120,7 +120,7 @@ def get_psut_data(request):
 
 from time import sleep
 def get_plot(request):
-    sleep(5)
+    
     sankey_diagram = None
     if request.method == "POST":
         # Sankey diagram selected
@@ -137,10 +137,11 @@ def get_plot(request):
         else:
             sankey_diagram.update_layout(title_text="Test Sankey", font_size=10)
             sankey_diagram = plot(sankey_diagram, output_type="div", include_plotlyjs=False)
-            
+
             # add the reset button which will also initialize the plot panning and zooming script
             sankey_diagram += '<button id="plot-reset" onclick="resetPlot()">RESET</button>'
     
+    sleep(2)
     return HttpResponse(sankey_diagram)
 
 # @login_required(login_url="/login")
