@@ -136,6 +136,8 @@ def get_plot(request):
             sankey_diagram.update_layout(title_text="Test Sankey", font_size=10)
             sankey_diagram = plot(sankey_diagram, output_type="div", include_plotlyjs=False)
 
+            # remove extraneous div, which will cause sizing issues
+            sankey_diagram = sankey_diagram.removeprefix("<div>").removesuffix("</div>")
             # add the reset button which will also initialize the plot panning and zooming script
             sankey_diagram += '<button id="plot-reset" onclick="resetPlot()">RESET</button>'
     
