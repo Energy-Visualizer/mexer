@@ -6,7 +6,22 @@ const initialize = () => {
     includesNEUDropdown = document.getElementById("includes_neu-dropdown");
     yearDropdown = document.getElementById("year-dropdown");
     matnameDropdown = document.getElementById("matname-dropdown");
+    const plotTypeSelector = document.getElementById('plot-type-dropdown');
+const toYearDropdown = document.getElementById('to-year-dropdown');
+const efficiencyDropdown = document.getElementById('efficiency-dropdown');
+
+plotTypeSelector.addEventListener('change', () => {
+  if (plotTypeSelector.value === 'xy_plot') {
+    toYearDropdown.style.display = 'inline';
+    efficiencyDropdown.style.display = 'inline';
+  } else {
+    toYearDropdown.style.display = 'none';
+    efficiencyDropdown.style.display = 'none';
+  }
+});
 };
+
+
 
 const showDropdown = (name) => {
 
@@ -53,3 +68,6 @@ const showDropdown = (name) => {
     desiredDropdown.before(newDropdown);
     newDropdown.after(delButton);
 };
+
+
+

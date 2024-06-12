@@ -139,19 +139,3 @@
     </div>
     <script src="../static/js/plotUtil.js"></script>
 </body>
-
-<script>
-const plotTypeSelector = document.getElementById('plot-type-dropdown');
-const toYearDropdown = document.getElementById('to-year-dropdown');
-const efficiencyDropdown = document.getElementById('efficiency-dropdown');
-
-plotTypeSelector.addEventListener('change', () => {
-  if (plotTypeSelector.value === 'xy_plot') {
-    toYearDropdown.style.display = 'inline';
-    efficiencyDropdown.style.display = 'inline';
-  } else {
-    toYearDropdown.style.display = 'none';
-    efficiencyDropdown.style.display = 'none';
-  }
-});
-</script>
