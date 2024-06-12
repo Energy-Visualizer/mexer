@@ -167,7 +167,7 @@ def get_query_from_post_request(
     # TODO: make this actually check via user permissions
     if shaped_query.get("dataset", None) == "IEAEWEB2022":
         return None
-    if shaped_query.get("ieamw", None) == "IEA" or shaped_query.get("ieamw", None) == "Both":
+    if shaped_query.get("ieamw", None) != "MW":
         return None
 
     return shaped_query

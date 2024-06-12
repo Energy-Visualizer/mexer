@@ -47,6 +47,7 @@ body, html {
     position: absolute;
     top: 0;
     left: 0;
+    pointer-events: none; /* make sure this doesn't impede the plot interactions */
 }
 
 #plot-section img {
