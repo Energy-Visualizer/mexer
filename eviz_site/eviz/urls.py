@@ -10,5 +10,6 @@ urlpatterns = [
     path('signup/', views.user_signup, name='signup'),
     path('logout/', views.user_logout, name='logout'),
     path('about/', views.about, name='about'),
-    re_path(r"static/css/([^(\.css)]*\.css)", views.handle_css_static)
+    re_path(r"static/css/([^(\.css)]*\.css)", views.handle_css_static),
+    path("plot", views.get_plot)
 ]

@@ -2,6 +2,8 @@
     <link rel="stylesheet" href="../static/css/toolbar.css" type="text/css" />
     <link rel="stylesheet" href="../static/css/visualizer.css" type="text/css" />
     <script src="../static/js/visualizer.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script> <!-- HTMX -->
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script> <!-- Plotly -->
 </head>
 
 <body onload="initialize()">
@@ -106,17 +108,17 @@
         </select>
         <button onclick="showDropdown('matname')" type="button">+</button>
     </p>
-    <a href="#plot-section-link" style="color:initial; text-decoration: none;"></a><button type="submit" id="get">GET</button></a>
+    <a href="#plot-section-link" style="color:initial; text-decoration: none;">
+        <button hx-post="/plot" hx-swap="innerHTML" hx-target="#plot-section" type="submit" id="get">
+            GET
+        </button>
+    </a>
     </form>
 
     <h6 id="plot-section-link"></h6>
     <div id="plot-section">
-        {% if plot == None %}
+        <!-- This will be replaced by HTMX getting the plot -->
         <div class="center-container"><img src="../static/images/logo.svg" alt="EVIZ"/></div>
-        {% else %}
-        <div id="plot-div">{{ plot|safe }}</div>
-        <button id="plot-reset" onclick="resetPlot()">RESET</button>
-        {% endif %}
     </div>
     <script src="../static/js/plotUtil.js"></script>
 </body>

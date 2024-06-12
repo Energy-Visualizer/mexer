@@ -1,4 +1,8 @@
-var plotSection = document.getElementById("plot-div")
+var plotSection;
+
+const init = () => {
+    plotSection = document.getElementById("plot-div");
+}
 
 // zooming variables
 var plotZoom = 1;
