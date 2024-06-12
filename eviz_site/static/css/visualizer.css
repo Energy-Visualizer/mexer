@@ -2,6 +2,8 @@ body, html {
     font-family: Arial, Helvetica, sans-serif;
     height: 100%;
     width: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 #plot-section {
@@ -17,19 +19,12 @@ body, html {
     box-shadow: #191b1e 0px 0px 50px;
     overflow: hidden;
     position: relative;
+    display: block;
 }
 
-#plot-reset {
-    position: absolute;
-    bottom:0;
-    right:0;
-    background-color: rgba(0, 173, 181, 0.5);
-    border: 0;
-    border-radius: 20%;
-}
-
-#plot-reset:hover {
-    background-color: rgba(0, 173, 181, 1);
+#plot-with-extra {
+    position: relative;
+    height: 100%;
 }
 
 .center-container {
@@ -43,6 +38,19 @@ body, html {
     top: 0;
     left: 0;
     pointer-events: none; /* make sure this doesn't impede the plot interactions */
+}
+
+#plot-reset {
+    position: absolute;
+    bottom:0;
+    right:0;
+    background-color: rgba(0, 173, 181, 0.5);
+    border: 0;
+    border-radius: 20%;
+}
+
+#plot-reset:hover {
+    background-color: rgba(0, 173, 181, 1);
 }
 
 #plot-section img {
@@ -91,11 +99,6 @@ body, html {
 
 #get:active {
     box-shadow: inset 0px 0px 10px;
-}
-
-#plot-with-extra {
-    position: relative;
-    height: 100%;
 }
 
 /* spinner -- starting design curtosy https://cssloaders.github.io/ */
