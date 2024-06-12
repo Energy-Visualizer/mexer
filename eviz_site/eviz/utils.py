@@ -133,42 +133,6 @@ def get_matrix(
         shape = (matrix_nrow, matrix_nrow),
     )
 
-def get_matrix_from_post_request(
-        request
-    ) -> csr_matrix:
-    '''Get a RUVY matrix from a Django POST request 
-    
-    Input:
-        post_request, a Django HttpRequest with the POST method
-          -- NO preformatting required
-          -- needs all relevant PSUT meta column information
-        
-    Output:
-        A scipy csr_matrix containing all values of the specified query
-    '''
-
-    info = dict(request.POST)
-    del info["csrfmiddlewaretoken"] # get rid of security token, don't need it to get matrix
-    # TODO: these should be options on the actual page!
-    info["chopped_mat"] = ["None"]
-    info["chopped_var"] = ["None"]
-    info["product_aggregation"] = ["Despecified"]
-    info["industry_aggregation"] = ["Grouped"]
-    for k, v in info.items():
-        # convert from list (if need be)
-        if len(v) == 1: info[k] = v[0]
-
-        # if empty choice, get rid of it for the query
-        if info[k] == '': info[k] = None
-
-    # special typed metadata
-    if info["includes_neu"] != None:
-        info["includes_neu"] = bool(info["includes_neu"])
-    if info["year"] != None:
-        info["year"] = int(info["year"])
-
-    return get_matrix(**info)
-
 def get_query_from_post_request(
         request
     ) -> dict:
@@ -267,13 +231,13 @@ def get_sankey_for_RUVY(query: dict) -> pgo.Figure:
         pad = 15,
         thickness = 20,
         label = labels,
-        color = colors
+        color = "green"
         ),
         link = dict(
         source = sources,
         target = targets,
         value = magnitudes,
-        color = colors #"rgba(100,100,100,0.5)"
+        color = "rgba(100,100,100,0.5)"
     ))])
 
 class Translator():

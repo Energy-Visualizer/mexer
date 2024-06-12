@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <head>
+    <title>EVIZ Visualizer</title>
     <link rel="stylesheet" href="../static/css/toolbar.css" type="text/css" />
     <link rel="stylesheet" href="../static/css/visualizer.css" type="text/css" />
     <script src="https://unpkg.com/htmx.org@1.9.12"></script> <!-- HTMX -->
@@ -110,15 +111,19 @@
         </select>
         <button onclick="showDropdown('matname')" type="button">+</button>
     </p>
-    <a href="#plot-section" style="color:initial; text-decoration: none;">
-        <button hx-post="/plot" hx-swap="innerHTML" hx-target="#plot-section" type="submit" id="get">
+        <button
+        hx-post="/plot" hx-swap="innerHTML" hx-target="#plot-section" hx-indicator="#plot-spinner"
+        type="submit" id="get"
+        onclick='document.getElementById("plot-section").scrollIntoView()'> <!-- onclick for bringing user to plot area -->
             GET
         </button>
-    </a>
     </form>
 
-    <div id="plot-section">
-        <!-- This will be replaced with the plot from HTMX -->
-        <div class="center-container"><img src="../static/images/logo.svg" alt="EVIZ"/></div>
+    <div id="plot-with-extra">
+        <div id="plot-section">
+            <!-- This will be replaced with the plot from HTMX -->
+            <!-- <div class="center-container"><img src="../static/images/logo.svg" alt="EVIZ"/></div> -->
+        </div>
+        <div class="center-container"><span id="plot-spinner" class="loader htmx-indicator"></span></div>
     </div>
 </body>

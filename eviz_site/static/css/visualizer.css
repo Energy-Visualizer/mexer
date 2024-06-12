@@ -36,7 +36,12 @@ body, html {
     display: flex;
     justify-content: center;
     margin: 0 auto;
+
     height: 100%;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 #plot-section img {
@@ -85,4 +90,73 @@ body, html {
 
 #get:active {
     box-shadow: inset 0px 0px 10px;
+}
+
+#plot-with-extra {
+    height: 100%;
+    position: relative;
+}
+
+/* spinner -- starting design curtosy https://cssloaders.github.io/ */
+/* center ring */
+.loader {
+    width: 50vh;
+    height: 50vh;
+    border-radius: 50%;
+    display: inline-block;
+    border: 40px solid;
+    border-color: #afcdcf #afcdcf transparent transparent;
+    box-sizing: border-box;
+    animation: rotation 1s linear infinite;
+    margin: auto;
+    z-index: 2;
+}
+
+/* outer ring + ring setups */
+.loader::after,
+.loader::before {
+    content: '';
+    box-sizing: border-box;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    border: 40px solid;
+    border-color: transparent #30cbd3 transparent #30cbd3 ;
+    width: 35vh;
+    height: 35vh;
+    border-radius: 50%;
+    box-sizing: border-box;
+    animation: rotationBack 0.5s linear infinite;
+    transform-origin: center center;
+}
+
+/* inner ring */
+.loader::before {
+    width: 20vh;
+    height: 20vh;
+    border-color: #afcdcf #afcdcf transparent transparent;
+    animation: rotation 1.5s linear infinite;
+}
+
+@keyframes rotation {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes rotationBack {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(-360deg);
+    }
 }
