@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>EVIZ Visualizer</title>
     <link rel="stylesheet" href="../static/css/toolbar.css" type="text/css" />
@@ -31,111 +32,110 @@
     </svg>
 
     <form method="post">
-    {% csrf_token %}
-    <p>Select type of plot: <select name="plot_type" id="plot-type-dropdown" class="styled-dropdown">
-        <option value="sankey">Sankey</option>
-        <option value="xy_plot">xy_plot</option>
-        <option value="matrices">Matrices</option>
-    </select>
-</p>
-<p id="efficiency-dropdown" style="display: none;">
-    Efficiency
-    <select name="efficiency" class="xy_plot_additions">
-        <option value="EXp">EXp</option>
-        <option value="EXf">EXf</option>
-        <option value="EXu">EXu</option>
-        <option value="etapf">etapf</option>
-        <option value="etafu">etafu</option>
-        <option value="etapu">etapu</option>
-      </select>
-</p>
+        {% csrf_token %}
+        <p>Select type of plot: <select name="plot_type" id="plot-type-dropdown" class="styled-dropdown">
+                <option value="sankey">Sankey</option>
+                <option value="xy_plot">xy_plot</option>
+                <option value="matrices">Matrices</option>
+            </select>
+        </p>
+        <p id="efficiency-dropdown" style="display: none;">
+            Efficiency
+            <select name="efficiency" class="xy_plot_additions">
+                <option value="EXp">EXp</option>
+                <option value="EXf">EXf</option>
+                <option value="EXu">EXu</option>
+                <option value="etapf">etapf</option>
+                <option value="etafu">etafu</option>
+                <option value="etapu">etapu</option>
+            </select>
+        </p>
 
-    <p>
-        From dataset
-        <select name="dataset" id="dataset-dropdown" class="styled-dropdown" required>
-            {% for dataset in datasets %}
-            <option value="{{ dataset }}">{{ dataset }}</option>
-            {% endfor %}
-        </select>
-        get country
-        <select name="country" id="country-dropdown" class="styled-dropdown" required>
-            {% for country in countries %}
-            <option value="{{ country }}">{{ country }}</option>
-            {% endfor %}
-        </select>
-    </p>
-    <p>
-        Selected by method
-        <select name="method" id="method-dropdown" class="optional-dropdown styled-dropdown">
-            <option value selected hidden>Please select something</option>
-            {% for method in methods %}
-            <option value="{{ method }}">{{ method }}</option>
-            {% endfor %}
-        </select>
-        <button onclick="showDropdown('method')" type="button">+</button>
-    </p>
-    <p>
-        For energy type
-        <select name="energy_type" id="energy_type-dropdown" class="optional-dropdown styled-dropdown">
-            <option value selected hidden>Please select something</option>
-            {% for energy_type in energy_types %}
-            <option value="{{ energy_type }}">{{ energy_type }}</option>
-            {% endfor %}
-        </select>
-        <button onclick="showDropdown('energy_type')" type="button">+</button>
-    </p>
-    <p>
-        To last stage
-        <select name="last_stage" id="last_stage-dropdown" class="optional-dropdown styled-dropdown">
-            <option value selected hidden>Please select something</option>
-            {% for last_stage in last_stages %}
-            <option value="{{ last_stage }}">{{ last_stage }}</option>
-            {% endfor %}
-        </select>
-        <button onclick="showDropdown('last_stage')" type="button">+</button>
-    </p>
-    <p>
-        With IEAMW
-        <select name="ieamw" id="ieamw-dropdown" class="optional-dropdown styled-dropdown">
-            <option value selected hidden>Please select something</option>
-            {% for ieamw in ieamws %}
-            <option value="{{ ieamw }}">{{ ieamw }}</option>
-            {% endfor %}
-        </select>
-        <button onclick="showDropdown('ieamw')" type="button">+</button>
-    </p>
-    <p>
-        Including NEU
-        <select name="includes_neu" id="includes_neu-dropdown" class="optional-dropdown styled-dropdown">
-            <option value selected hidden>Please select something</option>
-            {% for includes_neu in includes_neus %}
-            <option value="{{ includes_neu }}">{{ includes_neu }}</option>
-            {% endfor %}
-        </select>
-        <button onclick="showDropdown('includes_neu')" type="button">+</button>
-    </p>
-    <p>
-        Year
-        <input name="year" id="year-dropdown" class="xy_plot_additions"></input>
-    </p>
-    <p id="to-year-dropdown" style="display: none;">
-        To year
-        <input name="to_year" class="xy_plot_additions"></input>
-    </p>
-    <p>
-        Matrix
-        <select name="matname" id="matname-dropdown" class="optional-dropdown styled-dropdown">
-            <option value selected hidden>Please select something</option>
-            {% for matname in matnames %}
-            <option value="{{ matname }}">{{ matname }}</option>
-            {% endfor %}
-        </select>
-        <button onclick="showDropdown('matname')" type="button">+</button>
-    </p>
-        <button
-        hx-post="/plot" hx-swap="innerHTML" hx-target="#plot-section" hx-indicator="#plot-spinner"
-        type="submit" id="get"
-        onclick='document.getElementById("plot-section").scrollIntoView()'> <!-- onclick for bringing user to plot area -->
+        <p>
+            From dataset
+            <select name="dataset" id="dataset-dropdown" class="styled-dropdown" required>
+                {% for dataset in datasets %}
+                <option value="{{ dataset }}">{{ dataset }}</option>
+                {% endfor %}
+            </select>
+            get country
+            <select name="country" id="country-dropdown" class="styled-dropdown" required>
+                {% for country in countries %}
+                <option value="{{ country }}">{{ country }}</option>
+                {% endfor %}
+            </select>
+        </p>
+        <p>
+            Selected by method
+            <select name="method" id="method-dropdown" class="optional-dropdown styled-dropdown">
+                <option value selected hidden>Please select something</option>
+                {% for method in methods %}
+                <option value="{{ method }}">{{ method }}</option>
+                {% endfor %}
+            </select>
+            <button onclick="showDropdown('method')" type="button">+</button>
+        </p>
+        <p>
+            For energy type
+            <select name="energy_type" id="energy_type-dropdown" class="optional-dropdown styled-dropdown">
+                <option value selected hidden>Please select something</option>
+                {% for energy_type in energy_types %}
+                <option value="{{ energy_type }}">{{ energy_type }}</option>
+                {% endfor %}
+            </select>
+            <button onclick="showDropdown('energy_type')" type="button">+</button>
+        </p>
+        <p>
+            To last stage
+            <select name="last_stage" id="last_stage-dropdown" class="optional-dropdown styled-dropdown">
+                <option value selected hidden>Please select something</option>
+                {% for last_stage in last_stages %}
+                <option value="{{ last_stage }}">{{ last_stage }}</option>
+                {% endfor %}
+            </select>
+            <button onclick="showDropdown('last_stage')" type="button">+</button>
+        </p>
+        <p>
+            With IEAMW
+            <select name="ieamw" id="ieamw-dropdown" class="optional-dropdown styled-dropdown">
+                <option value selected hidden>Please select something</option>
+                {% for ieamw in ieamws %}
+                <option value="{{ ieamw }}">{{ ieamw }}</option>
+                {% endfor %}
+            </select>
+            <button onclick="showDropdown('ieamw')" type="button">+</button>
+        </p>
+        <p>
+            Including NEU
+            <select name="includes_neu" id="includes_neu-dropdown" class="optional-dropdown styled-dropdown">
+                <option value selected hidden>Please select something</option>
+                {% for includes_neu in includes_neus %}
+                <option value="{{ includes_neu }}">{{ includes_neu }}</option>
+                {% endfor %}
+            </select>
+            <button onclick="showDropdown('includes_neu')" type="button">+</button>
+        </p>
+        <p>
+            Year
+            <input name="year" id="year-dropdown" class="xy_plot_additions"></input>
+        </p>
+        <p id="to-year-dropdown" style="display: none;">
+            To year
+            <input name="to_year" class="xy_plot_additions"></input>
+        </p>
+        <p>
+            Matrix
+            <select name="matname" id="matname-dropdown" class="optional-dropdown styled-dropdown">
+                <option value selected hidden>Please select something</option>
+                {% for matname in matnames %}
+                <option value="{{ matname }}">{{ matname }}</option>
+                {% endfor %}
+            </select>
+            <button onclick="showDropdown('matname')" type="button">+</button>
+        </p>
+        <button hx-post="/plot" hx-swap="innerHTML" hx-target="#plot-section" hx-indicator="#plot-spinner" type="submit"
+            id="get" onclick='document.getElementById("plot-section").scrollIntoView()'>
+            <!-- onclick for bringing user to plot area -->
             GET
         </button>
     </form>
@@ -145,7 +145,8 @@
             <!-- This will be replaced with the plot from HTMX -->
             <!-- <div class="center-container"><img src="../static/images/logo.svg" alt="EVIZ"/></div> -->
         </div>
-        <div class="center-container"><span id="plot-spinner" class="loader htmx-indicator"></span></div> 
+        <div class="center-container"><span id="plot-spinner" class="loader htmx-indicator"></span></div>
     </div>
 </body>
+
 </html>
