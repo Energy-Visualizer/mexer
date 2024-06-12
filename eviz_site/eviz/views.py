@@ -142,28 +142,27 @@ def get_plot(request):
                 plot_div = "No cooresponding data"
             else:
                 sankey_diagram.update_layout(title_text="Test Sankey", font_size=10)
-                plot_div = plot(sankey_diagram, output_type="div", include_plotlyjs="cdn")
+                plot_div = plot(sankey_diagram, output_type="div", include_plotlyjs=False)
 
         elif plot_type == "xy_plot":
-            
             query = get_query_from_post_request(request)
 
             # for stopping iea leaks
             if query == None:
                 return HttpResponse("You are not allowed to receive IEA data.")
             
-            from_year = query.get('year')
-            to_year = query.get('to_year')
             efficiency_metric = query.get('efficiency', 'etapf')
             query.pop('plot_type', None)
-            query.pop('year', None) 
-            query.pop('to_year', None)
             query.pop('efficiency', None)
+
+            # TODO: all very messy!!!!!!!!
+            from_year = query["year"]
+            to_year = query["to_year"]
+            query.pop("year")
+            query.pop("to_year")
             query = psut_translate(**query)
-            agg_query = AggEtaPFU.objects.filter(Year__gte=from_year, Year__lte=to_year,**query
-            ).values("Year", efficiency_metric).query
-            print(f"Filtered queryset: {agg_query}") 
-            with connection.cursor() as cursor:
+            agg_query = AggEtaPFU.objects.filter(Year__gte = from_year, Year__lte = to_year, **query).values("Year", efficiency_metric).query
+            with connection.cursor() as cursor, Silent():
                 df = pd.read_sql_query(str(agg_query), con=cursor.connection)
 
             scatterplot = px.scatter(
@@ -171,7 +170,7 @@ def get_plot(request):
                 title=f"Efficiency of {efficiency_metric} by year",
                 template="plotly_dark"
             )
-            plot_div = plot(scatterplot, output_type="div", include_plotlyjs="cdn")
+            plot_div = plot(scatterplot, output_type="div", include_plotlyjs=False)
 
         # add the reset button which will also initialize the plot panning and zooming script
         plot_div += '<button id="plot-reset" onclick="resetPlot()">RESET</button>'

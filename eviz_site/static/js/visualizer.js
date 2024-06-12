@@ -7,18 +7,18 @@ const initialize = () => {
     yearDropdown = document.getElementById("year-dropdown");
     matnameDropdown = document.getElementById("matname-dropdown");
     const plotTypeSelector = document.getElementById('plot-type-dropdown');
-const toYearDropdown = document.getElementById('to-year-dropdown');
-const efficiencyDropdown = document.getElementById('efficiency-dropdown');
+    const toYearDropdown = document.getElementById('to-year-dropdown');
+    const efficiencyDropdown = document.getElementById('efficiency-dropdown');
 
-plotTypeSelector.addEventListener('change', () => {
-  if (plotTypeSelector.value === 'xy_plot') {
-    toYearDropdown.style.display = 'inline';
-    efficiencyDropdown.style.display = 'inline';
-  } else {
-    toYearDropdown.style.display = 'none';
-    efficiencyDropdown.style.display = 'none';
-  }
-});
+    plotTypeSelector.addEventListener('change', () => {
+        if (plotTypeSelector.value === 'xy_plot') {
+            toYearDropdown.style.display = 'inline';
+            efficiencyDropdown.style.display = 'inline';
+        } else {
+            toYearDropdown.style.display = 'none';
+            efficiencyDropdown.style.display = 'none';
+        }
+    });
 };
 
 
@@ -59,11 +59,11 @@ const showDropdown = (name) => {
 
     // set up the button to remove the new dropdown if need be
     const delButton = document.createElement('button');
-    delButton.onclick = () => {newDropdown.remove(); delButton.remove();};
+    delButton.onclick = () => { newDropdown.remove(); delButton.remove(); };
     delButton.type = "button";
     delButton.textContent = "X";
     delButton.classList.add("remove-button");
-    
+
     // add the dropdown and button to the dom
     desiredDropdown.before(newDropdown);
     newDropdown.after(delButton);

@@ -171,13 +171,6 @@ def get_query_from_post_request(
         return None
     if shaped_query.get("ieamw", None) != "MW":
         return None
-    year_start = shaped_query.get("year_start")
-    year_end = shaped_query.get("year_end")
-    if year_start and year_end:
-        shaped_query["year__gte"] = year_start
-        shaped_query["year__lte"] = year_end
-        del shaped_query["year_start"]
-        del shaped_query["year_end"]
 
     return shaped_query
 
