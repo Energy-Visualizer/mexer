@@ -19,11 +19,6 @@ body, html {
     position: relative;
 }
 
-/* for making sure the plotly plot is the right size */
-#plot-section div {
-    height: 100%;
-}
-
 #plot-reset {
     position: absolute;
     bottom:0;
