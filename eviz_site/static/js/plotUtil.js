@@ -1,17 +1,15 @@
-var plotSection = document.getElementById("plot-div")
+// to hold the div in which is the plot
+var plotSection;
 
 // zooming variables
-var plotZoom = 1;
+var plotZoom;
 
 // panning variables
-var plotPanX = 0;
-var plotPanY = 0;
-var dragging = false;
-var originX, originY;
+var plotPanX, plotPanY, dragging, originX, originY;
 
 const updatePlot = () => {
     // devide by plotZoom so that the image doesn't move relatively faster the more zoomed a user is
-    plotSection.style.transform = "scale(" + plotZoom + ") translate(" + plotPanX  / plotZoom + "px," + plotPanY  / plotZoom + "px)";
+    plotSection.style.transform = "scale(" + plotZoom + ") translate(" + plotPanX / plotZoom + "px," + plotPanY / plotZoom + "px)";
 }
 
 const resetPlot = () => {
@@ -21,48 +19,60 @@ const resetPlot = () => {
     dragging = false;
 }
 
-// zooming
-plotSection.onwheel = (event) => {
-    event.preventDefault();
+const initPlotUtils = () => {
+    plotSection = document.querySelector("div div.plotly-graph-div");
+    resetPlot();
 
-    // if scrolling wheel up, increase zoom
-    if (event.deltaY < 0)
-        plotZoom *= 1.1;
+    // zooming
+    plotSection.onwheel = (event) => {
+        event.preventDefault();
 
-    // if scrolling wheel down, decrease zoom
-    else
-        plotZoom /= 1.1;
+        // if scrolling wheel up, increase zoom
+        if (event.deltaY < 0)
+            plotZoom *= 1.1;
 
-    // TODO: zoom into where the user's mouse points
-    // plotSection.style.transformOrigin = event.clientX / plotZoom + "px " + event.clientY / plotZoom + "px";
-    updatePlot();
-}
+        // if scrolling wheel down, decrease zoom
+        else
+            plotZoom /= 1.1;
 
-// panning
-
-// get mouse down to start panning
-plotSection.onmousedown = (event) => {
-
-    // if middle mouse button was clicked
-    if (event.which == 2 || event.button == 4) {
-        event.preventDefault()
-        dragging = true;
-        originX = event.clientX - plotPanX;
-        originY = event.clientY - plotPanY;
-    }
-}
-
-// get mouse up to stop panning
-plotSection.onmouseup = () => {
-    dragging = false;
-}
-
-// get mouse movement to pan
-plotSection.onmousemove = (event) => {
-    // only pan if holding mouse button down
-    if (dragging) {
-        plotPanX = event.clientX - originX;
-        plotPanY = event.clientY - originY;
+        // TODO: zoom into where the user's mouse points
+        // plotSection.style.transformOrigin = event.clientX / plotZoom + "px " + event.clientY / plotZoom + "px";
         updatePlot();
     }
+
+    // panning
+
+    // get mouse down to start panning
+    plotSection.onmousedown = (event) => {
+
+        // if middle mouse button was clicked
+        if (event.which == 2 || event.button == 4) {
+            event.preventDefault()
+            dragging = true;
+            originX = event.clientX - plotPanX;
+            originY = event.clientY - plotPanY;
+        }
+    }
+
+    // get mouse up to stop panning
+    plotSection.onmouseup = () => {
+        dragging = false;
+    }
+
+    // get mouse movement to pan
+    plotSection.onmousemove = (event) => {
+        // only pan if holding mouse button down
+        if (dragging) {
+            plotPanX = event.clientX - originX;
+            plotPanY = event.clientY - originY;
+            updatePlot();
+        }
+    }
+
 }
+
+// listener to initialize this script when htmx loads in a new plot
+htmx.on("htmx:afterSwap", (event) => {
+    if (event.detail.target.id == "plot-section")
+        initPlotUtils();
+});

@@ -118,10 +118,7 @@ def get_psut_data(request):
 
     return render(request, "./test.html", context)
 
-# @login_required(login_url="/login")
-@time_view
-def visualizer(request):
-
+def get_plot(request):
     sankey_diagram = None
     if request.method == "POST":
         # Sankey diagram selected
@@ -137,8 +134,16 @@ def visualizer(request):
             sankey_diagram = "No cooresponding data"
         else:
             sankey_diagram.update_layout(title_text="Test Sankey", font_size=10)
-            sankey_diagram = plot(sankey_diagram, output_type="div", include_plotlyjs="cdn")
+            sankey_diagram = plot(sankey_diagram, output_type="div", include_plotlyjs=False)
 
+            # add the reset button which will also initialize the plot panning and zooming script
+            sankey_diagram += '<button id="plot-reset" onclick="resetPlot()">RESET</button>'
+    
+    return HttpResponse(sankey_diagram)
+
+# @login_required(login_url="/login")
+@time_view
+def visualizer(request):
     datasets = Translator.get_datasets()
     countries = list(Translator.get_countries())
     countries.sort()
@@ -153,7 +158,7 @@ def visualizer(request):
     
     context = {"datasets":datasets, "countries":countries, "methods":methods,
             "energy_types":energy_types, "last_stages":last_stages, "ieamws":ieamws,
-            "includes_neus":includes_neus, "years":years, "matnames":matnames, "plot":sankey_diagram
+            "includes_neus":includes_neus, "years":years, "matnames":matnames
             }
 
     return render(request, "visualizer.html", context)
