@@ -88,3 +88,9 @@ body {
 #get:active {
     box-shadow: inset 0px 0px 10px;
 }
+.xy_plot_additions{
+    background-color: #b5ddf6;
+    border:0;
+    box-shadow: 0px 0px 5px;
+    cursor: pointer;
+}

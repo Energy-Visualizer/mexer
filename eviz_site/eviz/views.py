@@ -119,25 +119,60 @@ def get_psut_data(request):
     return render(request, "./test.html", context)
 
 # @login_required(login_url="/login")
+import pandas as pd
 @time_view
 def visualizer(request):
 
-    sankey_diagram = None
+    plot_div = None
     if request.method == "POST":
-        # Sankey diagram selected
-        query = get_query_from_post_request(request)
+        plot_type = request.POST.get("plot_type")
+    
+        if plot_type == "sankey":
+            # Sankey diagram selected
+            query = get_query_from_post_request(request)
 
-        # for stopping iea leaks
-        if query == None:
-            return HttpResponse("You are not allowed to receive IEA data.")
+            # for stopping iea leaks
+            if query == None:
+                return HttpResponse("You are not allowed to receive IEA data.")
             
-        query = psut_translate(**query)
-        sankey_diagram = get_sankey_for_RUVY(query)
-        if sankey_diagram == None:
-            sankey_diagram = "No cooresponding data"
-        else:
-            sankey_diagram.update_layout(title_text="Test Sankey", font_size=10)
-            sankey_diagram = plot(sankey_diagram, output_type="div", include_plotlyjs="cdn")
+            query.pop('plot_type', None)
+            query.pop('to_year', None)
+            query.pop('efficiency', None)
+            query = psut_translate(**query)
+            sankey_diagram = get_sankey_for_RUVY(query)
+            if sankey_diagram == None:
+                plot_div = "No cooresponding data"
+            else:
+                sankey_diagram.update_layout(title_text="Test Sankey", font_size=10)
+                plot_div = plot(sankey_diagram, output_type="div", include_plotlyjs="cdn")
+        elif plot_type == "xy_plot":
+            
+            query = get_query_from_post_request(request)
+
+            # for stopping iea leaks
+            if query == None:
+                return HttpResponse("You are not allowed to receive IEA data.")
+            
+            from_year = query.get('year')
+            to_year = query.get('to_year')
+            efficiency_metric = query.get('efficiency', 'etapf')
+            query.pop('plot_type', None)
+            query.pop('year', None) 
+            query.pop('to_year', None)
+            query.pop('efficiency', None)
+            query = psut_translate(**query)
+            agg_query = AggEtaPFU.objects.filter(Year__gte=from_year, Year__lte=to_year,**query
+            ).values("Year", efficiency_metric).query
+            print(f"Filtered queryset: {agg_query}") 
+            with connection.cursor() as cursor:
+                df = pd.read_sql_query(str(agg_query), con=cursor.connection)
+
+            scatterplot = px.scatter(
+                df, x="Year", y=efficiency_metric,
+                title=f"Efficiency of {efficiency_metric} by year",
+                template="plotly_dark"
+            )
+            plot_div = plot(scatterplot, output_type="div", include_plotlyjs="cdn")
 
     datasets = Translator.get_datasets()
     countries = list(Translator.get_countries())
@@ -153,10 +188,11 @@ def visualizer(request):
     
     context = {"datasets":datasets, "countries":countries, "methods":methods,
             "energy_types":energy_types, "last_stages":last_stages, "ieamws":ieamws,
-            "includes_neus":includes_neus, "years":years, "matnames":matnames, "plot":sankey_diagram
+            "includes_neus":includes_neus, "years":years, "matnames":matnames, "plot":plot_div
             }
 
     return render(request, "visualizer.html", context)
+
 
 def about(request):
     return render(request, 'about.html')

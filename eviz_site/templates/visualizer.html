@@ -23,10 +23,26 @@
         <path d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z" style="stroke: none; fill:#393E46;"></path>
     </svg>
 
-    <p>Select type of plot: <select class="styled-dropdown"><option value="sankey">Sankey</option></select></p>
-
     <form method="post">
     {% csrf_token %}
+    <p>Select type of plot: <select name="plot_type" id="plot-type-dropdown" class="styled-dropdown">
+        <option value="sankey">Sankey</option>
+        <option value="xy_plot">xy_plot</option>
+        <option value="matrices">Matrices</option>
+    </select>
+</p>
+<p id="efficiency-dropdown" name="efficiency" style="display: none;">
+    Efficiency
+    <select class="xy_plot_additions">
+        <option value="EXp">EXp</option>
+        <option value="EXf">EXf</option>
+        <option value="EXu">EXu</option>
+        <option value="etapf">etapf</option>
+        <option value="etafu">etafu</option>
+        <option value="etapu">etapu</option>
+      </select>
+</p>
+
     <p>
         From dataset
         <select name="dataset" id="dataset-dropdown" class="styled-dropdown" required>
@@ -92,9 +108,12 @@
         <button onclick="showDropdown('includes_neu')" type="button">+</button>
     </p>
     <p>
-        For year(s)
-        <input name="year" id="year-dropdown" class="optional-dropdown styled-dropdown"></input>
-        <button onclick="showDropdown('year')" type="button">+</button>
+        Year
+        <input name="year" id="year-dropdown" class="xy_plot_additions"></input>
+    </p>
+    <p name="to_year" id="to-year-dropdown" style="display: none;"  >
+        To year
+        <input class="xy_plot_additions"></input>
     </p>
     <p>
         Matrix
@@ -120,3 +139,19 @@
     </div>
     <script src="../static/js/plotUtil.js"></script>
 </body>
+
+<script>
+const plotTypeSelector = document.getElementById('plot-type-dropdown');
+const toYearDropdown = document.getElementById('to-year-dropdown');
+const efficiencyDropdown = document.getElementById('efficiency-dropdown');
+
+plotTypeSelector.addEventListener('change', () => {
+  if (plotTypeSelector.value === 'xy_plot') {
+    toYearDropdown.style.display = 'inline';
+    efficiencyDropdown.style.display = 'inline';
+  } else {
+    toYearDropdown.style.display = 'none';
+    efficiencyDropdown.style.display = 'none';
+  }
+});
+</script>

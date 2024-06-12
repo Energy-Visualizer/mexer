@@ -132,43 +132,6 @@ def get_matrix(
         (val, (row, col)),
         shape = (matrix_nrow, matrix_nrow),
     )
-
-def get_matrix_from_post_request(
-        request
-    ) -> csr_matrix:
-    '''Get a RUVY matrix from a Django POST request 
-    
-    Input:
-        post_request, a Django HttpRequest with the POST method
-          -- NO preformatting required
-          -- needs all relevant PSUT meta column information
-        
-    Output:
-        A scipy csr_matrix containing all values of the specified query
-    '''
-
-    info = dict(request.POST)
-    del info["csrfmiddlewaretoken"] # get rid of security token, don't need it to get matrix
-    # TODO: these should be options on the actual page!
-    info["chopped_mat"] = ["None"]
-    info["chopped_var"] = ["None"]
-    info["product_aggregation"] = ["Despecified"]
-    info["industry_aggregation"] = ["Grouped"]
-    for k, v in info.items():
-        # convert from list (if need be)
-        if len(v) == 1: info[k] = v[0]
-
-        # if empty choice, get rid of it for the query
-        if info[k] == '': info[k] = None
-
-    # special typed metadata
-    if info["includes_neu"] != None:
-        info["includes_neu"] = bool(info["includes_neu"])
-    if info["year"] != None:
-        info["year"] = int(info["year"])
-
-    return get_matrix(**info)
-
 def get_query_from_post_request(
         request
     ) -> dict:
@@ -198,6 +161,8 @@ def get_query_from_post_request(
         shaped_query["includes_neu"] = bool(shaped_query["includes_neu"])
     if shaped_query.get("year", None) != None:
         shaped_query["year"] = int(shaped_query["year"])
+    if shaped_query.get("to_year", None) != None:  # NEW: handle 'to_year' parameter
+        shaped_query["to_year"] = int(shaped_query["to_year"])
     
     # To stop any getting of iea data
     # TODO: make this actually check via user permissions
@@ -205,6 +170,13 @@ def get_query_from_post_request(
         return None
     if shaped_query.get("ieamw", None) == "IEA" or shaped_query.get("ieamw", None) == "Both":
         return None
+    year_start = shaped_query.get("year_start")
+    year_end = shaped_query.get("year_end")
+    if year_start and year_end:
+        shaped_query["year__gte"] = year_start
+        shaped_query["year__lte"] = year_end
+        del shaped_query["year_start"]
+        del shaped_query["year_end"]
 
     return shaped_query
 
