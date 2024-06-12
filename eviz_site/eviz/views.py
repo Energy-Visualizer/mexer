@@ -118,32 +118,65 @@ def get_psut_data(request):
 
     return render(request, "./test.html", context)
 
-from time import sleep
+import pandas as pd
 def get_plot(request):
-    sleep(3)
-    sankey_diagram = None
+
+    plot_div = None
     if request.method == "POST":
-        # Sankey diagram selected
-        query = get_query_from_post_request(request)
-
-        # for stopping iea leaks
-        if query == None:
-            return HttpResponse("You are not allowed to receive IEA data.")
-            
-        query = psut_translate(**query)
-        sankey_diagram = get_sankey_for_RUVY(query)
-        if sankey_diagram == None:
-            sankey_diagram = "No cooresponding data"
-        else:
-            sankey_diagram.update_layout(title_text="Test Sankey", font_size=10)
-            sankey_diagram = plot(sankey_diagram, output_type="div", include_plotlyjs=False)
-
-            # remove extraneous div, which will cause sizing issues
-            sankey_diagram = sankey_diagram.removeprefix("<div>").removesuffix("</div>")
-            # add the reset button which will also initialize the plot panning and zooming script
-            sankey_diagram += '<button id="plot-reset" onclick="resetPlot()">RESET</button>'
+        plot_type = request.POST.get("plot_type")
     
-    return HttpResponse(sankey_diagram)
+        if plot_type == "sankey":
+            # Sankey diagram selected
+            query = get_query_from_post_request(request)
+
+            # for stopping iea leaks
+            if query == None:
+                return HttpResponse("You are not allowed to receive IEA data.")
+        
+            query.pop('plot_type', None)
+            query.pop('to_year', None)
+            query.pop('efficiency', None)
+            query = psut_translate(**query)
+            sankey_diagram = get_sankey_for_RUVY(query)
+            if sankey_diagram == None:
+                plot_div = "No cooresponding data"
+            else:
+                sankey_diagram.update_layout(title_text="Test Sankey", font_size=10)
+                plot_div = plot(sankey_diagram, output_type="div", include_plotlyjs="cdn")
+
+        elif plot_type == "xy_plot":
+            
+            query = get_query_from_post_request(request)
+
+            # for stopping iea leaks
+            if query == None:
+                return HttpResponse("You are not allowed to receive IEA data.")
+            
+            from_year = query.get('year')
+            to_year = query.get('to_year')
+            efficiency_metric = query.get('efficiency', 'etapf')
+            query.pop('plot_type', None)
+            query.pop('year', None) 
+            query.pop('to_year', None)
+            query.pop('efficiency', None)
+            query = psut_translate(**query)
+            agg_query = AggEtaPFU.objects.filter(Year__gte=from_year, Year__lte=to_year,**query
+            ).values("Year", efficiency_metric).query
+            print(f"Filtered queryset: {agg_query}") 
+            with connection.cursor() as cursor:
+                df = pd.read_sql_query(str(agg_query), con=cursor.connection)
+
+            scatterplot = px.scatter(
+                df, x="Year", y=efficiency_metric,
+                title=f"Efficiency of {efficiency_metric} by year",
+                template="plotly_dark"
+            )
+            plot_div = plot(scatterplot, output_type="div", include_plotlyjs="cdn")
+
+        # add the reset button which will also initialize the plot panning and zooming script
+        plot_div += '<button id="plot-reset" onclick="resetPlot()">RESET</button>'
+    
+    return HttpResponse(plot_div)
 
 # @login_required(login_url="/login")
 @time_view
@@ -166,6 +199,7 @@ def visualizer(request):
             }
 
     return render(request, "visualizer.html", context)
+
 
 def about(request):
     return render(request, 'about.html')
