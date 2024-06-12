@@ -19,6 +19,11 @@ body, html {
     position: relative;
 }
 
+/* for making sure the plotly plot is the right size */
+#plot-section div {
+    height: 100%;
+}
+
 #plot-reset {
     position: absolute;
     bottom:0;
@@ -93,8 +98,8 @@ body, html {
 }
 
 #plot-with-extra {
-    height: 100%;
     position: relative;
+    height: 100%;
 }
 
 /* spinner -- starting design curtosy https://cssloaders.github.io/ */
