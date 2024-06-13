@@ -72,7 +72,7 @@ const initPlotUtils = () => {
 }
 
 // listener to initialize this script when htmx loads in a new plot
-htmx.on("htmx:afterSwap", (event) => {
-    if (event.detail.target.id == "plot-section")
-        initPlotUtils();
-});
+// htmx.on("htmx:afterSwap", (event) => {
+//     if (event.detail.target.id == "plot-section")
+//          initPlotUtils();
+// });
