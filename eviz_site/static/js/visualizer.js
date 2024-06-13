@@ -1,27 +1,65 @@
 const initialize = () => {
+    // main metadata
     methodDropdown = document.getElementById("method-dropdown");
     energyTypeDropdown = document.getElementById("energy_type-dropdown")
     lastStageDropdown = document.getElementById("last_stage-dropdown");
     ieamwDropdown = document.getElementById("ieamw-dropdown");
     includesNEUDropdown = document.getElementById("includes_neu-dropdown");
-    yearDropdown = document.getElementById("year-dropdown");
-    matnameDropdown = document.getElementById("matname-dropdown");
-    const plotTypeSelector = document.getElementById('plot-type-dropdown');
-    const toYearDropdown = document.getElementById('to-year-dropdown');
-    const efficiencyDropdown = document.getElementById('efficiency-dropdown');
 
+    // specific metadata
+    singleYearInput = document.getElementById("single-year-input");
+    fromYearInput = document.getElementById("from-year-input");
+    toYearInput = document.getElementById("to-year-input");
+    efficiencyDropdown = document.getElementById('efficiency-dropdown');
+    matnameDropdown = document.getElementById("matname-dropdown");
+
+    // have specifics show differently for different plots
+    const plotTypeSelector = document.getElementById('plot-type-dropdown');
     plotTypeSelector.addEventListener('change', () => {
-        if (plotTypeSelector.value === 'xy_plot') {
-            toYearDropdown.style.display = 'inline';
-            efficiencyDropdown.style.display = 'inline';
-        } else {
-            toYearDropdown.style.display = 'none';
-            efficiencyDropdown.style.display = 'none';
-        }
+
+        if (plotTypeSelector.value === 'xy_plot')
+            handleXYPlot();
+
+        else if (plotTypeSelector.value === "sankey")
+            handleSankey();
     });
+
+    // have whatever the plot selection is currently set to show up at start
+    // TODO: make this better
+    if (plotTypeSelector.value === 'xy_plot')
+        handleXYPlot();
+
+    else if (plotTypeSelector.value === "sankey")
+        handleSankey();
 };
 
+const inputOn = (element) => {
+    element.disabled = false;
+    element.parentElement.style.display = "block";
+}
 
+const inputOff = (element) => {
+    element.disabled = true;
+    element.parentElement.style.display = "none";
+}
+
+const handleXYPlot = () => {
+    inputOff(singleYearInput);
+    inputOff(matnameDropdown);
+
+    inputOn(fromYearInput);
+    inputOn(toYearInput);
+    inputOn(efficiencyDropdown);
+}
+
+const handleSankey = () => {
+    inputOff(fromYearInput);
+    inputOff(toYearInput);
+    inputOff(efficiencyDropdown);
+    inputOff(matnameDropdown);
+
+    inputOn(singleYearInput);
+}
 
 const showDropdown = (name) => {
 
@@ -56,6 +94,7 @@ const showDropdown = (name) => {
     const newDropdown = desiredDropdown.cloneNode(deep = true);
     newDropdown.style.display = "inline";
     newDropdown.required = "required";
+    newDropdown.disabled = false;
 
     // set up the button to remove the new dropdown if need be
     const delButton = document.createElement('button');

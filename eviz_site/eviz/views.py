@@ -1,18 +1,14 @@
 # Django imports
 from django.shortcuts import render, redirect, HttpResponse
-from django.db import connection # for low-level psycopg2 connection. to access other db connections, import connections
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 
 # Eviz imports
-from eviz.utils import time_view, get_matrix, Silent, Translator, get_query_from_post_request, get_sankey_for_RUVY, psut_translate
-from eviz.models import AggEtaPFU
+from eviz.utils import *
 from eviz.forms import SignupForm, LoginForm
 
 # Visualization imports
 from plotly.offline import plot
-import plotly.express as px
-import pandas.io.sql as pd_sql # for getting data into a pandas dataframe
 
 @time_view
 def index(request):
@@ -118,61 +114,37 @@ def get_psut_data(request):
 
     return render(request, "./test.html", context)
 
-import pandas as pd
+@time_view
 def get_plot(request):
 
     plot_div = None
     if request.method == "POST":
-        plot_type = request.POST.get("plot_type")
-    
-        if plot_type == "sankey":
-            # Sankey diagram selected
-            query = get_query_from_post_request(request)
 
-            # for stopping iea leaks
-            if query == None:
-                return HttpResponse("You are not allowed to receive IEA data.")
+        plot_type, query = shape_post_request(request.POST)
+
+        if not iea_valid(request.user, query):
+            return HttpResponse("You are not allowed to receive IEA data.")
         
-            query.pop('plot_type', None)
-            query.pop('to_year', None)
-            query.pop('efficiency', None)
-            query = psut_translate(**query)
-            sankey_diagram = get_sankey_for_RUVY(query)
-            if sankey_diagram == None:
-                plot_div = "No cooresponding data"
-            else:
-                sankey_diagram.update_layout(title_text="Test Sankey", font_size=10)
-                plot_div = plot(sankey_diagram, output_type="div", include_plotlyjs=False)
+        match plot_type:
+            case "sankey":
+                query = translate_query(query)
+                sankey_diagram = get_sankey(query)
+                if sankey_diagram == None:
+                    plot_div = "No cooresponding data"
+                else:
+                    sankey_diagram.update_layout(title_text="Test Sankey", font_size=10)
+                    plot_div = plot(sankey_diagram, output_type="div", include_plotlyjs=False)
 
-        elif plot_type == "xy_plot":
-            query = get_query_from_post_request(request)
-
-            # for stopping iea leaks
-            if query == None:
-                return HttpResponse("You are not allowed to receive IEA data.")
+            case "xy_plot":
+                efficiency_metric = query.pop('efficiency')
+                query = translate_query(query)
+                xy = get_xy(efficiency_metric, query)
+                plot_div = plot(xy, output_type="div", include_plotlyjs=False)
             
-            efficiency_metric = query.get('efficiency', 'etapf')
-            query.pop('plot_type', None)
-            query.pop('efficiency', None)
+            case _: # default
+                plot_div = "Plot type not specified or supported"
 
-            # TODO: all very messy!!!!!!!!
-            from_year = query["year"]
-            to_year = query["to_year"]
-            query.pop("year")
-            query.pop("to_year")
-            query = psut_translate(**query)
-            agg_query = AggEtaPFU.objects.filter(Year__gte = from_year, Year__lte = to_year, **query).values("Year", efficiency_metric).query
-            with connection.cursor() as cursor, Silent():
-                df = pd.read_sql_query(str(agg_query), con=cursor.connection)
-
-            scatterplot = px.scatter(
-                df, x="Year", y=efficiency_metric,
-                title=f"Efficiency of {efficiency_metric} by year",
-                template="plotly_dark"
-            )
-            plot_div = plot(scatterplot, output_type="div", include_plotlyjs=False)
-
-        # add the reset button which will also initialize the plot panning and zooming script
+        # add the reset button
         plot_div += '<button id="plot-reset" onclick="resetPlot()">RESET</button>'
     
     return HttpResponse(plot_div)

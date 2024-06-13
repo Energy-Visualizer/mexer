@@ -1,4 +1,5 @@
-body, html {
+body,
+html {
     font-family: Arial, Helvetica, sans-serif;
     height: 100%;
     width: 100%;
@@ -22,17 +23,15 @@ body, html {
     display: block;
 }
 
-
-#plot-section > div {
+#plot-section>div {
     width: 100%;
     height: 100%;
 }
 
-
 #plot-reset {
     position: absolute;
-    bottom:0;
-    right:0;
+    bottom: 0;
+    right: 0;
     background-color: rgba(0, 173, 181, 0.5);
     border: 0;
     border-radius: 20%;
@@ -41,6 +40,7 @@ body, html {
 #plot-reset:hover {
     background-color: rgba(0, 173, 181, 1);
 }
+
 #plot-with-extra {
     position: relative;
     height: 100%;
@@ -57,13 +57,14 @@ body, html {
     position: absolute;
     top: 0;
     left: 0;
-    pointer-events: none; /* make sure this doesn't impede the plot interactions */
+    pointer-events: none;
+    /* make sure this doesn't impede the plot interactions */
 }
 
 #plot-reset {
     position: absolute;
-    bottom:0;
-    right:0;
+    bottom: 0;
+    right: 0;
     background-color: rgba(0, 173, 181, 0.5);
     border: 0;
     border-radius: 20%;
@@ -82,7 +83,7 @@ body, html {
 .styled-dropdown {
     cursor: pointer;
     background-color: rgb(181, 221, 246);
-    border:0;
+    border: 0;
     box-shadow: 0px 0px 5px;
 }
 
@@ -106,7 +107,7 @@ body, html {
 #get {
     background-color: #00ADB5;
     border-radius: 30px;
-    border:0;
+    border: 0;
     width: 100px;
     height: 50px;
     font-size: 25px;
@@ -148,7 +149,7 @@ body, html {
     bottom: 0;
     margin: auto;
     border: 40px solid;
-    border-color: transparent #30cbd3 transparent #30cbd3 ;
+    border-color: transparent #30cbd3 transparent #30cbd3;
     width: 35vh;
     height: 35vh;
     border-radius: 50%;
@@ -185,9 +186,9 @@ body, html {
     }
 }
 
-.xy_plot_additions{
+.xy_plot_additions {
     background-color: #b5ddf6;
-    border:0;
+    border: 0;
     box-shadow: 0px 0px 5px;
     cursor: pointer;
 }

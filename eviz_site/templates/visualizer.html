@@ -13,6 +13,10 @@
 
 
 <body onload="initialize()">
+
+
+
+    <!-- toolbar -->
     <div class="topbar">
         <div class="left">
             <a class="main" href="{% url 'home' %}">EVIZ</a>
@@ -30,24 +34,18 @@
     <svg viewBox="0 0 500 10" preserveAspectRatio="xMinYMin meet">
         <path d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z" style="stroke: none; fill:#393E46;"></path>
     </svg>
+    <!-- toolbar end -->
 
+
+
+    <!-- main form -->
     <form method="post">
         {% csrf_token %}
-        <p>Select type of plot: <select name="plot_type" id="plot-type-dropdown" class="styled-dropdown">
+        <p>Select type of plot:
+            <select name="plot_type" id="plot-type-dropdown" class="styled-dropdown">
                 <option value="sankey">Sankey</option>
-                <option value="xy_plot">xy_plot</option>
-                <option value="matrices">Matrices</option>
-            </select>
-        </p>
-        <p id="efficiency-dropdown" style="display: none;">
-            Efficiency
-            <select name="efficiency" class="xy_plot_additions">
-                <option value="EXp">EXp</option>
-                <option value="EXf">EXf</option>
-                <option value="EXu">EXu</option>
-                <option value="etapf">etapf</option>
-                <option value="etafu">etafu</option>
-                <option value="etapu">etapu</option>
+                <option value="xy_plot">X-Y Plot</option>
+                <option disabled values="matrices">Matrices</option>
             </select>
         </p>
 
@@ -67,7 +65,7 @@
         </p>
         <p>
             Selected by method
-            <select name="method" id="method-dropdown" class="optional-dropdown styled-dropdown">
+            <select disabled name="method" id="method-dropdown" class="optional-dropdown styled-dropdown">
                 <option value selected hidden>Please select something</option>
                 {% for method in methods %}
                 <option value="{{ method }}">{{ method }}</option>
@@ -77,7 +75,7 @@
         </p>
         <p>
             For energy type
-            <select name="energy_type" id="energy_type-dropdown" class="optional-dropdown styled-dropdown">
+            <select disabled name="energy_type" id="energy_type-dropdown" class="optional-dropdown styled-dropdown">
                 <option value selected hidden>Please select something</option>
                 {% for energy_type in energy_types %}
                 <option value="{{ energy_type }}">{{ energy_type }}</option>
@@ -87,7 +85,7 @@
         </p>
         <p>
             To last stage
-            <select name="last_stage" id="last_stage-dropdown" class="optional-dropdown styled-dropdown">
+            <select disabled name="last_stage" id="last_stage-dropdown" class="optional-dropdown styled-dropdown">
                 <option value selected hidden>Please select something</option>
                 {% for last_stage in last_stages %}
                 <option value="{{ last_stage }}">{{ last_stage }}</option>
@@ -97,7 +95,7 @@
         </p>
         <p>
             With IEAMW
-            <select name="ieamw" id="ieamw-dropdown" class="optional-dropdown styled-dropdown">
+            <select disabled name="ieamw" id="ieamw-dropdown" class="optional-dropdown styled-dropdown">
                 <option value selected hidden>Please select something</option>
                 {% for ieamw in ieamws %}
                 <option value="{{ ieamw }}">{{ ieamw }}</option>
@@ -107,7 +105,7 @@
         </p>
         <p>
             Including NEU
-            <select name="includes_neu" id="includes_neu-dropdown" class="optional-dropdown styled-dropdown">
+            <select disabled name="includes_neu" id="includes_neu-dropdown" class="optional-dropdown styled-dropdown">
                 <option value selected hidden>Please select something</option>
                 {% for includes_neu in includes_neus %}
                 <option value="{{ includes_neu }}">{{ includes_neu }}</option>
@@ -115,14 +113,41 @@
             </select>
             <button onclick="showDropdown('includes_neu')" type="button">+</button>
         </p>
+
+        <!-- metadata specifics inputs -->
+
+        <!-- efficiency dropdown -->
         <p>
-            Year
-            <input name="year" id="year-dropdown" class="xy_plot_additions"></input>
+            Efficiency
+            <select name="efficiency" class="styled-dropdown" id="efficiency-dropdown">
+                <!-- TODO: don't hardcode these -->
+                <option value="EXp">EXp</option>
+                <option value="EXf">EXf</option>
+                <option value="EXu">EXu</option>
+                <option value="etapf">etapf</option>
+                <option value="etafu">etafu</option>
+                <option value="etapu">etapu</option>
+            </select>
         </p>
-        <p id="to-year-dropdown" style="display: none;">
-            To year
-            <input name="to_year" class="xy_plot_additions"></input>
+        <!-- efficiency dropdown end -->
+
+        <!-- single year input -->
+        <p>
+            For year
+            <input name="year" class="styled-dropdown" id="single-year-input"></input>
         </p>
+        <!-- single year input -->
+
+        <!-- year range input -->
+        <p>
+            From year
+            <input name="year" class="styled-dropdown" id="from-year-input"></input>
+            to year
+            <input name="to_year" class="styled-dropdown" id="to-year-input"></input>
+        </p>
+        <!-- year range input end-->
+
+        <!-- matrix dropdown -->
         <p>
             Matrix
             <select name="matname" id="matname-dropdown" class="optional-dropdown styled-dropdown">
@@ -133,13 +158,21 @@
             </select>
             <button onclick="showDropdown('matname')" type="button">+</button>
         </p>
+        <!-- matrix dropdown end -->
+
+        <!-- metadata specifics inputs end -->
+
         <button hx-post="/plot" hx-swap="innerHTML" hx-target="#plot-section" hx-indicator="#plot-spinner" type="submit"
             id="get" onclick='document.getElementById("plot-section").scrollIntoView()'>
             <!-- onclick for bringing user to plot area -->
             GET
         </button>
     </form>
+    <!-- main form end -->
 
+
+
+    <!-- plotting area -->
     <div id="plot-with-extra">
         <div id="plot-section">
             <!-- This will be replaced with the plot from HTMX -->
@@ -147,6 +180,8 @@
         </div>
         <div class="center-container"><span id="plot-spinner" class="loader htmx-indicator"></span></div>
     </div>
+    <!-- plotting area end -->
+
 </body>
 
 </html>

@@ -22,51 +22,64 @@ def time_view(v):
 
     return wrap
 
-def psut_translate(
-        dataset: str = None,
-        country: str = None,
-        method: str = None,
-        energy_type: str = None,
-        last_stage: str = None,
-        ieamw: str = None,
-        includes_neu: str = None,
-        year: str = None,
-        chopped_mat: str = None,
-        chopped_var: str = None,
-        product_aggregation: str = None,
-        industry_aggregation: str = None,
-        matname: str = None
+def translate_query(
+        query: dict
     ) -> dict:
+    '''Turn a query of human readable values from a form into a query read to hit the dataset
+    
+    Input:
 
-    query = dict()
-    if dataset != None:
-        query["Dataset"] = Translator.dataset_translate(dataset)
-    if country != None:
-        query["Country"] = Translator.country_translate(country)
-    if method != None:
-        query["Method"] = Translator.method_translate(method)
-    if energy_type != None:
-        query["EnergyType"] = Translator.energytype_translate(energy_type)
-    if last_stage != None:
-        query["LastStage"] = Translator.laststage_translate(last_stage)
-    if ieamw != None:
-        query["IEAMW"] = Translator.ieamw_translate(ieamw)
-    if includes_neu != None:
-        query["IncludesNEU"] = Translator.includesNEU_translate(includes_neu)
-    if year != None:
-        query["Year"] = year
-    if chopped_mat != None:
-        query["ChoppedMat"] = Translator.matname_translate(chopped_mat)
-    if chopped_var != None:
-        query["ChoppedVar"] = Translator.index_translate(chopped_var)
-    if product_aggregation != None:
-        query["ProductAggregation"] = Translator.agglevel_translate(product_aggregation)
-    if industry_aggregation != None:
-        query["IndustryAggregation"] = Translator.agglevel_translate(industry_aggregation)
-    if matname != None:
-        query["matname"] = Translator.matname_translate(matname)
+        query, a dict: the query that should be translated
+    
+    Output:
 
-    return query
+        a dictionary of a query ready to hit the database
+    '''
+
+    translated_query = dict() # set up to build and return at the end
+
+    # common query parts
+
+    if v := query.get("dataset"):
+        translated_query["Dataset"] = Translator.dataset_translate(v)
+    if v := query.get("country"):
+        translated_query["Country"] = Translator.country_translate(v)
+    if v := query.get("method"):
+        translated_query["Method"] = Translator.method_translate(v)
+    if v := query.get("energy_type"):
+        translated_query["EnergyType"] = Translator.energytype_translate(v)
+    if v := query.get("last_stage"):
+        translated_query["LastStage"] = Translator.laststage_translate(v)
+    if v := query.get("ieamw"):
+        translated_query["IEAMW"] = Translator.ieamw_translate(v)
+    if v := query.get("includes_neu"):
+        translated_query["IncludesNEU"] = Translator.includesNEU_translate(v)
+    if v := query.get("chopped_mat"):
+        translated_query["ChoppedMat"] = Translator.matname_translate(v)
+    if v := query.get("chopped_var"):
+        translated_query["ChoppedVar"] = Translator.index_translate(v)
+    if v := query.get("product_aggregation"):
+        translated_query["ProductAggregation"] = Translator.agglevel_translate(v)
+    if v := query.get("industry_aggregation"):
+        translated_query["IndustryAggregation"] = Translator.agglevel_translate(v)
+
+    # plot-specific query parts
+
+    if v := query.get("to_year"):
+        # if year part is a range of years, i.e. to_year present
+        # set up query as range
+        translated_query["Year__lte"] = v
+        if v := query.get("year"):
+            translated_query["Year__gte"] = v
+
+    elif v := query.get("year"):
+        # else just have year be one year
+        translated_query["Year"] = v
+    
+    if v := query.get("matname"):
+        translated_query["matname"] = Translator.matname_translate(v)
+
+    return translated_query
 
 def get_matrix(
         dataset: str,
@@ -101,7 +114,7 @@ def get_matrix(
 
     # set up the query
     # a dictionary that will have all the keyword arguments for the filter function below
-    query = psut_translate(dataset, country, method, energy_type, last_stage, ieamw, includes_neu, year, chopped_mat, chopped_var, product_aggregation, industry_aggregation, matname)
+    query = translate_query(dataset, country, method, energy_type, last_stage, ieamw, includes_neu, year, chopped_mat, chopped_var, product_aggregation, industry_aggregation, matname)
 
     # Get the sparse matrix representation
     # i, j, x for row, column, value
@@ -133,23 +146,31 @@ def get_matrix(
         shape = (matrix_nrow, matrix_nrow),
     )
 
-def get_query_from_post_request(
-        request
-    ) -> dict:
-    '''Turn a Django POST request into a ready to use query in a dictionary
+def shape_post_request(
+        payload
+    ) -> tuple[str, dict]:
+    '''Turn a POST request payload into a ready to use query in a dictionary
 
-    TODO
+    Input:
+
+        payload, some dict-like (used with Django HttpRequest POST attributes): 
+        the POST payload to shape into a query dictionary
+
+    Output:
+
+        2-tuple containing in top-down order
+
+            a string telling the plot type requested
+
+            a dictionary containing all the associations of a query parts and their values
     '''
 
-    shaped_query = dict(request.POST)
+    shaped_query = dict(payload)
+    plot_type = shaped_query.pop("plot_type")[0] # to be returned at the end
+
     del shaped_query["csrfmiddlewaretoken"] # get rid of security token, is not part of a query
 
     for k, v in shaped_query.items():
-        # get rid of null values
-        v = [val for val in v if val != ""]
-
-        # get rid of values that were only null values
-        if len(v) == 0: shaped_query[k] = None
 
         # convert from list (if just one item in list)
         if len(v) == 1: shaped_query[k] = v[0]
@@ -158,24 +179,50 @@ def get_query_from_post_request(
         if shaped_query[k] == '': shaped_query[k] = None
 
     # special typed metadata
-    if shaped_query.get("includes_neu", None) != None:
+    # TODO: perhaps move to translate_query() ??
+    if shaped_query.get("includes_neu") != None:
         shaped_query["includes_neu"] = bool(shaped_query["includes_neu"])
-    if shaped_query.get("year", None) != None:
+    if shaped_query.get("year") != None:
+        # year is both single year and from year
         shaped_query["year"] = int(shaped_query["year"])
-    if shaped_query.get("to_year", None) != None:  # NEW: handle 'to_year' parameter
+    if shaped_query.get("to_year") != None:
         shaped_query["to_year"] = int(shaped_query["to_year"])
+
+    return (plot_type, shaped_query)
+
+def iea_valid(user, query: dict) -> bool:
+    '''Ensure that a give user's query does not give out IEA data if not authorized
     
-    # To stop any getting of iea data
+    Inputs:
+
+        user, user info from the HTTP request (for Django requsests: request.user): the user whose authorizations need to be checked
+
+        query, a dict: the query to investigate
+
+    Output:
+
+        the boolean value of if a user's query is valid (True) or not (False)
+    '''
+
     # TODO: make this actually check via user permissions
-    if shaped_query.get("dataset", None) == "IEAEWEB2022":
-        return None
-    if shaped_query.get("ieamw", None) != "MW":
-        return None
+    return (
+        query.get("dataset", None) != "IEAEWEB2022"
+        and query.get("ieamw", None) == "MW"
+    )
 
-    return shaped_query
+def get_sankey(query: dict) -> pgo.Figure:
+    '''Gets a sankey diagram for a query
+    
+    Input:
 
-def get_sankey_for_RUVY(query: dict) -> pgo.Figure:
-    '''TODO'''
+        query, dict: a query ready to hit the database, i.e. translated as neccessary (see translate_query())
+
+    Output:
+
+        a plotly Figure with the sankey data
+
+        or None if there is no cooresponding data for the query
+    '''
     
     # we do a little shaping
     if "matname" in query.keys(): del query["matname"]
@@ -192,10 +239,6 @@ def get_sankey_for_RUVY(query: dict) -> pgo.Figure:
     # begin constructing the sankey
     label_to_index = dict() # used to know which human-readable label is where in the label list
     next_index = 0 # used to keep track of where a new label is added in the label list
-
-    possible_colors = ["red", "pink", "green", "blue"]
-    clridx = 0
-    colors = list()
 
     labels = list() # used to keep track of all the labels
     sources = list() # used to keep track of all the sources (from-nodes)
@@ -225,9 +268,6 @@ def get_sankey_for_RUVY(query: dict) -> pgo.Figure:
         # Finish the connection with the magnitude of the connection
         magnitudes.append(magnitude)
 
-        colors.append(possible_colors[clridx])
-        clridx = (clridx + 1) % len(possible_colors)
-
     return pgo.Figure(data=[pgo.Sankey(
         node = dict(
         pad = 15,
@@ -241,6 +281,35 @@ def get_sankey_for_RUVY(query: dict) -> pgo.Figure:
         value = magnitudes,
         color = "rgba(100,100,100,0.5)"
     ))])
+
+from eviz.models import AggEtaPFU
+import pandas.io.sql as pd_sql # for getting data into a pandas dataframe
+import plotly.express as px # for making the scatter plot
+from django.db import connection # for low-level psycopg2 connection. to access other db connections, import connections
+def get_xy(efficiency_metric, query: dict) -> pgo.Figure:
+    '''Gets an xy plot for a query
+    
+    Inputs:
+        
+        efficiency_metric, string: the efficiency matrix to get the plot for
+
+        query, dict: a query ready to hit the database, i.e. translated as neccessary (see translate_query())
+
+    Output:
+
+        a plotly Figure with the xy data
+    '''
+    
+    agg_query = AggEtaPFU.objects.filter(**query).values("Year", efficiency_metric).query
+
+    with Silent():
+        df = pd_sql.read_sql_query(str(agg_query), con=connection.cursor().connection)
+
+    return px.line(
+        df, x="Year", y=efficiency_metric,
+        title=f"Efficiency of {efficiency_metric} by year",
+        template="plotly_dark"
+    )
 
 class Translator():
     '''Contains the tools for translating PSUT metadata
