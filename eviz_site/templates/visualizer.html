@@ -12,7 +12,7 @@
 </head>
 
 
-<body onload="initialize()">
+<body onload="initialize()" class="gradient">
 
 
 
@@ -176,9 +176,8 @@
     <div id="plot-with-extra">
         <div id="plot-section">
             <!-- This will be replaced with the plot from HTMX -->
-            <!-- <div class="center-container"><img src="../static/images/logo.svg" alt="EVIZ"/></div> -->
         </div>
-        <div class="center-container"><span id="plot-spinner" class="loader htmx-indicator"></span></div>
+        <div id="spinner-container"><span id="plot-spinner" class="loader htmx-indicator"></span></div>
     </div>
     <!-- plotting area end -->
 
