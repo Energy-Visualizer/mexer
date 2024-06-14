@@ -81,20 +81,10 @@ def translate_query(
 
     return translated_query
 
+
+
 def get_matrix(
-        dataset: str,
-        country: str,
-        method: str,
-        energy_type: str,
-        last_stage: str,
-        ieamw: str,
-        includes_neu: str,
-        year: str,
-        chopped_mat: str,
-        chopped_var: str,
-        product_aggregation: str,
-        industry_aggregation: str,
-        matname: str,
+        query: dict
     ) -> csr_matrix:
     '''Collects, constructs, and returns one of the RUVY matrices
     
@@ -114,7 +104,7 @@ def get_matrix(
 
     # set up the query
     # a dictionary that will have all the keyword arguments for the filter function below
-    query = translate_query(dataset, country, method, energy_type, last_stage, ieamw, includes_neu, year, chopped_mat, chopped_var, product_aggregation, industry_aggregation, matname)
+    query = translate_query(query)
 
     # Get the sparse matrix representation
     # i, j, x for row, column, value
@@ -538,3 +528,4 @@ class Silent():
         self.dn.close()
         sys.stdout = self.real_stdout
         sys.stderr = self.real_stderr
+        

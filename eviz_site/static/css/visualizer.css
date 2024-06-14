@@ -226,3 +226,37 @@ form {
 		background-position: 0% 50%;
 	}
 }
+
+.popup-icon {
+    color: black;
+    border-radius: 50%;
+    font-weight: bold;
+    cursor: pointer;
+    position: relative;
+    display: inline-block;
+    padding: 0px;
+    line-height: 0.9;
+}
+
+.popup-text {
+    visibility: hidden;
+    width: 200px;
+    background-color: #393e46;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px;
+    position: absolute;
+    z-index: 1;
+    bottom: 150%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.popup-icon:hover .popup-text {
+    visibility: visible;
+    opacity: 1;
+    bottom: 150%;
+}

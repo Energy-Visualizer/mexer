@@ -9,6 +9,8 @@
     <script src="https://cdn.plot.ly/plotly-latest.min.js" charset="utf-8"></script> <!-- Plotly -->
     <script src="../static/js/visualizer.js"></script>
     <script src="../static/js/plotUtil.js"></script>
+    
+    
 </head>
 
 
@@ -45,7 +47,25 @@
             <select name="plot_type" id="plot-type-dropdown" class="styled-dropdown">
                 <option value="sankey">Sankey</option>
                 <option value="xy_plot">X-Y Plot</option>
-                <option disabled values="matrices">Matrices</option>
+                <option value="matrices">Matrices</option>
+            </select>
+
+            <span class="popup-icon">&#9432;
+                <span class="popup-text">
+                    Select the type of plot you want to display.
+                </span>
+            </span>
+        </p>
+        
+        <p id="efficiency-dropdown" style="display: none;">
+            Efficiency
+            <select name="efficiency" class="xy_plot_additions">
+                <option value="EXp">EXp</option>
+                <option value="EXf">EXf</option>
+                <option value="EXu">EXu</option>
+                <option value="etapf">etapf</option>
+                <option value="etafu">etafu</option>
+                <option value="etapu">etapu</option>
             </select>
         </p>
 
