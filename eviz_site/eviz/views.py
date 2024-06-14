@@ -146,23 +146,18 @@ def get_plot(request):
                 plot_div = plot(xy, output_type="div", include_plotlyjs=False)
 
             case "matrices":
-                query = shape_post_request(request)
-
                 # Retrieve the matrix using the get_matrix function
                 matrix = get_matrix(query)
-                matrix=matrix.tocoo()
-                
+
                 if matrix is None:
                     plot_div = "No corresponding data"
                 
                 else:
                     # Convert the matrix to a format suitable for Plotly's heatmap
-                    
+                    matrix = matrix.tocoo()
                     rows, cols, vals = matrix.row, matrix.col, matrix.data
                     row_labels = [Translator.index_reverse_translate(i) for i in rows]
-                    print(row_labels)
                     col_labels = [Translator.index_reverse_translate(i) for i in cols]
-                    print(col_labels)
                     heatmap = go.Heatmap(
                         z=vals,
                         x=col_labels,
@@ -171,7 +166,7 @@ def get_plot(request):
                         texttemplate="%{text:.2f}",
                         showscale=False,
                     )
-                    matname = query.get('matname', 'RUVY')
+                    matname = query.get('matname')
                     # Create a layout for the heatmap
                     layout = go.Layout(
                         title= f"Matrix Visualization: {matname}",

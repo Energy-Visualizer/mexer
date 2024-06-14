@@ -22,6 +22,9 @@ const initialize = () => {
 
         else if (plotTypeSelector.value === "sankey")
             handleSankey();
+
+        else if (plotTypeSelector.value === "matrices")
+            handleMatrices();
     });
 
     // have whatever the plot selection is currently set to show up at start
@@ -31,6 +34,9 @@ const initialize = () => {
 
     else if (plotTypeSelector.value === "sankey")
         handleSankey();
+
+    else if (plotTypeSelector.value === "matrices")
+        handleMatrices();
 };
 
 const inputOn = (element) => {
@@ -58,6 +64,15 @@ const handleSankey = () => {
     inputOff(efficiencyDropdown);
     inputOff(matnameDropdown);
 
+    inputOn(singleYearInput);
+}
+
+const handleMatrices = () => {
+    inputOff(fromYearInput);
+    inputOff(toYearInput);
+    inputOff(efficiencyDropdown);
+    
+    inputOn(matnameDropdown);
     inputOn(singleYearInput);
 }
 

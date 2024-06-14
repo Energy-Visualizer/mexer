@@ -56,18 +56,6 @@
                 </span>
             </span>
         </p>
-        
-        <p id="efficiency-dropdown" style="display: none;">
-            Efficiency
-            <select name="efficiency" class="xy_plot_additions">
-                <option value="EXp">EXp</option>
-                <option value="EXf">EXf</option>
-                <option value="EXu">EXu</option>
-                <option value="etapf">etapf</option>
-                <option value="etafu">etafu</option>
-                <option value="etapu">etapu</option>
-            </select>
-        </p>
 
         <p>
             From dataset
@@ -170,13 +158,12 @@
         <!-- matrix dropdown -->
         <p>
             Matrix
-            <select name="matname" id="matname-dropdown" class="optional-dropdown styled-dropdown">
+            <select name="matname" id="matname-dropdown" class="styled-dropdown">
                 <option value selected hidden>Please select something</option>
                 {% for matname in matnames %}
                 <option value="{{ matname }}">{{ matname }}</option>
                 {% endfor %}
             </select>
-            <button onclick="showDropdown('matname')" type="button">+</button>
         </p>
         <!-- matrix dropdown end -->
 
