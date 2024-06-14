@@ -205,9 +205,9 @@ def iea_valid(user: User, query: dict) -> bool:
         (user.is_authenticated and user.has_perm("eviz.get_iea"))
     )
 
-from json import loads
+from json import loads as json_from_string
 with open("internal_resources/sankey_color_scheme.json") as f: colors_data = f.read()
-SANKEY_COLORS: dict[str, str] = loads(colors_data)
+SANKEY_COLORS: dict[str, str] = json_from_string(colors_data)
 def get_sankey(query: dict) -> pgo.Figure:
     '''Gets a sankey diagram for a query
     
