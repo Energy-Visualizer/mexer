@@ -100,7 +100,7 @@ const showDropdown = (name) => {
     const delButton = document.createElement('button');
     delButton.onclick = () => { newDropdown.remove(); delButton.remove(); };
     delButton.type = "button";
-    delButton.textContent = "X";
+    delButton.textContent = "\u2717";
     delButton.classList.add("remove-button");
 
     // add the dropdown and button to the dom

@@ -149,7 +149,7 @@ def get_plot(request):
     
     return HttpResponse(plot_div)
 
-# @login_required(login_url="/login")
+@login_required(login_url="/login")
 @time_view
 def visualizer(request):
     datasets = Translator.get_datasets()

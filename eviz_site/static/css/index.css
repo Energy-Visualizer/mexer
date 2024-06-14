@@ -1,11 +1,25 @@
 #heading-box {
-    background: linear-gradient(#81c7cd, transparent);
+    background-color: #131d2c;
+    background-image: url("../images/welcome_background.svg") ;
+    background-size: auto 100%;
+    background-repeat: repeat-x;
+    animation: scroll-background 30s infinite linear;
+}
+
+@keyframes scroll-background {
+    0% {
+        background-position: 0px;
+    }
+    100% {
+        background-position: calc(1920px * 3); /* for some reason 3 makes it pretty smooth... */
+    }
 }
 
 h1 {
     text-align: center;
     margin-bottom: 0%;
     font-size: 75px;
+    color: whitesmoke;
 }
 
 h2 {
@@ -13,6 +27,7 @@ h2 {
     margin-top: 0%;
     margin-bottom: 5%;
     font-size: 35px;
+    color: whitesmoke;
 }
 
 h3 {
@@ -50,10 +65,12 @@ article.dark {
 #get-started {
     background-color: #00ADB5;
     border-radius: 30px;
-    border-width: 0;
-    color: #e3e7ee;
+    border-width: 4px;
+    border-color: #393E46;
+    color: whitesmoke;
     cursor: pointer;
     font-size: 70px;
+    font-family: Arial, Helvetica, sans-serif;
     height: 100px;
     width: 400px;
     margin-top: 5%;
@@ -66,7 +83,7 @@ article.dark {
 }
 
 #get-started:hover {
-    transition: mask-position 1.5s ease, -webkit-mask-position 1.5s ease;
+    transition: mask-position 1.5s ease;
     mask-position: 120%;
     opacity: 1;
 }

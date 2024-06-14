@@ -5,6 +5,7 @@ html {
     width: 100%;
     margin: 0;
     padding: 0;
+    scroll-behavior: smooth;
 }
 
 form {
@@ -103,7 +104,9 @@ form {
 }
 
 .remove-button {
-    background-color: rgb(255, 129, 129);
+    background-color: transparent;
+    color: rgb(200, 0, 0);
+    font-size: 20px;
     border: 0;
     border-radius: 50%;
     width: 15px;
@@ -112,7 +115,7 @@ form {
 }
 
 .remove-button:hover {
-    background-color: rgb(255, 0, 0);
+    color: rgb(255, 0, 0);
 }
 
 #get {
