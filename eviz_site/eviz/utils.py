@@ -68,20 +68,10 @@ def psut_translate(
 
     return query
 
+
+
 def get_matrix(
-        dataset: str,
-        country: str,
-        method: str,
-        energy_type: str,
-        last_stage: str,
-        ieamw: str,
-        includes_neu: str,
-        year: str,
-        chopped_mat: str,
-        chopped_var: str,
-        product_aggregation: str,
-        industry_aggregation: str,
-        matname: str,
+        query: dict
     ) -> csr_matrix:
     '''Collects, constructs, and returns one of the RUVY matrices
     
@@ -101,6 +91,19 @@ def get_matrix(
 
     # set up the query
     # a dictionary that will have all the keyword arguments for the filter function below
+    dataset = query.get("dataset")
+    country = query.get("country")
+    method = query.get("method")
+    energy_type = query.get("energy_type")
+    last_stage = query.get("last_stage")
+    ieamw = query.get("ieamw")
+    includes_neu = query.get("includes_neu")
+    year = query.get("year")
+    chopped_mat = query.get("chopped_mat")
+    chopped_var = query.get("chopped_var")
+    product_aggregation = query.get("product_aggregation")
+    industry_aggregation = query.get("industry_aggregation")
+    matname = query.get("matname")
     query = psut_translate(dataset, country, method, energy_type, last_stage, ieamw, includes_neu, year, chopped_mat, chopped_var, product_aggregation, industry_aggregation, matname)
 
     # Get the sparse matrix representation
@@ -464,3 +467,4 @@ class Silent():
         self.dn.close()
         sys.stdout = self.real_stdout
         sys.stderr = self.real_stderr
+        

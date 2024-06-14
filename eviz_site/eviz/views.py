@@ -118,7 +118,10 @@ def get_psut_data(request):
 
     return render(request, "./test.html", context)
 
+
+
 import pandas as pd
+import plotly.graph_objects as go
 def get_plot(request):
 
     plot_div = None
@@ -171,6 +174,52 @@ def get_plot(request):
                 template="plotly_dark"
             )
             plot_div = plot(scatterplot, output_type="div", include_plotlyjs=False)
+            
+        elif plot_type == "matrices":
+            query = get_query_from_post_request(request)
+            if query == None:
+                return HttpResponse("You are not allowed to receive IEA data.")
+            query.pop('plot_type', None)
+            query.pop('to_year', None)
+            query.pop('efficiency', None)
+
+            # Retrieve the matrix using the get_matrix function
+            matrix = get_matrix(query)
+            print(matrix)
+            matrix=matrix.tocoo()
+            
+            if matrix is None:
+                plot_div = "No corresponding data"
+            else:
+                # Convert the matrix to a format suitable for Plotly's heatmap
+                
+                rows, cols, vals = matrix.row, matrix.col, matrix.data
+                row_labels = [Translator.index_reverse_translate(i) for i in rows]
+                print(row_labels)
+                col_labels = [Translator.index_reverse_translate(i) for i in cols]
+                print(col_labels)
+                heatmap = go.Heatmap(
+                    z=vals,
+                    x=col_labels,
+                    y=row_labels,
+                    text=vals,
+                    texttemplate="%{text:.2f}",
+                    showscale=False,
+                )
+                matname = query.get('matname', 'RUVY')
+                # Create a layout for the heatmap
+                layout = go.Layout(
+                    title= f"Matrix Visualization: {matname}",
+                    xaxis=dict(title=''),
+                    yaxis=dict(title=''),
+                )
+
+                # Create a figure with the heatmap data and layout
+                fig = go.Figure(data=heatmap, layout=layout)
+
+                # Render the figure as an HTML div
+                plot_div = plot(fig, output_type="div", include_plotlyjs="False")
+            
 
         # add the reset button which will also initialize the plot panning and zooming script
         plot_div += '<button id="plot-reset" onclick="resetPlot()">RESET</button>'
