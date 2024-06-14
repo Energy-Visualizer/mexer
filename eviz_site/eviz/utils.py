@@ -205,6 +205,9 @@ def iea_valid(user: User, query: dict) -> bool:
         (user.is_authenticated and user.has_perm("eviz.get_iea"))
     )
 
+from json import loads
+with open("internal_resources/sankey_color_scheme.json") as f: colors_data = f.read()
+SANKEY_COLORS: dict[str, str] = loads(colors_data)
 def get_sankey(query: dict) -> pgo.Figure:
     '''Gets a sankey diagram for a query
     
@@ -240,9 +243,14 @@ def get_sankey(query: dict) -> pgo.Figure:
     targets = list() # used to keep track of all the targets (to-nodes)
     magnitudes = list() # used to keep track of all the magnitudes between the nodes
 
+    node_colors = list()
+    flow_colors = list()
+
     for row, col, magnitude in data:
         translated_row = Translator.index_reverse_translate(row)
         translated_col = Translator.index_reverse_translate(col)
+
+        flow_color = "rgba(100,100,100,0.5)" # default flow color
 
         # Get the row (source) label's index and make the start of a connection
         idx = label_to_index.get(translated_row, -1)
@@ -250,6 +258,11 @@ def get_sankey(query: dict) -> pgo.Figure:
             labels.append(translated_row)
             label_to_index[translated_row] = idx = next_index
             next_index += 1
+
+            # get the associated color for the source, if there is one and apply it
+            # if not, the color is wheat
+            node_colors.append(SANKEY_COLORS.get(translated_col, "wheat"))
+
         sources.append(idx)
 
         # Get the col (target) label's index and make the end of a connection
@@ -258,23 +271,34 @@ def get_sankey(query: dict) -> pgo.Figure:
             labels.append(translated_col)
             label_to_index[translated_col] = idx = next_index
             next_index += 1
+
+            # same as above
+            node_colors.append(SANKEY_COLORS.get(translated_col, "wheat"))
+
         targets.append(idx)
+
+        # make in-flow special color if node has special color
+        #     i.e. if current target node has color besides default node color
+        # only on targets (columns) because only targets can have in-flows
+        if((assoc_color := node_colors[idx]) != "wheat"): flow_color = assoc_color
 
         # Finish the connection with the magnitude of the connection
         magnitudes.append(magnitude)
+
+        flow_colors.append(flow_color)
 
     return pgo.Figure(data=[pgo.Sankey(
         node = dict(
         pad = 15,
         thickness = 20,
         label = labels,
-        color = "green"
+        color = node_colors
         ),
         link = dict(
         source = sources,
         target = targets,
         value = magnitudes,
-        color = "rgba(100,100,100,0.5)"
+        color = flow_colors
     ))])
 
 from eviz.models import AggEtaPFU
