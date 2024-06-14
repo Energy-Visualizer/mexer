@@ -190,7 +190,8 @@ def shape_post_request(
 
     return (plot_type, shaped_query)
 
-def iea_valid(user, query: dict) -> bool:
+from django.contrib.auth.models import User
+def iea_valid(user: User, query: dict) -> bool:
     '''Ensure that a give user's query does not give out IEA data if not authorized
     
     Inputs:
@@ -204,10 +205,14 @@ def iea_valid(user, query: dict) -> bool:
         the boolean value of if a user's query is valid (True) or not (False)
     '''
 
-    # TODO: make this actually check via user permissions
+    # will short curcuit if the data is free,
+    # so everything past the or will not be checked if not neccessary
     return (
-        query.get("dataset", None) != "IEAEWEB2022"
-        and query.get("ieamw", None) == "MW"
+        # free data
+        (query.get("dataset", None) != "IEAEWEB2022" and query.get("ieamw", None) == "MW")
+        or
+        # authorized to get proprietary data
+        (user.is_authenticated and user.has_perm("eviz.get_iea"))
     )
 
 def get_sankey(query: dict) -> pgo.Figure:

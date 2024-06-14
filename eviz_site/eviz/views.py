@@ -171,7 +171,6 @@ def visualizer(request):
 
     return render(request, "visualizer.html", context)
 
-
 def about(request):
     return render(request, 'about.html')
 
