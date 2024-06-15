@@ -1,33 +1,31 @@
-
+@import url('https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css');
 .content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: calc(100vh - 60px);
-    padding: 20px;
-    padding-top: 80px;
-    box-sizing: border-box;
-    margin: 20px;
-    margin-top: 40px;
-}
-.energy-visulizer{
-    font-size: 19;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr) ;
+    column-gap: 10px;
+    justify-content: center; /* Center the grid horizontally */
+    align-items: center; 
 }
 
+.energy-visulizer{
+    padding: 20px;
+    width: 500px;
+    margin: 50px auto;
+    height: auto;
+    align-items: center;
+    font-size: 30;
+}
 .login-box {
     background-color: #393e46;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
     width: 300px;
-    display: flex;
-    flex-direction: column;
     align-items: center;
     color: white;
-    margin: 150px;
+    margin: 100px auto;
     height: auto;
 }
-
 .login-box h1 {
     margin-top: 0;
 }
@@ -38,7 +36,6 @@
     align-items: center; /* Center the form elements */
     color: white;
 }
-
 
 .login-box input {
     width: 100%;
@@ -68,3 +65,13 @@
     width: 100%;
 }
 
+@media (max-width: 768px) {
+    .content {
+        grid-template-columns: 1fr; /* Stack the elements vertically on smaller screens */
+    }
+
+    .energy-visulizer,
+    .login-box {
+        margin: 20px auto; /* Adjust the margin for smaller screens */
+    }
+}

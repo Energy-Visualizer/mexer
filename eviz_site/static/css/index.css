@@ -1,6 +1,7 @@
 #heading-box {
     background-color: #131d2c;
     position: relative;
+    overflow: hidden;
 }
 
 h1 {
