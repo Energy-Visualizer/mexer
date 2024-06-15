@@ -139,32 +139,32 @@ article>h3 {
 
 #para-bg-0 {
     background-image: url(../images/para-wave-0.svg);
-    animation: scroll-background 5s infinite linear;
+    animation: scroll-background 4s infinite linear;
 }
 
 #para-bg-1 {
     background-image: url(../images/para-wave-1.svg);
-    animation: scroll-background 10s infinite linear;
+    animation: scroll-background 9s infinite linear;
 }
 
 #para-bg-2 {
     background-image: url(../images/para-wave-2.svg);
-    animation: scroll-background 15s infinite linear;
+    animation: scroll-background 16s infinite linear;
 }
 
 #para-bg-3 {
     background-image: url(../images/para-wave-3.svg);
-    animation: scroll-background 20s infinite linear;
+    animation: scroll-background 25s infinite linear;
 }
 
 #para-bg-4 {
     background-image: url(../images/para-wave-4.svg);
-    animation: scroll-background 25s infinite linear;
+    animation: scroll-background 36s infinite linear;
 }
 
 #para-bg-5 {
     background-image: url(../images/para-wave-5.svg);
-    animation: scroll-background 30s infinite linear;
+    animation: scroll-background 49s infinite linear;
 }
 
 @keyframes scroll-background {

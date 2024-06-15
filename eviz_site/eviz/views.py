@@ -114,7 +114,6 @@ def get_psut_data(request):
 
     return render(request, "./test.html", context)
 
-import plotly.graph_objects as go
 @time_view
 def get_plot(request):
 
@@ -129,10 +128,11 @@ def get_plot(request):
         match plot_type:
             case "sankey":
                 query = translate_query(query)
-                print(query)
                 sankey_diagram = get_sankey(query)
+
                 if sankey_diagram == None:
                     plot_div = "No cooresponding data"
+
                 else:
                     sankey_diagram.update_layout(title_text="Test Sankey", font_size=10)
                     plot_div = plot(sankey_diagram, output_type="div", include_plotlyjs=False)
@@ -147,39 +147,25 @@ def get_plot(request):
                 plot_div = plot(xy, output_type="div", include_plotlyjs=False)
 
             case "matrices":
-                # Retrieve the matrix using the get_matrix function
+                matrix_name = query.get("matname")
+                # Retrieve the matrix
+                query = translate_query(query)
                 matrix = get_matrix(query)
 
                 if matrix is None:
                     plot_div = "No corresponding data"
                 
                 else:
-                    # Convert the matrix to a format suitable for Plotly's heatmap
-                    matrix = matrix.tocoo()
-                    rows, cols, vals = matrix.row, matrix.col, matrix.data
-                    row_labels = [Translator.index_reverse_translate(i) for i in rows]
-                    col_labels = [Translator.index_reverse_translate(i) for i in cols]
-                    heatmap = go.Heatmap(
-                        z=vals,
-                        x=col_labels,
-                        y=row_labels,
-                        text=vals,
-                        texttemplate="%{text:.2f}",
-                        showscale=False,
-                    )
-                    matname = query.get('matname')
-                    # Create a layout for the heatmap
-                    layout = go.Layout(
-                        title= f"Matrix Visualization: {matname}",
-                        xaxis=dict(title=''),
-                        yaxis=dict(title=''),
-                    )
+                    heatmap = visualize_matrix(matrix)
 
-                    # Create a figure with the heatmap data and layout
-                    fig = go.Figure(data=heatmap, layout=layout)
+                    heatmap.update_layout(
+                        title = matrix_name + " Matrix",
+                        yaxis = dict(title=''),
+                        xaxis = dict(title=''),
+                    )
 
                     # Render the figure as an HTML div
-                    plot_div = plot(fig, output_type="div", include_plotlyjs="False")
+                    plot_div = plot(heatmap, output_type="div", include_plotlyjs="False")
 
             case _: # default
                 plot_div = "Plot type not specified or supported"
