@@ -1,18 +1,6 @@
 #heading-box {
     background-color: #131d2c;
-    background-image: url("../images/welcome_background.svg") ;
-    background-size: auto 100%;
-    background-repeat: repeat-x;
-    animation: scroll-background 30s infinite linear;
-}
-
-@keyframes scroll-background {
-    0% {
-        background-position: 0px;
-    }
-    100% {
-        background-position: calc(1920px * 3); /* for some reason 3 makes it pretty smooth... */
-    }
+    position: relative;
 }
 
 h1 {
@@ -136,5 +124,54 @@ article>h3 {
 
     100% {
         box-shadow: 0 0 5px rgba(0, 255, 255, 0.5), 0 0 10px rgba(0, 255, 255, 0.5), 0 0 20px rgba(0, 255, 255, 0.5), 0 0 40px rgba(0, 255, 255, 0.5);
+    }
+}
+
+.para-bg {
+    height: 100%;
+    width: 100%;
+    background-position: center bottom;
+    background-repeat: repeat-x;
+    position: absolute;
+    bottom: 0px;
+    width: calc(100% + 10px);
+}
+
+#para-bg-0 {
+    background-image: url(../images/para-wave-0.svg);
+    animation: scroll-background 5s infinite linear;
+}
+
+#para-bg-1 {
+    background-image: url(../images/para-wave-1.svg);
+    animation: scroll-background 10s infinite linear;
+}
+
+#para-bg-2 {
+    background-image: url(../images/para-wave-2.svg);
+    animation: scroll-background 15s infinite linear;
+}
+
+#para-bg-3 {
+    background-image: url(../images/para-wave-3.svg);
+    animation: scroll-background 20s infinite linear;
+}
+
+#para-bg-4 {
+    background-image: url(../images/para-wave-4.svg);
+    animation: scroll-background 25s infinite linear;
+}
+
+#para-bg-5 {
+    background-image: url(../images/para-wave-5.svg);
+    animation: scroll-background 30s infinite linear;
+}
+
+@keyframes scroll-background {
+    0% {
+        background-position: 0px bottom;
+    }
+    100% {
+        background-position: 100vw bottom;
     }
 }

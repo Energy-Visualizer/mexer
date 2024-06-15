@@ -12,7 +12,7 @@
     </div>
     <div class="right">
       <a class="links" href="{% url 'visualizer' %}">Vizualizer</a>
-      <a class="links" href="{% url 'about' %}" >About</a>
+      <a class="links" href="{% url 'about' %}">About</a>
       {% if request.user.is_authenticated %}
       <a class="links" href="{% url 'logout' %}">Sign Out</a>
       {% else %}
@@ -20,19 +20,26 @@
       {% endif %}
     </div>
   </div>
-  
+
 
   <div id="heading-box">
     <svg viewBox="0 0 500 10" preserveAspectRatio="xMinYMin meet">
       <path d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z" style="stroke: none; fill:#393E46;"></path>
     </svg>
 
+    <div id="para-bg-5" class="para-bg"></div>
+    <div id="para-bg-4" class="para-bg"></div>
+    <div id="para-bg-3" class="para-bg"></div>
+    <div id="para-bg-2" class="para-bg"></div>
+    <div id="para-bg-1" class="para-bg"></div>
+    <div id="para-bg-0" class="para-bg"></div>
+
     <div id="title">
       <span class="energy-effect"></span>
       <h1>Welcome to EVIZ</h1>
       <h2>Energy Visualizer</h2>
     </div>
-    
+
 
     <div class="center-item">
       <a href="{% url 'visualizer' %}">
@@ -45,19 +52,19 @@
     <article class="highlight dark">
       <h3>What is EVIZ?</h3>
       <div class="center-item">
-          <p>
-            EVIZ (short for <b>E</b>nergy <b>Vis</b>ualizer) is a website made to allow users the freedom to explore
-            questions related to the energy story.
-          </p>
+        <p>
+          EVIZ (short for <b>E</b>nergy <b>Vis</b>ualizer) is a website made to allow users the freedom to explore
+          questions related to the energy story.
+        </p>
       </div>
     </article>
     <article class="highlight light">
       <h3>How to use EVIZ?</h3>
       <div class="center-item">
-          <p>
-            EVIZ (short for <b>E</b>nergy <b>Vis</b>ualizer) is a website made to allow users the freedom to explore
-            questions related to the energy story.
-          </p>
+        <p>
+          EVIZ (short for <b>E</b>nergy <b>Vis</b>ualizer) is a website made to allow users the freedom to explore
+          questions related to the energy story.
+        </p>
       </div>
     </article>
   </div>
