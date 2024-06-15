@@ -39,7 +39,7 @@
 
 
     <!-- main form -->
-    <form method="post">
+    <form method="post" action="/data" id="query-form">
         {% csrf_token %}
         <div class="query-choice">
             <div class="column info-text">
@@ -187,10 +187,15 @@
 
         <!-- metadata specifics inputs end -->
 
-        <button hx-post="/plot" hx-swap="innerHTML" hx-target="#plot-section" hx-indicator="#plot-spinner" type="submit"
+        <button hx-post="/plot" hx-swap="innerHTML" hx-target="#plot-section" hx-indicator="#plot-spinner" type="button"
             id="get" onclick='document.getElementById("plot-section").scrollIntoView()'>
             <!-- onclick for bringing user to plot area -->
             GET
+        </button>
+        <button type="submit" id="download"
+            onclick="return confirm('By accepting you confirm that you understand IEA data is proprietary and cannot be shared with those not authorized to see it.')">
+            <!-- onclick for bringing user to plot area -->
+            DOWNLOAD
         </button>
     </form>
     <!-- main form end -->

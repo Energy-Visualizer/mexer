@@ -37,6 +37,7 @@ const initialize = () => {
     else if (selectedValue === "matrices")
         handleMatrices();
 
+    // if not, hide all specifics
     else {
         inputOff(fromYearInput);
         inputOff(toYearInput);
@@ -131,6 +132,3 @@ const showDropdown = (name) => {
     desiredDropdown.after(newDropdown);
     newDropdown.after(delButton);
 };
-
-
-

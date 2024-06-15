@@ -14,105 +14,35 @@ from plotly.offline import plot
 def index(request):
     return render(request, "index.html")
 
-# TODO: this is temp
-from random import choice
 @time_view
-def get_psut_data(request):
-    
-    query0 = dict(
-        dataset = "CLPFUv2.0a2",
-        country = "KEN",
-        method = "PCM",
-        energy_type = "E",
-        last_stage = "Final",
-        ieamw = "Both",
-        includes_neu = False,
-        year = 1985,
-        chopped_mat = "None",
-        chopped_var = "None",
-        product_aggregation = "Specified",
-        industry_aggregation = "Specified"
-    )
+def get_data(request):
+    if request.method == "POST":
+        
+        # set up query and get csv from it
+        query = shape_post_request(request.POST)
 
-    query1 = dict(
-        dataset = "CLPFUv2.0a2",
-        country = "FRA",
-        method = "PCM",
-        energy_type = "E",
-        last_stage = "Useful",
-        ieamw = "Both",
-        includes_neu = False,
-        year = 1985,
-        chopped_mat = "None",
-        chopped_var = "None",
-        product_aggregation = "Despecified",
-        industry_aggregation = "Despecified"
-    )
+        if not iea_valid(request.user, query):
+            return HttpResponse("You are not allowed to receive IEA data.", code = 403)
 
-    query2 = dict(
-        dataset = "CLPFUv2.0a2",
-        country = "LTU",
-        method = "PCM",
-        energy_type = "E",
-        last_stage = "Useful",
-        ieamw = "IEA",
-        includes_neu = False,
-        year = 2019,
-        chopped_mat = "None",
-        chopped_var = "None",
-        product_aggregation = "Despecified",
-        industry_aggregation = "Despecified"
-    )
+        query = translate_query(query)
 
-    query3 = dict(
-        dataset = "CLPFUv2.0a2",
-        country = "JAM",
-        method = "PCM",
-        energy_type = "X",
-        last_stage = "Final",
-        ieamw = "Both",
-        includes_neu = False,
-        year = 2002,
-        chopped_mat = "None",
-        chopped_var = "None",
-        product_aggregation = "Grouped",
-        industry_aggregation = "Despecified"
-    )
+        csv = get_csv_from_query(query)
 
-    query4 = dict(
-        dataset = "CLPFUv2.0a2",
-        country = "UnDEU",
-        method = "PCM",
-        energy_type = "X",
-        last_stage = "Useful",
-        ieamw = "IEA",
-        includes_neu = True,
-        year = 1961,
-        chopped_mat = "None",
-        chopped_var = "None",
-        product_aggregation = "Despecified",
-        industry_aggregation = "Despecified"
-    )
+        # set up the response:
+        # content is the csv made above
+        # then give csv MIME 
+        # and appropriate http header
+        final_response = HttpResponse(
+            content = csv,
+            content_type = "text/csv",
+            headers = {"Content-Disposition": 'attachment; filename="eviz_data.csv"'} # TODO: make this file name more descriptive
+        )
 
-    query = choice([query0, query1, query2, query3, query4])
+        # TODO: excel downloads
+        # MIME for workbook is application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+        # file handle is xlsx for workbook 
 
-    rows_r = get_matrix(**query, matrix_name="R")
-
-    rows_u = get_matrix(**query, matrix_name="U")
-    
-    rows_v = get_matrix(**query, matrix_name="V")
-    
-    rows_y = get_matrix(**query, matrix_name="Y")
-    
-    context = {
-        "query": query,
-        "r_mat": rows_r,
-        "u_mat": rows_u,
-        "v_mat": rows_v,
-        "y_mat": rows_y,
-    }
-
-    return render(request, "./test.html", context)
+    return final_response
 
 @time_view
 def get_plot(request):
@@ -120,10 +50,10 @@ def get_plot(request):
     plot_div = None
     if request.method == "POST":
 
-        plot_type, query = shape_post_request(request.POST)
+        plot_type, query = shape_post_request(request.POST, get_plot_type = True)
 
         if not iea_valid(request.user, query):
-            return HttpResponse("You are not allowed to receive IEA data.")
+            return HttpResponse("You are not allowed to receive IEA data.", code=403)
         
         match plot_type:
             case "sankey":

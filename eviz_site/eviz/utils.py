@@ -116,7 +116,7 @@ def translate_query(
 
 
 def shape_post_request(
-    payload
+    payload, get_plot_type = False
 ) -> tuple[str, dict]:
     '''Turn a POST request payload into a ready to use query in a dictionary
 
@@ -125,21 +125,29 @@ def shape_post_request(
         payload, some dict-like (used with Django HttpRequest POST attributes): 
         the POST payload to shape into a query dictionary
 
+        get_plot_type, bool: whether or not to get and give the plot type in the payload
+
     Output:
 
-        2-tuple containing in top-down order
+        a dictionary containing all the associations of a query parts and their values
 
-            a string telling the plot type requested
+        IF get_plot_type is True:
 
-            a dictionary containing all the associations of a query parts and their values
+            2-tuple containing in top-down order
+
+                a string telling the plot type requested
+
+                a dictionary containing all the associations of a query parts and their values
     '''
 
     shaped_query = dict(payload)
-    try:
-        # to be returned at the end
-        plot_type = shaped_query.pop("plot_type")[0]
-    except KeyError:
-        plot_type = None
+
+    if get_plot_type:
+        try:
+            # to be returned at the end
+            plot_type = shaped_query.pop("plot_type")[0]
+        except KeyError:
+            plot_type = None
 
     # get rid of security token, is not part of a query
     del shaped_query["csrfmiddlewaretoken"]
@@ -150,7 +158,9 @@ def shape_post_request(
         if len(v) == 1:
             shaped_query[k] = v[0]
 
-    return (plot_type, shaped_query)
+    if get_plot_type:
+        return (plot_type, shaped_query)
+    return shaped_query
 
 
 def iea_valid(user: User, query: dict) -> bool:
@@ -171,8 +181,10 @@ def iea_valid(user: User, query: dict) -> bool:
     # so everything past the "or" will not be checked if not neccessary
     return (
         # free data
-        (query.get("dataset", None) !=
-         "IEAEWEB2022" and query.get("ieamw", None) == "MW")
+        (
+            query.get("dataset", None) != "IEAEWEB2022"
+            and query.get("ieamw", None) == "MW"
+        )
         or
         # authorized to get proprietary data
         (user.is_authenticated and user.has_perm("eviz.get_iea"))
@@ -369,6 +381,26 @@ def visualize_matrix(mat: coo_matrix) -> pgo.Figure:
 
     # convert to a more general figure
     return pgo.Figure(data=heatmap)
+
+
+COLUMNS = ["Dataset", "Country"]
+def get_csv_from_query(query: dict, columns = COLUMNS):
+    db_query = PSUT.objects.filter(**query).values(*columns).query
+
+    with Silent():
+        df = pd_sql.read_sql_query(str(db_query), con=connection.cursor().connection)
+
+    # index false to not have column of row numbers
+    return df.to_csv(index=False)
+
+def get_excel_from_query(query: dict, columns = COLUMNS):
+    db_query = PSUT.objects.filter(**query).values(*columns).query
+
+    with Silent():
+        df = pd_sql.read_sql_query(str(db_query), con=connection.cursor().connection)
+
+    # index false to not have column of row numbers
+    return df.to_excel(index=False)
 
 class Translator():
     '''Contains the tools for translating PSUT metadata
