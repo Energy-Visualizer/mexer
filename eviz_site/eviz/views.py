@@ -22,7 +22,7 @@ def get_data(request):
         query = shape_post_request(request.POST)
 
         if not iea_valid(request.user, query):
-            return HttpResponse("You are not allowed to receive IEA data.", code = 403)
+            return HttpResponse("You are not allowed to receive IEA data.") # TODO: make this work with status = 403, problem is HTMX won't show anything
 
         query = translate_query(query)
 
@@ -53,7 +53,7 @@ def get_plot(request):
         plot_type, query = shape_post_request(request.POST, get_plot_type = True)
 
         if not iea_valid(request.user, query):
-            return HttpResponse("You are not allowed to receive IEA data.", code=403)
+            return HttpResponse("You are not allowed to receive IEA data.") # TODO: make this work with status = 403, problem is HTMX won't show anything
         
         match plot_type:
             case "sankey":
