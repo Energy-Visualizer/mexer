@@ -43,17 +43,30 @@ def translate_query(
     if v := query.get("dataset"):
         translated_query["Dataset"] = Translator.dataset_translate(v)
     if v := query.get("country"):
-        translated_query["Country"] = Translator.country_translate(v)
+        if type(v) == list:
+            translated_query["Country__in"] = [Translator.country_translate(country) for country in v]
+        else:
+            translated_query["Country"] = Translator.country_translate(v)
     if v := query.get("method"):
-        translated_query["Method"] = Translator.method_translate(v)
+        if type(v) == list:
+            translated_query["Method__in"] = [Translator.method_translate(method) for method in v]
+        else:
+            translated_query["Method"] = Translator.method_translate(v)
     if v := query.get("energy_type"):
-        translated_query["EnergyType"] = Translator.energytype_translate(v)
+        if type(v) == list:
+            translated_query["EnergyType__in"] = [Translator.energytype_translate(energy_type) for energy_type in v]
+        else:
+            translated_query["EnergyType"] = Translator.energytype_translate(v)
     if v := query.get("last_stage"):
         translated_query["LastStage"] = Translator.laststage_translate(v)
     if v := query.get("ieamw"):
-        translated_query["IEAMW"] = Translator.ieamw_translate(v)
-    if v := query.get("includes_neu"):
-        translated_query["IncludesNEU"] = Translator.includesNEU_translate(v)
+        if type(v) == list:
+            # both were selected, use the both option in the table
+            translated_query["IEAMW"] = Translator.ieamw_translate("Both")
+        else:
+            translated_query["IEAMW"] = Translator.ieamw_translate(v)
+    # includes neu either is in the query or not, it's value does need to be more than empty string, though
+    translated_query["IncludesNEU"] = Translator.includesNEU_translate(bool(query.get("includes_neu")))
     if v := query.get("chopped_mat"):
         translated_query["ChoppedMat"] = Translator.matname_translate(v)
     if v := query.get("chopped_var"):
@@ -68,73 +81,18 @@ def translate_query(
     if v := query.get("to_year"):
         # if year part is a range of years, i.e. to_year present
         # set up query as range
-        translated_query["Year__lte"] = v
+        translated_query["Year__lte"] = int(v)
         if v := query.get("year"):
-            translated_query["Year__gte"] = v
+            translated_query["Year__gte"] = int(v)
 
     elif v := query.get("year"):
         # else just have year be one year
-        translated_query["Year"] = v
+        translated_query["Year"] = int(v)
     
     if v := query.get("matname"):
         translated_query["matname"] = Translator.matname_translate(v)
 
     return translated_query
-
-
-
-def get_matrix(
-        query: dict
-    ) -> csr_matrix:
-    '''Collects, constructs, and returns one of the RUVY matrices
-    
-    Inputs:
-        dataset, country, method, energy_type, last_stage, ieamw, matrix_name:
-        strings of their database names to specify metadata for which matrix to get
-        all use abbreviations, except for country, which uses the FullName
-
-        inclues_neu, bool: metadata for which matrix
-
-        year, int: metadata for which matrix
-
-    Outputs:
-        A scipy csr_matrix containing all the values from the specified query
-        or None if the given query related to no data 
-    '''
-
-    # set up the query
-    # a dictionary that will have all the keyword arguments for the filter function below
-    query = translate_query(query)
-
-    # Get the sparse matrix representation
-    # i, j, x for row, column, value
-    # in 3-tuples
-    sparse_matrix = (
-        PSUT.objects
-        .values_list("i", "j", "x")
-        .filter(**query)
-    )
-    
-    # if nothing was returned
-    if not sparse_matrix:
-        return None
-
-    # Get dimensions for a matrix (rows and columns will be the same)
-    matrix_nrow = Index.objects.all().count() # len() would evaluate the query set, so use count() instead for better performance
-
-    # For each 3-tuple in sparse_matrix
-    # Put together all the first values, all the second, etc.
-    # All first values across the tupes are rows, second are columns, etc.
-    row, col, val = zip(*sparse_matrix)
-
-    # TODO: move this to a better place
-    temp_add_get()
-
-    # Make and return the sparse matrix
-    return csr_matrix(
-        (val, (row, col)),
-        shape = (matrix_nrow, matrix_nrow),
-    )
 
 def shape_post_request(
         payload
@@ -156,7 +114,10 @@ def shape_post_request(
     '''
 
     shaped_query = dict(payload)
-    plot_type = shaped_query.pop("plot_type")[0] # to be returned at the end
+    try:
+        plot_type = shaped_query.pop("plot_type")[0] # to be returned at the end
+    except KeyError:
+        plot_type = None
 
     del shaped_query["csrfmiddlewaretoken"] # get rid of security token, is not part of a query
 
@@ -164,19 +125,6 @@ def shape_post_request(
 
         # convert from list (if just one item in list)
         if len(v) == 1: shaped_query[k] = v[0]
-
-        # if empty choice, get rid of it for the query
-        if shaped_query[k] == '': shaped_query[k] = None
-
-    # special typed metadata
-    # TODO: perhaps move to translate_query() ??
-    if shaped_query.get("includes_neu") != None:
-        shaped_query["includes_neu"] = bool(shaped_query["includes_neu"])
-    if shaped_query.get("year") != None:
-        # year is both single year and from year
-        shaped_query["year"] = int(shaped_query["year"])
-    if shaped_query.get("to_year") != None:
-        shaped_query["to_year"] = int(shaped_query["to_year"])
 
     return (plot_type, shaped_query)
 
@@ -196,7 +144,7 @@ def iea_valid(user: User, query: dict) -> bool:
     '''
 
     # will short curcuit if the data is free,
-    # so everything past the or will not be checked if not neccessary
+    # so everything past the "or" will not be checked if not neccessary
     return (
         # free data
         (query.get("dataset", None) != "IEAEWEB2022" and query.get("ieamw", None) == "MW")
@@ -330,6 +278,59 @@ def get_xy(efficiency_metric, query: dict) -> pgo.Figure:
         template="plotly_dark"
     )
 
+def get_matrix(
+        query: dict
+    ) -> csr_matrix:
+    '''Collects, constructs, and returns one of the RUVY matrices
+    
+    Inputs:
+        dataset, country, method, energy_type, last_stage, ieamw, matrix_name:
+        strings of their database names to specify metadata for which matrix to get
+        all use abbreviations, except for country, which uses the FullName
+
+        inclues_neu, bool: metadata for which matrix
+
+        year, int: metadata for which matrix
+
+    Outputs:
+        A scipy csr_matrix containing all the values from the specified query
+        or None if the given query related to no data 
+    '''
+
+    # set up the query
+    # a dictionary that will have all the keyword arguments for the filter function below
+    query = translate_query(query)
+
+    # Get the sparse matrix representation
+    # i, j, x for row, column, value
+    # in 3-tuples
+    sparse_matrix = (
+        PSUT.objects
+        .values_list("i", "j", "x")
+        .filter(**query)
+    )
+    
+    # if nothing was returned
+    if not sparse_matrix:
+        return None
+
+    # Get dimensions for a matrix (rows and columns will be the same)
+    matrix_nrow = Index.objects.all().count() # len() would evaluate the query set, so use count() instead for better performance
+
+    # For each 3-tuple in sparse_matrix
+    # Put together all the first values, all the second, etc.
+    # All first values across the tupes are rows, second are columns, etc.
+    row, col, val = zip(*sparse_matrix)
+
+    # TODO: move this to a better place
+    temp_add_get()
+
+    # Make and return the sparse matrix
+    return csr_matrix(
+        (val, (row, col)),
+        shape = (matrix_nrow, matrix_nrow),
+    )
+
 class Translator():
     '''Contains the tools for translating PSUT metadata
 
@@ -384,7 +385,7 @@ class Translator():
             datasets = Dataset.objects.values_list("DatasetID", "Dataset")
             Translator.__dataset_translations = {name: id for id, name in datasets}
         
-        return Translator.__dataset_translations.keys()
+        return list(Translator.__dataset_translations.keys())
         
     @staticmethod
     def country_translate(name: str)-> int:
@@ -401,7 +402,7 @@ class Translator():
             countries = Country.objects.values_list("CountryID", "FullName")
             Translator.__country_translations = {name: id for id, name in countries}
         
-        return Translator.__country_translations.keys()
+        return list(Translator.__country_translations.keys())
     
     @staticmethod
     def method_translate(name: str)-> int:
@@ -418,7 +419,7 @@ class Translator():
             methods = Method.objects.values_list("MethodID", "Method")
             Translator.__method_translations = {name: id for id, name in methods}
         
-        return Translator.__method_translations.keys()
+        return list(Translator.__method_translations.keys())
     
     @staticmethod
     def energytype_translate(name: str)-> int:
@@ -435,7 +436,7 @@ class Translator():
             enerytpyes = EnergyType.objects.values_list("EnergyTypeID", "EnergyType")
             Translator.__energytype_translations = {name: id for id, name in enerytpyes}
         
-        return Translator.__energytype_translations.keys()
+        return list(Translator.__energytype_translations.keys())
     
     @staticmethod
     def laststage_translate(name: str)-> int:
@@ -452,7 +453,7 @@ class Translator():
             laststages = LastStage.objects.values_list("ECCStageID", "ECCStage")
             Translator.__laststage_translations = {name: id for id, name in laststages}
         
-        return Translator.__laststage_translations.keys()
+        return list(Translator.__laststage_translations.keys())
     
     @staticmethod
     def ieamw_translate(name: str)-> int:
@@ -469,7 +470,7 @@ class Translator():
             IEAMWs = IEAMW.objects.values_list("IEAMWID", "IEAMW")
             Translator.__IEAMW_translations = {name: id for id, name in IEAMWs}
         
-        return Translator.__IEAMW_translations.keys()
+        return list(Translator.__IEAMW_translations.keys())
     
     @staticmethod
     def includesNEU_translate(name: bool)-> int:
@@ -493,7 +494,7 @@ class Translator():
             productaggregations = AggLevel.objects.values_list("AggLevelID", "AggLevel")
             Translator.__productaggregation_translations = {name: id for id, name in productaggregations}
         
-        return Translator.__productaggregation_translations.keys()
+        return list(Translator.__productaggregation_translations.keys())
     
     
     @staticmethod
@@ -510,7 +511,7 @@ class Translator():
             matnames = matname.objects.values_list("matnameID", "matname")
             Translator.__matname_translations = {name: id for id, name in matnames}
         
-        return Translator.__matname_translations.keys()
+        return list(Translator.__matname_translations.keys())
     
 def temp_add_get():
 

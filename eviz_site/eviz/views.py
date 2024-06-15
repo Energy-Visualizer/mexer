@@ -129,6 +129,7 @@ def get_plot(request):
         match plot_type:
             case "sankey":
                 query = translate_query(query)
+                print(query)
                 sankey_diagram = get_sankey(query)
                 if sankey_diagram == None:
                     plot_div = "No cooresponding data"
@@ -189,20 +190,18 @@ def get_plot(request):
 @time_view
 def visualizer(request):
     datasets = Translator.get_datasets()
-    countries = list(Translator.get_countries())
+    countries = Translator.get_countries()
     countries.sort()
     methods = Translator.get_methods()
     energy_types = Translator.get_energytypes()
     last_stages = Translator.get_laststages()
     ieamws = Translator.get_ieamws()
-    includes_neus = Translator.get_includesNEUs()
-    years = range(1800,2021)
-    matnames = list(Translator.get_matnames())
+    ieamws.remove("Both") # TODO: this should be less hard coded
+    matnames = Translator.get_matnames()
     matnames.sort(key=len) # sort matrix names by how long they are... seems reasonable
     
     context = {"datasets":datasets, "countries":countries, "methods":methods,
-            "energy_types":energy_types, "last_stages":last_stages, "ieamws":ieamws,
-            "includes_neus":includes_neus, "years":years, "matnames":matnames
+            "energy_types":energy_types, "last_stages":last_stages, "ieamws":ieamws, "matnames":matnames
             }
 
     return render(request, "visualizer.html", context)

@@ -200,13 +200,6 @@ form {
     }
 }
 
-.xy_plot_additions {
-    background-color: #b5ddf6;
-    border: 0;
-    box-shadow: 0px 0px 5px;
-    cursor: pointer;
-}
-
 .gradient {
 	background: linear-gradient(334deg, #162334, #97c8ca, #33ebed);
     background-repeat: no-repeat;
@@ -228,7 +221,7 @@ form {
 }
 
 .popup-icon {
-    color: black;
+    color: whitesmoke;
     border-radius: 50%;
     font-weight: bold;
     cursor: pointer;
@@ -259,4 +252,17 @@ form {
     visibility: visible;
     opacity: 1;
     bottom: 150%;
+    margin-right: 50px;
+}
+
+.input-column {
+    float: left;
+    width: 50%;
+    text-align: left;
+}
+
+.info-text {
+    float: left;
+    width: 50%;
+    text-align: right;
 }

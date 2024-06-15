@@ -9,8 +9,6 @@
     <script src="https://cdn.plot.ly/plotly-latest.min.js" charset="utf-8"></script> <!-- Plotly -->
     <script src="../static/js/visualizer.js"></script>
     <script src="../static/js/plotUtil.js"></script>
-    
-    
 </head>
 
 
@@ -43,84 +41,104 @@
     <!-- main form -->
     <form method="post">
         {% csrf_token %}
-        <p>Select type of plot:
-            <select name="plot_type" id="plot-type-dropdown" class="styled-dropdown">
-                <option value="sankey">Sankey</option>
-                <option value="xy_plot">X-Y Plot</option>
-                <option value="matrices">Matrices</option>
-            </select>
-
-            <span class="popup-icon">&#9432;
-                <span class="popup-text">
-                    Select the type of plot you want to display.
+        <div class="query-choice">
+            <div class="column info-text">
+                <span class="popup-icon">&#9432;
+                    <span class="popup-text">
+                        Select the type of plot you want to display.
+                    </span>
                 </span>
-            </span>
-        </p>
+                Select type of plot:
+            </div>
+            <div class="input-column">
+                <input name="plot_type" type="radio" value="sankey" id="plot-type-input">Sankey<br>
+                <input name="plot_type" type="radio" value="xy_plot" id="plot-type-input">X-Y Plot<br>
+                <input name="plot_type" type="radio" value="matrices" id="plot-type-input">Matrices
+            </div>
+            &#x2800
+        </div>
+        
 
-        <p>
-            From dataset
-            <select name="dataset" id="dataset-dropdown" class="styled-dropdown" required>
+        <div class="query-choice">
+            <div class="info-text">
+                From dataset
+            </div>
+            <div class="input-column">
                 {% for dataset in datasets %}
-                <option value="{{ dataset }}">{{ dataset }}</option>
+                <input type="radio" value="{{ dataset }}" name="dataset" required>{{ dataset }}<br>
                 {% endfor %}
-            </select>
-            get country
-            <select name="country" id="country-dropdown" class="styled-dropdown" required>
-                {% for country in countries %}
-                <option value="{{ country }}">{{ country }}</option>
-                {% endfor %}
-            </select>
-        </p>
-        <p>
-            Selected by method
-            <select disabled name="method" id="method-dropdown" class="optional-dropdown styled-dropdown">
-                <option value selected hidden>Please select something</option>
+            </div>
+            &#x2800
+        </div>
+        <div class="query-choice">
+            <div class="info-text">
+                Get country(s)
+            </div>
+            <div calss="input-column">
+                <select name="country" id="country-dropdown" class="styled-dropdown" required>
+                    {% for country in countries %}
+                    <option value="{{ country }}">{{ country }}</option>
+                    {% endfor %}
+                </select>
+                <button onclick="showDropdown('country')" type="button">+</button>
+            </div>
+            &#x2800
+        </div>
+        <div class="query-choice">
+            <div class="info-text">
+                Selected by method
+            </div>
+            <div class="input-column">
                 {% for method in methods %}
-                <option value="{{ method }}">{{ method }}</option>
+                <input type="checkbox" value="{{ method }}" name="method">{{ method }}<br>
                 {% endfor %}
-            </select>
-            <button onclick="showDropdown('method')" type="button">+</button>
-        </p>
-        <p>
-            For energy type
-            <select disabled name="energy_type" id="energy_type-dropdown" class="optional-dropdown styled-dropdown">
-                <option value selected hidden>Please select something</option>
+            </div>
+            &#x2800
+        </div>
+        <div class="query-choice">
+            <div class="info-text">
+                For energy type
+            </div>
+            <div class="input-column">
                 {% for energy_type in energy_types %}
-                <option value="{{ energy_type }}">{{ energy_type }}</option>
+                <input type="checkbox" value="{{ energy_type }}" name="energy_type">{{ energy_type }}<br>
                 {% endfor %}
-            </select>
-            <button onclick="showDropdown('energy_type')" type="button">+</button>
-        </p>
-        <p>
-            To last stage
-            <select disabled name="last_stage" id="last_stage-dropdown" class="optional-dropdown styled-dropdown">
-                <option value selected hidden>Please select something</option>
-                {% for last_stage in last_stages %}
-                <option value="{{ last_stage }}">{{ last_stage }}</option>
-                {% endfor %}
-            </select>
-            <button onclick="showDropdown('last_stage')" type="button">+</button>
-        </p>
-        <p>
-            With IEAMW
-            <select disabled name="ieamw" id="ieamw-dropdown" class="optional-dropdown styled-dropdown">
-                <option value selected hidden>Please select something</option>
+            </div>
+            &#x2800
+        </div>
+        <div class="query-choice">
+            <div class="info-text">
+                To last stage
+            </div>
+            <div class="input-column">
+                <select name="last_stage" id="last_stage-dropdown" class="styled-dropdown">
+                    {% for last_stage in last_stages %}
+                    <option value="{{ last_stage }}">{{ last_stage }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            &#x2800
+        </div>
+        <div class="query-choice">
+            <div class="info-text">
+                With IEAMW
+            </div>
+            <div class="input-column">
                 {% for ieamw in ieamws %}
-                <option value="{{ ieamw }}">{{ ieamw }}</option>
+                <input type="checkbox" value="{{ ieamw }}" name="ieamw">{{ ieamw }}<br>
                 {% endfor %}
-            </select>
-            <button onclick="showDropdown('ieamw')" type="button">+</button>
-        </p>
-        <p>
-            Including NEU
-            <select disabled name="includes_neu" id="includes_neu-dropdown" class="optional-dropdown styled-dropdown">
-                <option value selected hidden>Please select something</option>
-                {% for includes_neu in includes_neus %}
-                <option value="{{ includes_neu }}">{{ includes_neu }}</option>
-                {% endfor %}
-            </select>
-            <button onclick="showDropdown('includes_neu')" type="button">+</button>
-        </p>
+            </div>
+            &#x2800
+        </div>
+        <div class="query-choice">
+            <div class="info-text">
+                Including NEU
+            </div>
+            <div class="input-column">
+                <input type="checkbox" value="true" name="including_neu">
+            </div>
+            &#x2800
+        </div>
 
         <!-- metadata specifics inputs -->
 
@@ -142,16 +160,16 @@
         <!-- single year input -->
         <p>
             For year
-            <input name="year" class="styled-dropdown" id="single-year-input"></input>
+            <input name="year" class="styled-dropdown" id="single-year-input">
         </p>
         <!-- single year input -->
 
         <!-- year range input -->
         <p>
             From year
-            <input name="year" class="styled-dropdown" id="from-year-input"></input>
+            <input name="year" class="styled-dropdown" id="from-year-input">
             to year
-            <input name="to_year" class="styled-dropdown" id="to-year-input"></input>
+            <input name="to_year" class="styled-dropdown" id="to-year-input">
         </p>
         <!-- year range input end-->
 
