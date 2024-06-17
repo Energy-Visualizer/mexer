@@ -144,19 +144,3 @@ body {
         background-position: 100vw bottom;
     }
 }
-
-a:link {
-    color: #97c8ca;
-}
-
-a:visited {
-    color: #97c8ca;
-}
-
-a:hover {
-    color: #33ebed;
-}
-
-a:active {
-    color: #162334;
-}

@@ -1,71 +1,83 @@
-<head>
-  <title>EVIZ</title>
-  <link rel="stylesheet" href="../static/css/index.css" type="text/css" />
-  <link rel="stylesheet" href="../static/css/toolbar.css" type="text/css" />
-</head>
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>EVIZ</title>
+    <link rel="stylesheet" href="../static/css/toolbar.css" type="text/css" />
+    <link rel="stylesheet" href="../static/css/index.css" type="text/css" />
+  </head>
 
-<body>
-
-  <div class="topbar">
-    <div class="left">
-      <a class="main" href="{% url 'home' %}">EVIZ</a>
-    </div>
-    <div class="right">
-      <a class="links" href="{% url 'visualizer' %}">Vizualizer</a>
-      <a class="links" href="{% url 'about' %}">About</a>
-      {% if request.user.is_authenticated %}
-      <a class="links" href="{% url 'logout' %}">Sign Out</a>
-      {% else %}
-      <a class="links" href="{% url 'login' %}">Sign In</a>
-      {% endif %}
-    </div>
-  </div>
-
-
-  <div id="heading-box">
-    <svg viewBox="0 0 500 10" preserveAspectRatio="xMinYMin meet">
-      <path d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z" style="stroke: none; fill:#393E46;"></path>
-    </svg>
-
-    <div id="para-bg-5" class="para-bg"></div>
-    <div id="para-bg-4" class="para-bg"></div>
-    <div id="para-bg-3" class="para-bg"></div>
-    <div id="para-bg-2" class="para-bg"></div>
-    <div id="para-bg-1" class="para-bg"></div>
-    <div id="para-bg-0" class="para-bg"></div>
-
-    <div id="title">
-      <span class="energy-effect"></span>
-      <h1>Welcome to EVIZ</h1>
-      <h2>Energy Visualizer</h2>
-    </div>
-
-
-    <div class="center-item">
-      <a href="{% url 'visualizer' %}">
-        <button id="get-started">Get Started</button>
-      </a>
-    </div>
-  </div>
-
-  <div class="information">
-    <article class="highlight dark">
-      <h3>What is EVIZ?</h3>
-      <div class="center-item">
-        <p>
-          EVIZ (short for <b>E</b>nergy <b>Vis</b>ualizer) is a website made to allow users the freedom to explore
-          questions related to the energy story.
-        </p>
+  <body>
+    <div class="topbar">
+      <div class="left">
+        <a class="main" href="{% url 'home' %}">EVIZ</a>
       </div>
-    </article>
-    <article class="highlight light">
-      <h3>How to use EVIZ?</h3>
-      <div class="center-item">
-        <p>
-          EVIZ (short for <b>E</b>nergy <b>Vis</b>ualizer) is a website made to allow users the freedom to explore
-          questions related to the energy story.
-        </p>
+      <div class="right">
+        <a class="links" href="{% url 'visualizer' %}">Vizualizer</a>
+        <a class="links" href="{% url 'about' %}">About</a>
+        {% if request.user.is_authenticated %}
+          <a class="links" href="{% url 'logout' %}">Sign Out</a>
+        {% else %}
+          <a class="links" href="{% url 'login' %}">Sign In</a>
+        {% endif %}
       </div>
-    </article>
-  </div>
-</body>
+    </div>
+
+    <div id="heading-box">
+      <svg viewBox="0 0 500 10" preserveAspectRatio="xMinYMin meet">
+        <path d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z" style="stroke: none; fill:#393E46;"></path>
+      </svg>
+
+      <div id="para-bg-5" class="para-bg"></div>
+      <div id="para-bg-4" class="para-bg"></div>
+      <div id="para-bg-3" class="para-bg"></div>
+      <div id="para-bg-2" class="para-bg"></div>
+      <div id="para-bg-1" class="para-bg"></div>
+      <div id="para-bg-0" class="para-bg"></div>
+
+      <div id="title">
+        <span class="energy-effect"></span>
+        <h1>Welcome to EVIZ</h1>
+        <h2>Energy Visualizer</h2>
+      </div>
+
+      <div class="center-item">
+        <a href="{% url 'visualizer' %}"><button id="get-started">Get Started</button></a>
+      </div>
+    </div>
+
+    <div class="information">
+      <article class="highlight dark">
+        <div class="center-item">
+          <p>EVIZ enables exploration of primary, final, and useful energy and exergy data.</p>
+        </div>
+      </article>
+      <article class="highlight light">
+        <h3>Papers Related to EVIZ</h3>
+        <div class="center-item">
+          <a href="https://doi.org/10.1088/2753-3751/ad4e39" target="_blank">
+            <p>
+              Paul E Brockway <i>et al.</i> "A country-level primary-final-useful (CL-PFU) energy and exergy database: 
+              overview of its construction and 1971–2020 world-level efficiency results." 
+              2024 Environmental Research: Energy 1 025005.<br>
+              DOI: 10.1088/2753-3751/ad4e39
+            </p>
+          </a>
+          <a href="https://doi.org/10.1016/j.apenergy.2024.123344" target="_blank">
+            <p>
+              Tostes, Bernardo <i>et al.</i> “On the Right Track? Energy Use, Carbon Emissions, and 
+              Intensities of World Rail Transportation, 1840–2020.” Applied Energy, vol. 367, Aug. 2024, p. 123344.<br>
+              DOI: 10.1016/j.apenergy.2024.123344
+            </p>
+          </a>
+          <a href="https://doi.org/10.1016/j.energy.2023.126775" target="_blank">
+            <p>
+              Pinto, Ricardo <i>et al.</i> “The Rise and Stall of World Electricity Efficiency:1900–2017, Results and Insights 
+              for the Renewables Transition.” Energy, vol. 269, Apr. 2023, p. 126775.<br>
+              DOI: 10.1016/j.energy.2023.126775
+            </p>
+          </a>
+        </div>
+      </article>
+    </div>
+  </body>
+</html>

@@ -1,3 +1,7 @@
+body {
+    background-color: #97c8ca;
+}
+
 #heading-box {
     background-color: #131d2c;
     position: relative;
@@ -25,7 +29,8 @@ h3 {
     margin-top: 5%;
 }
 
-div.center-item>p {
+div.center-item>p,
+div.center-item>a>p {
     display: inline-block;
     width: 60%;
     font-size: 25px;
@@ -49,6 +54,18 @@ article.light {
 article.dark {
     color: #393E46;
     background-color: #97c8ca;
+}
+
+div.center-item>a:link {
+    color: inherit;
+}
+
+div.center-item>a:visited {
+    color: inherit;
+}
+
+div.center-item>a:hover {
+    color: #63e5ec;
 }
 
 #get-started {
