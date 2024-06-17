@@ -383,7 +383,7 @@ def visualize_matrix(mat: coo_matrix) -> pgo.Figure:
     return pgo.Figure(data=heatmap)
 
 
-COLUMNS = ["Dataset", "Country"]
+COLUMNS = ["Dataset", "Country", "Method", "EnergyType", "LastStage", "IEAMW", "IncludesNEU", "Year", "ChoppedMat", "ChoppedVar", "ProductAggregation", "IndustryAggregation", "matname", "i", "j", "x"]
 def get_csv_from_query(query: dict, columns = COLUMNS):
     db_query = PSUT.objects.filter(**query).values(*columns).query
 
