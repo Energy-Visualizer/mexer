@@ -255,7 +255,7 @@ def get_sankey(query: dict) -> pgo.Figure:
 
             # get the associated color for the source, if there is one and apply it
             # if not, the color is wheat
-            node_colors.append(SANKEY_COLORS.get(translated_col, "wheat"))
+            node_colors.append(SANKEY_COLORS.get(translated_row, "wheat"))
 
         sources.append(idx)
 
@@ -271,14 +271,14 @@ def get_sankey(query: dict) -> pgo.Figure:
 
         targets.append(idx)
 
+        # Finish the connection with the magnitude of the connection
+        magnitudes.append(magnitude)
+
         # make in-flow special color if node has special color
         #     i.e. if current target node has color besides default node color
         # only on targets (columns) because only targets can have in-flows
         if ((assoc_color := node_colors[idx]) != "wheat"):
             flow_color = assoc_color
-
-        # Finish the connection with the magnitude of the connection
-        magnitudes.append(magnitude)
 
         flow_colors.append(flow_color)
 
@@ -325,9 +325,7 @@ def get_xy(efficiency_metric, query: dict) -> pgo.Figure:
     )
 
 
-def get_matrix(
-    query: dict
-) -> coo_matrix:
+def get_matrix(query: dict) -> coo_matrix:
     '''Collects, constructs, and returns one of the RUVY matrices
 
     Inputs:
