@@ -214,23 +214,25 @@ form {
 }
 
 .gradient {
-	background: linear-gradient(334deg, #162334, #97c8ca, #33ebed);
+    background: linear-gradient(334deg, #162334, #97c8ca, #33ebed);
     background-repeat: no-repeat;
-	background-size: 150% 150%;
+    background-size: 150% 150%;
     background-attachment: fixed;
-	animation: gradient-animation 10s ease infinite;
+    animation: gradient-animation 10s ease infinite;
 }
 
 @keyframes gradient-animation {
-	0% {
-		background-position: 0% 50%;
-	}
-	50% {
-		background-position: 100% 75%;
-	}
-	100% {
-		background-position: 0% 50%;
-	}
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 75%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
 .popup-icon {

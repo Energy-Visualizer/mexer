@@ -27,26 +27,23 @@
             EVIZ allows for the investigation of data from multiple sources. Currently, the following datasets are available.
             <ul>
                 <li>IEAEWEB2022</li>
+                <p class="alert">International Energy Agency (IEA) data is proprietary. It cannot be accessed nor shared without proper authorization.</p>
                 <li>CLPFUv2.0a1</li>
                 <li>CLPFUv2.0a2</li>
             </ul>
         </p>
-        <h2>IEAEWEB2022</h2>
-        <h3>International Energy Agency Extended World Energy Balances 2022</h3>
+
+        {% for dataset in datasets %}
+        {% comment %}
+        dataset.Dataset is the shortened name  
+        {% endcomment %}
+        <h2>{{ dataset.Dataset }}</h2>
+        <h3>{{ dataset.FullName }}</h3>
         <p>
-            <p class="alert">International Energy Agency (IEA) data is proprietary. It cannot be accessed nor shared without proper authorization.</p>
-            <i class="placeholder">Placeholder: This dataset is really cool!</i>
+            {{ dataset.Description }}
         </p>
-        <h2>CLPFUv2.0a1</h2>
-        <h3>Country-Level Primary Final Useful database version 2.0a1</h3>
-        <p>
-            <i class="placeholder">Placeholder: This dataset is really cool!</i>
-        </p>
-        <h2>CLPFUv2.0a2</h2>
-        <h3>Country-Level Primary Final Useful database version 2.0a2</h3>
-        <p>
-            <i class="placeholder">Placeholder: This dataset is really cool!</i>
-        </p>
+        {% endfor %}
+
     </div>
 </body>
 

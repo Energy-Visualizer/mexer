@@ -128,7 +128,8 @@ def about(request):
     return render(request, 'about.html')
 
 def data_info(request):
-    return render(request, 'data_info.html')
+    datasets = Dataset.objects.all()
+    return render(request, 'data_info.html', context = {"datasets":datasets})
 
 def user_signup(request):
     if request.method == 'POST':
