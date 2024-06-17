@@ -1,13 +1,19 @@
 @import url('https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css');
-.content {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr) ;
-    column-gap: 10px;
-    justify-content: center; /* Center the grid horizontally */
-    align-items: center; 
+
+body {
+    overflow: hidden;
 }
 
-.energy-visulizer{
+.content {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 10px;
+    justify-content: center;
+    /* Center the grid horizontally */
+    align-items: center;
+}
+
+.energy-visulizer {
     padding: 20px;
     width: 500px;
     margin: 50px auto;
@@ -15,6 +21,7 @@
     align-items: center;
     font-size: 30;
 }
+
 .login-box {
     background-color: #393e46;
     padding: 20px;
@@ -26,6 +33,7 @@
     margin: 100px auto;
     height: auto;
 }
+
 .login-box h1 {
     margin-top: 0;
 }
@@ -33,7 +41,8 @@
 .login-box form {
     display: flex;
     flex-direction: column;
-    align-items: center; /* Center the form elements */
+    align-items: center;
+    /* Center the form elements */
     color: white;
 }
 
@@ -67,11 +76,71 @@
 
 @media (max-width: 768px) {
     .content {
-        grid-template-columns: 1fr; /* Stack the elements vertically on smaller screens */
+        grid-template-columns: 1fr;
+        /* Stack the elements vertically on smaller screens */
     }
 
     .energy-visulizer,
     .login-box {
-        margin: 20px auto; /* Adjust the margin for smaller screens */
+        margin: 20px auto;
+        /* Adjust the margin for smaller screens */
+    }
+}
+
+.gradient {
+	background: linear-gradient(334deg, #162334, #97c8ca, #33ebed);
+    background-repeat: no-repeat;
+	background-size: 100% 100%;
+    background-attachment: fixed;
+}
+
+.para-bg {
+    height: 100%;
+    width: 100%;
+    background-position: center bottom;
+    background-repeat: repeat-x;
+    position: absolute;
+    bottom: 0px;
+    width: calc(100% + 10px); /* to get rid of slight gap between tiled images */
+    z-index: -1; /* keep the waves behind everything else*/
+    pointer-events: none; /* don't let the waves take over the screen */
+}
+
+#para-bg-0 {
+    background-image: url(../images/para-wave-0.svg);
+    animation: scroll-background 4s infinite linear;
+}
+
+#para-bg-1 {
+    background-image: url(../images/para-wave-1.svg);
+    animation: scroll-background 9s infinite linear;
+}
+
+#para-bg-2 {
+    background-image: url(../images/para-wave-2.svg);
+    animation: scroll-background 16s infinite linear;
+}
+
+#para-bg-3 {
+    background-image: url(../images/para-wave-3.svg);
+    animation: scroll-background 25s infinite linear;
+}
+
+#para-bg-4 {
+    background-image: url(../images/para-wave-4.svg);
+    animation: scroll-background 36s infinite linear;
+}
+
+#para-bg-5 {
+    background-image: url(../images/para-wave-5.svg);
+    animation: scroll-background 49s infinite linear;
+}
+
+@keyframes scroll-background {
+    0% {
+        background-position: 0px bottom;
+    }
+    100% {
+        background-position: 100vw bottom;
     }
 }

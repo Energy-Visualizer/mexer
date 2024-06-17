@@ -125,6 +125,9 @@ def visualizer(request):
 def about(request):
     return render(request, 'about.html')
 
+def data_info(request):
+    return render(request, 'data_info.html')
+
 def user_signup(request):
     if request.method == 'POST':
         form = SignupForm(request.POST)

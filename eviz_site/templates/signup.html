@@ -4,7 +4,7 @@
   <link rel="stylesheet" href="../static/css/signup.css" type="text/css" />
 </head>
 
-<body>
+<body class="gradient">
   <div class="topbar">
     <div class="left">
       <a class="main" href="{% url 'home' %}">EVIZ</a>
@@ -15,6 +15,10 @@
       <!-- <a class="links" href="{% url 'login' %}">Sign In</a> -->
     </div>
   </div>
+  <svg viewBox="0 0 500 10" preserveAspectRatio="xMinYMin meet">
+    <path d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z" style="stroke: none; fill:#393E46;"></path>
+  </svg>
+
   <div class="content">
     <div class="energy-visulizer">
       <h1>Energy Visualizer</h1>
@@ -41,4 +45,11 @@
       </form>
     </div>
   </div>
+
+  <div id="para-bg-5" class="para-bg"></div>
+  <div id="para-bg-4" class="para-bg"></div>
+  <div id="para-bg-3" class="para-bg"></div>
+  <div id="para-bg-2" class="para-bg"></div>
+  <div id="para-bg-1" class="para-bg"></div>
+  <div id="para-bg-0" class="para-bg"></div>
 </body>

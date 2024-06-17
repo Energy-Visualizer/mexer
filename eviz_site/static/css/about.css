@@ -14,7 +14,8 @@ body {
 }
 
 .about-content h1,
-.about-content h2 {
+.about-content h2,
+.about-content h3 {
   color: #393e46;
 }
 
@@ -38,4 +39,12 @@ footer {
 
 footer p {
   color: #00adb5;
+}
+
+p.alert {
+  color: #ff524a;
+}
+
+i.placeholder {
+  color: purple;
 }

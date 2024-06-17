@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" type="text/css" href="../static/css/toolbar.css" />
+    <link rel="stylesheet" type="text/css" href="../static/css/about.css" />
+</head>
+
+<body>
+    <div class="topbar">
+        <div class="left">
+            <a class="main" href="{% url 'home' %}">EVIZ</a>
+        </div>
+        <div class="right">
+            <a class="links" href="{% url 'visualizer' %}">Visualizer</a>
+            <a class="links" href="{% url 'about' %}">About</a>
+            <a class="links" href="{% url 'login' %}">Sign In</a>
+        </div>
+    </div>
+    <svg viewBox="0 0 500 10" preserveAspectRatio="xMinYMin meet">
+        <path d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z" style="stroke: none; fill:#393E46;"></path>
+    </svg>
+
+    <div class="about-content">
+        <h1>Data Information</h1>
+        <p>
+            EVIZ allows for the investigation of data from multiple sources. Currently, the following datasets are available.
+            <ul>
+                <li>IEAEWEB2022</li>
+                <li>CLPFUv2.0a1</li>
+                <li>CLPFUv2.0a2</li>
+            </ul>
+        </p>
+        <h2>IEAEWEB2022</h2>
+        <h3>International Energy Agency Extended World Energy Balances 2022</h3>
+        <p>
+            <p class="alert">International Energy Agency (IEA) data is proprietary. It cannot be accessed nor shared without proper authorization.</p>
+            <i class="placeholder">Placeholder: This dataset is really cool!</i>
+        </p>
+        <h2>CLPFUv2.0a1</h2>
+        <h3>Country-Level Primary Final Useful database version 2.0a1</h3>
+        <p>
+            <i class="placeholder">Placeholder: This dataset is really cool!</i>
+        </p>
+        <h2>CLPFUv2.0a2</h2>
+        <h3>Country-Level Primary Final Useful database version 2.0a2</h3>
+        <p>
+            <i class="placeholder">Placeholder: This dataset is really cool!</i>
+        </p>
+    </div>
+</body>
+
+</html>
