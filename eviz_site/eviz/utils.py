@@ -110,10 +110,12 @@ def translate_query(
         translated_query["Year"] = int(v)
 
     if v := query.get("matname"):
-        translated_query["matname"] = Translator.matname_translate(v)
+        if v == "RUVY":
+            translated_query["matname__in"] = [Translator.matname_translate("R"), Translator.matname_translate("U"), Translator.matname_translate("V"), Translator.matname_translate("Y")]
+        else:
+            translated_query["matname"] = Translator.matname_translate(v)
 
     return translated_query
-
 
 def shape_post_request(
     payload, get_plot_type = False

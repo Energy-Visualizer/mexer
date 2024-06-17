@@ -44,6 +44,12 @@ def get_data(request):
 
     return final_response
 
+import plotly.graph_objects as go
+import plotly.graph_objs as go
+from plotly.offline import plot
+import numpy as np
+import pandas as pd
+from scipy.sparse import coo_matrix
 @time_view
 def get_plot(request):
 
@@ -102,7 +108,7 @@ def get_plot(request):
     
     return HttpResponse(plot_div)
 
-@login_required(login_url="/login")
+#@login_required(login_url="/login")
 @time_view
 def visualizer(request):
     datasets = Translator.get_datasets()
