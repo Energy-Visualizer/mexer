@@ -6,6 +6,4 @@ db.sqlite3
 .pgpass
 .pg_service.conf
 
-locustfile.py
-
-.env
+migrations
