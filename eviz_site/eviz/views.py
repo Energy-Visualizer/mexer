@@ -44,13 +44,8 @@ def get_data(request):
 
     return final_response
 
-import plotly.graph_objects as go
-import plotly.graph_objs as go
-from plotly.offline import plot
-import numpy as np
-import pandas as pd
-from scipy.sparse import coo_matrix
 @time_view
+@login_required
 def get_plot(request):
 
     plot_div = None
