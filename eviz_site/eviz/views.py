@@ -98,6 +98,8 @@ def get_plot(request):
                         title = matrix_name + " Matrix",
                         yaxis = dict(title=''),
                         xaxis = dict(title=''),
+                        xaxis_side = "top",
+                        xaxis_tickangle = -45
                     )
 
                     # Render the figure as an HTML div
