@@ -77,7 +77,10 @@ def translate_query(
         translated_query["Year"] = v
     
     if v := query.get("matname"):
-        translated_query["matname"] = Translator.matname_translate(v)
+        if v == "RUVY":
+            translated_query["matname__in"] = [Translator.matname_translate("R"), Translator.matname_translate("U"), Translator.matname_translate("V"), Translator.matname_translate("Y")]
+        else:
+            translated_query["matname"] = Translator.matname_translate(v)
 
     return translated_query
 
@@ -105,16 +108,14 @@ def get_matrix(
     # set up the query
     # a dictionary that will have all the keyword arguments for the filter function below
     query = translate_query(query)
-
-    # Get the sparse matrix representation
-    # i, j, x for row, column, value
-    # in 3-tuples
+    # Retrieve the combined RUVY matrix
     sparse_matrix = (
-        PSUT.objects
-        .values_list("i", "j", "x")
-        .filter(**query)
+        PSUT.objects.values_list("i", "j", "x")
+        .filter(
+            **query
+        )
     )
-    
+        
     # if nothing was returned
     if not sparse_matrix:
         return None

@@ -115,6 +115,11 @@ def get_psut_data(request):
     return render(request, "./test.html", context)
 
 import plotly.graph_objects as go
+import plotly.graph_objs as go
+from plotly.offline import plot
+import numpy as np
+import pandas as pd
+from scipy.sparse import coo_matrix
 @time_view
 def get_plot(request):
 
@@ -156,6 +161,7 @@ def get_plot(request):
                     # Convert the matrix to a format suitable for Plotly's heatmap
                     matrix = matrix.tocoo()
                     rows, cols, vals = matrix.row, matrix.col, matrix.data
+                    rows = rows[::-1]
                     row_labels = [Translator.index_reverse_translate(i) for i in rows]
                     col_labels = [Translator.index_reverse_translate(i) for i in cols]
                     heatmap = go.Heatmap(
@@ -172,6 +178,8 @@ def get_plot(request):
                         title= f"Matrix Visualization: {matname}",
                         xaxis=dict(title=''),
                         yaxis=dict(title=''),
+                        xaxis_side='top',
+                        xaxis_tickangle=-45
                     )
 
                     # Create a figure with the heatmap data and layout
@@ -185,7 +193,7 @@ def get_plot(request):
     
     return HttpResponse(plot_div)
 
-@login_required(login_url="/login")
+#@login_required(login_url="/login")
 @time_view
 def visualizer(request):
     datasets = Translator.get_datasets()
