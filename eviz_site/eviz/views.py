@@ -138,6 +138,7 @@ def user_signup(request):
         if form.is_valid():
             form.save()
             return redirect('login')
+        print(form.errors.values())
     else:
         form = SignupForm()
     return render(request, 'signup.html', {'form': form})
@@ -171,7 +172,7 @@ def user_login(request):
                 # else just send them to the home page
                 return redirect('home')
             else:
-                messages.error(request, "Username or password is incorrect!")
+                messages.add_message(request, messages.ERROR, "Username or password is incorrect!")
     else:
         form = LoginForm()
     
