@@ -48,12 +48,12 @@
                         Select the type of plot you want to display. <a href="{% url 'data-info'%}">Read more.</a>
                     </span>
                 </span>
-                Select type of plot:
+                Visualization
             </div>
             <div class="input-column">
-                <input name="plot_type" type="radio" value="sankey" id="plot-type-input">Sankey<br>
+                <input name="plot_type" type="radio" value="sankey" id="plot-type-input" checked>Sankey<br>
                 <input name="plot_type" type="radio" value="xy_plot" id="plot-type-input">X-Y Plot<br>
-                <input name="plot_type" type="radio" value="matrices" id="plot-type-input">Matrices
+                <input name="plot_type" type="radio" value="matrices" id="plot-type-input">PSUT matrices
             </div>
             &#x2800
         </div>
@@ -65,19 +65,27 @@
             </div>
             <div class="input-column">
                 {% for dataset in datasets %}
+                {%if dataset == 'CLPFUv2.0a2'%}
+                <input type='radio' value="{{ dataset }}" name="dataset" checked>{{dataset}}<br>
+                {%else%}
                 <input type="radio" value="{{ dataset }}" name="dataset" required>{{ dataset }}<br>
+                {% endif %}
                 {% endfor %}
             </div>
             &#x2800
         </div>
         <div class="query-choice">
             <div class="info-text">
-                Get country(s)
+                Country(ies)
             </div>
             <div calss="input-column">
                 <select name="country" id="country-dropdown" class="styled-dropdown" required>
                     {% for country in countries %}
+                    {% if country == 'Ghana' %}
+                    <option value="{{ country }}" selected>{{ country }}</option>
+                {% else %}
                     <option value="{{ country }}">{{ country }}</option>
+                {% endif %}
                     {% endfor %}
                 </select>
                 <button onclick="showDropdown('country')" type="button">+</button>
@@ -86,18 +94,16 @@
         </div>
         <div class="query-choice">
             <div class="info-text">
-                Selected by method
+                Method
             </div>
             <div class="input-column">
-                {% for method in methods %}
-                <input type="checkbox" value="{{ method }}" name="method">{{ method }}<br>
-                {% endfor %}
+                <input type="checkbox" value="PCM" name="method">PCM<br>
             </div>
             &#x2800
         </div>
         <div class="query-choice">
             <div class="info-text">
-                For energy type
+                Energy type
             </div>
             <div class="input-column">
                 {% for energy_type in energy_types %}
@@ -108,14 +114,13 @@
         </div>
         <div class="query-choice">
             <div class="info-text">
-                To last stage
+                Last stage
             </div>
             <div class="input-column">
-                <select name="last_stage" id="last_stage-dropdown" class="styled-dropdown">
-                    {% for last_stage in last_stages %}
-                    <option value="{{ last_stage }}">{{ last_stage }}</option>
-                    {% endfor %}
-                </select>
+                <div name="last_stage">
+                    <input type="radio" value="Final" name="last_stage" checked>Final<br>
+                    <input type="radio" value="Useful" name="last_stage">Useful<br>
+                </div>
             </div>
             &#x2800
         </div>
@@ -125,14 +130,18 @@
             </div>
             <div class="input-column">
                 {% for ieamw in ieamws %}
+                {%if ieamw == 'IEA'%}
+                <input type="checkbox" value="{{ ieamw }}" name="ieamw" checked>{{ ieamw }}<br>
+                {%else%}
                 <input type="checkbox" value="{{ ieamw }}" name="ieamw">{{ ieamw }}<br>
+                {%endif%}
                 {% endfor %}
             </div>
             &#x2800
         </div>
         <div class="query-choice">
             <div class="info-text">
-                Including NEU
+                Include NEU
             </div>
             <div class="input-column">
                 <input type="checkbox" value="true" name="including_neu">
@@ -159,17 +168,17 @@
 
         <!-- single year input -->
         <p>
-            For year
-            <input name="year" class="styled-dropdown" id="single-year-input">
+            Year
+            <input name="year" class="styled-dropdown" id="single-year-input" value="1971">
         </p>
         <!-- single year input -->
-
         <!-- year range input -->
         <p>
             From year
-            <input name="year" class="styled-dropdown" id="from-year-input">
+            <input name="year" class="styled-dropdown" id="from-year-input" value="1971">
+            <br>
             to year
-            <input name="to_year" class="styled-dropdown" id="to-year-input">
+            <input name="to_year" class="styled-dropdown" id="to-year-input"value="2020">
         </p>
         <!-- year range input end-->
 
@@ -185,19 +194,19 @@
             </select>
         </p>
         <!-- matrix dropdown end -->
-
+        <div class="button-container">
         <!-- metadata specifics inputs end -->
-
         <button hx-post="/plot" hx-swap="innerHTML" hx-target="#plot-section" hx-indicator="#plot-spinner" type="button"
             id="get" onclick='document.getElementById("plot-section").scrollIntoView()'>
             <!-- onclick for bringing user to plot area -->
-            GET
+            Make Plot
         </button>
         <button type="submit" id="download"
             onclick="return confirm('By accepting you confirm that you understand IEA data is proprietary and cannot be shared with those not authorized to see it.')">
             <!-- onclick for bringing user to plot area -->
-            DOWNLOAD
+            Download Data
         </button>
+    </div>
     </form>
     <!-- main form end -->
 

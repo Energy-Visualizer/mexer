@@ -23,7 +23,7 @@ def get_data(request):
         query = shape_post_request(request.POST)
 
         if not iea_valid(request.user, query):
-            return HttpResponse("You are not allowed to receive IEA data.") # TODO: make this work with status = 403, problem is HTMX won't show anything
+            return HttpResponse("You do not have access to IEA data.") # TODO: make this work with status = 403, problem is HTMX won't show anything
 
         query = translate_query(query)
 
@@ -54,7 +54,8 @@ def get_plot(request):
         plot_type, query = shape_post_request(request.POST, get_plot_type = True)
 
         if not iea_valid(request.user, query):
-            return HttpResponse("You are not allowed to receive IEA data.") # TODO: make this work with status = 403, problem is HTMX won't show anything
+            return HttpResponse("You do not have access to IEA data. Please contact <a style='color: #00adb5' :visited='{color: #87CEEB}' href='mailto:matthew.heun@calvin.edu'>matthew.heun@calvin.edu</a> with questions."
+                                "You can also purchase WEB data at <a style='color: #00adb5':visited='{color: #87CEEB}' href='https://www.iea.org/data-and-statistics/data-product/world-energy-balances'> World Energy Balances</a>.") # TODO: make this work with status = 403, problem is HTMX won't show anything
         
         match plot_type:
             case "sankey":
@@ -159,8 +160,9 @@ def user_login(request):
         form = LoginForm(request.POST)
         if form.is_valid():
             username = form.cleaned_data['username']
+            email = form.cleaned_data['email']
             password = form.cleaned_data['password']
-            user = authenticate(request, username=username, password=password)
+            user = authenticate(request, username=username, email=email, password=password)
 
             # if user was successfully authenticated
             if user:
