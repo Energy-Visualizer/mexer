@@ -192,8 +192,8 @@ def iea_valid(user: User, query: dict) -> bool:
         (user.is_authenticated and user.has_perm("eviz.get_iea"))
     )
 
-
-with open("internal_resources/sankey_color_scheme.json") as f:
+from pathlib import Path
+with open(f"{Path(__file__).resolve().parent.parent}/internal_resources/sankey_color_scheme.json") as f:
     colors_data = f.read()
 SANKEY_COLORS: dict[str, str] = json_from_string(colors_data)
 

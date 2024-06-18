@@ -2,6 +2,7 @@
 from django.shortcuts import render, redirect, HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
 # Eviz imports
 from eviz.utils import *
@@ -169,7 +170,8 @@ def user_login(request):
                     return redirect(requested_url)
                 # else just send them to the home page
                 return redirect('home')
-            # TODO: else show failure to log in page
+            else:
+                messages.error(request, "Username or password is incorrect!")
     else:
         form = LoginForm()
     
@@ -179,7 +181,6 @@ def user_login(request):
 def user_logout(request):
     logout(request)
     return redirect('login')
-
 
 
 # Static handling

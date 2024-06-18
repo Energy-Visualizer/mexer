@@ -1,9 +1,11 @@
 class DatabaseRouter:
 
+    AUTH_APPS = ["auth", "sessions", "contenttypes", "admin"]
+
     def db_for_read(self, model, **hints):
 
         # everything for user auth
-        if model._meta.app_label in ["auth", "sessions", "contenttypes"]:
+        if model._meta.app_label in self.AUTH_APPS:
             return "users"
         return None # None will go to default db
 
@@ -11,7 +13,7 @@ class DatabaseRouter:
     def db_for_write(self, model, **hints):
 
         # everything for user auth
-        if model._meta.app_label in ["auth", "sessions", "contenttypes"]:
+        if model._meta.app_label in self.AUTH_APPS:
             return "users"
         return None # None will go to default db
 
