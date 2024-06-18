@@ -16,7 +16,10 @@
     </div>
   </div>
   <svg viewBox="0 0 500 10" preserveAspectRatio="xMinYMin meet">
-    <path d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z" style="stroke: none; fill:#393E46;"></path>
+    <path
+      d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z"
+      style="stroke: none; fill: #393e46"
+    ></path>
   </svg>
 
   <div class="content">
@@ -35,13 +38,21 @@
           {{ form.username.label_tag }} {{ form.username }}
         </div>
         <div class="form-group">
+          {{ form.email.label_tag }} {{ form.email }}
+        </div>
+        <div class="form-group">
           {{ form.password1.label_tag }} {{ form.password1 }}
         </div>
         <div class="form-group">
           {{ form.password2.label_tag }} {{ form.password2 }}
         </div>
         <button type="submit">Sign up</button>
-        <p>Already have an account? <a href="{% url 'login' %}">Log In</a></p>
+        <p>
+          Already have an account?
+          <a class="link" style="color: #00adb5" href="{% url 'login' %}"
+            >Log In</a
+          >
+        </p>
       </form>
     </div>
   </div>

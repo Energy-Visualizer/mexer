@@ -16,13 +16,19 @@
     </div>
   </div>
   <svg viewBox="0 0 500 10" preserveAspectRatio="xMinYMin meet">
-    <path d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z" style="stroke: none; fill:#393E46;"></path>
+    <path
+      d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z"
+      style="stroke: none; fill: #393e46"
+    ></path>
   </svg>
 
   <div class="content">
     <div class="energy-visulizer">
       <h1>Energy Visualizer</h1>
-      <p>Discover how energy flows and transforms with our powerful visualization tools.</p>
+      <p>
+        Discover how energy flows and transforms with our powerful visualization
+        tools.
+      </p>
     </div>
     <div class="login-box">
       <h1>Log in</h1>
@@ -32,10 +38,16 @@
           {{ form.username.label_tag }} {{ form.username }}
         </div>
         <div class="form-group">
+          {{ form.email.label_tag }} {{ form.email }}
+        </div>
+        <div class="form-group">
           {{ form.password.label_tag }} {{ form.password }}
         </div>
         <button type="submit">Log In</button>
-        <p>Don't have an account? <a href="{% url 'signup' %}">Sign Up</a>
+        <p>
+          Don't have an account?
+          <a style="color: #00adb5" href="{% url 'signup' %}">Sign Up</a>
+        </p>
       </form>
     </div>
   </div>

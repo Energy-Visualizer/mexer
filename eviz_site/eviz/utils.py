@@ -505,7 +505,7 @@ class Translator():
     def energytype_translate(name: str) -> int:
         if Translator.__energytype_translations == None:
             enerytpyes = EnergyType.objects.values_list(
-                "EnergyTypeID", "EnergyType")
+                "EnergyTypeID", "FullName")
             Translator.__energytype_translations = {
                 name: id for id, name in enerytpyes}
 
@@ -515,7 +515,7 @@ class Translator():
     def get_energytypes() -> list[str]:
         if Translator.__energytype_translations == None:
             enerytpyes = EnergyType.objects.values_list(
-                "EnergyTypeID", "EnergyType")
+                "EnergyTypeID", "FullName")
             Translator.__energytype_translations = {
                 name: id for id, name in enerytpyes}
 

@@ -119,26 +119,36 @@ form {
     color: rgb(255, 0, 0);
 }
 
+.button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    margin-top: 20px; /* Adjust the spacing as needed */
+    margin-bottom: 20px;
+}
+
 #get {
     background-color: #00ADB5;
-    border-radius: 30px;
+    border-radius: 10px;
     border: 0;
-    width: 100px;
-    height: 50px;
-    font-size: 25px;
+    height: 40px;
+    width: 150px;
+    font-size: 20px;
     color: #191b1e;
+    margin-right: 10px; 
+    
 }
 
 #download {
     background-color: #00ADB5;
-    border-radius: 30px;
+    border-radius: 10px;
     border: 0;
-    height: 50px;
-    font-size: 25px;
+    width: 150px;
+    height: 40px;
+    font-size: 20px;
     color: #191b1e;
-    position: absolute;
-    bottom: 0;
-    right: 0;
+    margin-left: 10px;
 }
 
 #get:hover {
@@ -270,12 +280,12 @@ form {
 
 .input-column {
     float: left;
-    width: 50%;
+    width: 70%;
     text-align: left;
 }
 
 .info-text {
     float: left;
-    width: 50%;
+    width: 30%;
     text-align: right;
 }
