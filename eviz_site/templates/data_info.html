@@ -13,6 +13,9 @@
             <a class="main" href="{% url 'home' %}">EVIZ</a>
         </div>
         <div class="right">
+            {% if request.user.is_authenticated %}
+                <p style="color: #33ebed;">{{ request.user.username }}</p>
+            {% endif %}
             <a class="links" href="{% url 'visualizer' %}">Visualizer</a>
             <a class="links" href="{% url 'about' %}">About</a>
             {% if request.user.is_authenticated %}

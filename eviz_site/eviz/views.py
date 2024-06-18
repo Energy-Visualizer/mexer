@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect, HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.mail import send_mail # for email verification
 
 # Eviz imports
 from eviz.utils import *
@@ -10,6 +11,9 @@ from eviz.forms import SignupForm, LoginForm
 
 # Visualization imports
 from plotly.offline import plot
+
+# Misc imports
+from random import randint
 
 @time_view
 def index(request):
@@ -137,18 +141,51 @@ def user_signup(request):
     if request.method == 'POST':
         form = SignupForm(request.POST)
         if form.is_valid():
-            form.save()
+            new_user_email = form.cleaned_data["email"]
+            print(new_user_email)
+            new_user = form.save()
+            # immediately deactivate account until their email is authenticated
+            new_user.is_active = False
+            new_user.save()
+
+            # handle the email construction and sending
+            code = new_email_code(new_user)
+
+            send_mail(
+                subject="New EVIZ Account",
+                # TODO: change this to actual eviz site
+                message=f"localhost:8000/verify?code={str(code)}",
+                from_email="eviz@eviz.com",
+                recipient_list=[new_user_email]
+            )
             return redirect('login')
-        print(form.errors.values())
     else:
         form = SignupForm()
     return render(request, 'signup.html', {'form': form})
+
+email_auth_codes: dict[int, User] = dict[int, User]()
+def new_email_code(user: User) -> int:
+    code = randint(1000000000, 9999999999)
+    email_auth_codes[code] = user
+    return code
+
+def verify_email(request):
+    if request.method == "GET":
+        code = int(request.GET.get("code"))
+        new_user = email_auth_codes.get(code)
+        # TODO: getting user object is good, code doesn't execute the following
+        if new_user != None:
+            new_user.is_active = True
+            del email_auth_codes[code]
+
+    return redirect("login")
+
 
 def user_login(request):
     # for if a user is stopped and asked to log in first
     if request.method == 'GET':
         # get where they were trying to go
-        requested_url = request.GET.get("next", None)
+        requested_url = request.GET.get("next")
         if requested_url:
             request.session['requested_url'] = requested_url
         else:
@@ -160,16 +197,15 @@ def user_login(request):
         form = LoginForm(request.POST)
         if form.is_valid():
             username = form.cleaned_data['username']
-            email = form.cleaned_data['email']
             password = form.cleaned_data['password']
-            user = authenticate(request, username=username, email=email, password=password)
+            user = authenticate(request, username=username, password=password)
 
             # if user was successfully authenticated
             if user:
-                login(request, user)
+                login(request, user) # log the user in so they don't have to repeat authentication every time
                 requested_url = request.session.get('requested_url')
                 if requested_url: # if user was trying to go somewhere else originally
-                    request.session['requested_url'] = None
+                    del request.session['requested_url']
                     return redirect(requested_url)
                 # else just send them to the home page
                 return redirect('home')

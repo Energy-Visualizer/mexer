@@ -143,3 +143,9 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CSRF_TRUSTED_ORIGINS = ['https://eviz.cs.calvin.edu']
+
+
+# TODO: temp!
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_HOST = "ursa.calvin.edu"
+# EMAIL_PORT = 587

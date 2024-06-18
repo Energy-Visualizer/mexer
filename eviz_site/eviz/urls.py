@@ -19,5 +19,6 @@ urlpatterns = [
 
     # service hooks
     path("plot", views.get_plot),
-    path("data", views.get_data)
+    path("data", views.get_data),
+    path("verify", views.verify_email)
 ]
