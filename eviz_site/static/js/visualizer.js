@@ -49,12 +49,12 @@ const initialize = () => {
 
 const inputOn = (element) => {
     element.disabled = false;
-    element.parentElement.style.display = "block";
+    element.closest('.query-choice').style.display = "block"; // the closest p ancestor has the associated text and input itself
 }
 
 const inputOff = (element) => {
     element.disabled = true;
-    element.parentElement.style.display = "none";
+    element.closest('.query-choice').style.display = "none"; // the closest p ancestor has the associated text and input itself
 }
 
 const handleXYPlot = () => {
@@ -95,24 +95,6 @@ const showDropdown = (name) => {
         // case ("method"):
         //     desiredDropdown = methodDropdown;
         //     break;
-        // case ("energy_type"):
-        //     desiredDropdown = energyTypeDropdown;
-        //     break;
-        // case ("last_stage"):
-        //     desiredDropdown = lastStageDropdown;
-        //     break;
-        // case ("ieamw"):
-        //     desiredDropdown = ieamwDropdown;
-        //     break;
-        // case ("includes_neu"):
-        //     desiredDropdown = includesNEUDropdown;
-        //     break;
-        // case ("year"):
-        //     desiredDropdown = yearDropdown;
-        //     break;
-        // case ("matname"):
-        //     desiredDropdown = matnameDropdown;
-        //     break;
     }
 
     // set up the new dropdown
@@ -128,7 +110,12 @@ const showDropdown = (name) => {
     delButton.textContent = "\u2717";
     delButton.classList.add("remove-button");
 
+    // put the dropdown and button together so they act as one block
+    const wholeDropdown = document.createElement("div");
+    wholeDropdown.classList.add("space-info-text")
+    wholeDropdown.appendChild(newDropdown);
+    wholeDropdown.appendChild(delButton);
+
     // add the dropdown and button to the dom
-    desiredDropdown.after(newDropdown);
-    newDropdown.after(delButton);
+    desiredDropdown.after(wholeDropdown);
 };

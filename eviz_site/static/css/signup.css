@@ -1,7 +1,9 @@
 @import url('https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css');
 
-body {
-    overflow: hidden;
+body,
+html {
+    overflow-x: hidden;
+    height: 100%;
 }
 
 .content {
@@ -19,7 +21,7 @@ body {
     margin: 50px auto;
     height: auto;
     align-items: center;
-    font-size: 30;
+    font-size: 30px;
 }
 
 .login-box {

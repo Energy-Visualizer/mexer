@@ -1,6 +1,6 @@
 from django import forms 
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
+from .models import EvizUser
 
 class SignupForm(UserCreationForm):
     username = forms.CharField(
@@ -11,6 +11,14 @@ class SignupForm(UserCreationForm):
     email = forms.CharField(
         required=True,
         widget=forms.EmailInput(attrs={'placeholder': 'joe@gmail.com'})
+    )
+    institution = forms.CharField(
+        required=True,
+        widget=forms.TextInput(attrs={'placeholder': "e.g. Calvin University"})
+    )
+    country = forms.CharField(
+        required=True,
+        widget=forms.TextInput(attrs={'placeholder': "e.g. United States"})
     )
     password1 = forms.CharField(
         label="Password",
@@ -24,8 +32,8 @@ class SignupForm(UserCreationForm):
     )
 
     class Meta:
-        model = User 
-        fields = ['username', 'email', 'password1', 'password2']
+        model = EvizUser 
+        fields = ['username', 'email', 'password1', 'password2', 'institution', 'country']
 
 class LoginForm(forms.Form):
     username = forms.CharField(

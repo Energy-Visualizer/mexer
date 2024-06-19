@@ -1,69 +1,58 @@
-<head>
-  <title>Signup</title>
-  <link rel="stylesheet" href="../static/css/toolbar.css" type="text/css" />
-  <link rel="stylesheet" href="../static/css/signup.css" type="text/css" />
-</head>
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Signup</title>
+    <link rel="stylesheet" href="../static/css/toolbar.css" type="text/css" />
+    <link rel="stylesheet" href="../static/css/signup.css" type="text/css" />
+  </head>
 
-<body class="gradient">
-  <div class="topbar">
-    <div class="left">
-      <a class="main" href="{% url 'home' %}">EVIZ</a>
+  <body class="gradient">
+    <div class="topbar">
+      <div class="left">
+        <a class="main" href="{% url 'home' %}">EVIZ</a>
+      </div>
+      <div class="right">
+        <a class="links" href="{% url 'visualizer' %}">Visualizer</a>
+        <a class="links" href="{% url 'about' %}">About</a>
+        <!-- <a class="links" href="{% url 'login' %}">Sign In</a> -->
+      </div>
     </div>
-    <div class="right">
-      <a class="links" href="{% url 'visualizer' %}">Visualizer</a>
-      <a class="links" href="{% url 'about' %}">About</a>
-      <!-- <a class="links" href="{% url 'login' %}">Sign In</a> -->
-    </div>
-  </div>
-  <svg viewBox="0 0 500 10" preserveAspectRatio="xMinYMin meet">
-    <path
-      d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z"
-      style="stroke: none; fill: #393e46"
-    ></path>
-  </svg>
+    <svg viewBox="0 0 500 10" preserveAspectRatio="xMinYMin meet">
+      <path d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z" style="stroke: none; fill: #393e46"></path>
+    </svg>
 
-  <div class="content">
-    <div class="energy-visulizer">
-      <h1>Energy Visualizer</h1>
-      <p>
-        Discover how energy flows and transforms with our powerful visualization
-        tools.
-      </p>
+    <div class="content">
+      <div class="energy-visulizer">
+        <h1>Energy Visualizer</h1>
+        <p>Discover how energy flows and transforms with our powerful visualization tools.</p>
+      </div>
+      <div class="login-box">
+        <h1>Sign up</h1>
+        <form method="POST">
+          {% csrf_token %}
+          <div class="form-group">{{ form.username.label_tag }} {{ form.username }}</div>
+          <div class="form-group">{{ form.email.label_tag }} {{ form.email }}</div>
+          <div class="form-group">{{ form.institution.label_tag }} {{ form.institution }}</div>
+          <div class="form-group">{{ form.country.label_tag }} {{ form.country }}</div>
+          <div class="form-group">{{ form.password1.label_tag }} {{ form.password1 }}</div>
+          <div class="form-group">{{ form.password2.label_tag }} {{ form.password2 }}</div>
+          {% for error_message in form.errors.values %}
+            {{ error_message }}
+          {% endfor %}
+          <button type="submit">Sign up</button>
+          <p>
+            Already have an account?
+            <a class="link" style="color: #00adb5" href="{% url 'login' %}">Log In</a>
+          </p>
+        </form>
+      </div>
     </div>
-    <div class="login-box">
-      <h1>Sign up</h1>
-      <form method="POST">
-        {% csrf_token %}
-        <div class="form-group">
-          {{ form.username.label_tag }} {{ form.username }}
-        </div>
-        <div class="form-group">
-          {{ form.email.label_tag }} {{ form.email }}
-        </div>
-        <div class="form-group">
-          {{ form.password1.label_tag }} {{ form.password1 }}
-        </div>
-        <div class="form-group">
-          {{ form.password2.label_tag }} {{ form.password2 }}
-        </div>
-        {% for error_message in form.errors.values %}
-          {{ error_message }}
-        {% endfor %}
-        <button type="submit">Sign up</button>
-        <p>
-          Already have an account?
-          <a class="link" style="color: #00adb5" href="{% url 'login' %}"
-            >Log In</a
-          >
-        </p>
-      </form>
-    </div>
-  </div>
 
-  <div id="para-bg-5" class="para-bg"></div>
-  <div id="para-bg-4" class="para-bg"></div>
-  <div id="para-bg-3" class="para-bg"></div>
-  <div id="para-bg-2" class="para-bg"></div>
-  <div id="para-bg-1" class="para-bg"></div>
-  <div id="para-bg-0" class="para-bg"></div>
-</body>
+    <div id="para-bg-5" class="para-bg"></div>
+    <div id="para-bg-4" class="para-bg"></div>
+    <div id="para-bg-3" class="para-bg"></div>
+    <div id="para-bg-2" class="para-bg"></div>
+    <div id="para-bg-1" class="para-bg"></div>
+    <div id="para-bg-0" class="para-bg"></div>
+  </body>
+</html>

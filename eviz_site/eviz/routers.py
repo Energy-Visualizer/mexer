@@ -5,7 +5,7 @@ class DatabaseRouter:
     def db_for_read(self, model, **hints):
 
         # everything for user auth
-        if model._meta.app_label in self.AUTH_APPS:
+        if model._meta.app_label in self.AUTH_APPS or model.__name__ == "EvizUser":
             return "users"
         return None # None will go to default db
 
@@ -13,7 +13,7 @@ class DatabaseRouter:
     def db_for_write(self, model, **hints):
 
         # everything for user auth
-        if model._meta.app_label in self.AUTH_APPS:
+        if model._meta.app_label in self.AUTH_APPS or model.__name__ == "EvizUser":
             return "users"
         return None # None will go to default db
 

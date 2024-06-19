@@ -54,9 +54,9 @@
                 Visualization
             </div>
             <div class="input-column">
-                <input name="plot_type" type="radio" value="sankey" id="plot-type-input" checked>Sankey<br>
-                <input name="plot_type" type="radio" value="xy_plot" id="plot-type-input">X-Y Plot<br>
-                <input name="plot_type" type="radio" value="matrices" id="plot-type-input">PSUT matrices
+                <input name="plot_type" type="radio" value="sankey" class="space-input" id="plot-type-input" checked>Sankey<br>
+                <input name="plot_type" type="radio" value="xy_plot" class="space-input" id="plot-type-input">X-Y Plot<br>
+                <input name="plot_type" type="radio" value="matrices" class="space-input" id="plot-type-input">PSUT matrices
             </div>
             &#x2800
         </div>
@@ -68,11 +68,11 @@
             </div>
             <div class="input-column">
                 {% for dataset in datasets %}
-                {%if dataset == 'CLPFUv2.0a2'%}
-                <input type='radio' value="{{ dataset }}" name="dataset" checked>{{dataset}}<br>
-                {%else%}
-                <input type="radio" value="{{ dataset }}" name="dataset" required>{{ dataset }}<br>
-                {% endif %}
+                    {%if dataset == 'CLPFUv2.0a2'%}
+                        <input type='radio' value="{{ dataset }}" name="dataset" class="space-input" checked>{{dataset}}<br>
+                    {%else%}
+                        <input type="radio" value="{{ dataset }}" name="dataset" class="space-input" required>{{ dataset }}<br>
+                    {% endif %}
                 {% endfor %}
             </div>
             &#x2800
@@ -81,17 +81,17 @@
             <div class="info-text">
                 Country(ies)
             </div>
-            <div calss="input-column">
-                <select name="country" id="country-dropdown" class="styled-dropdown" required>
-                    {% for country in countries %}
+            <div class="input-column">
+                <select name="country" id="country-dropdown" class="styled-dropdown space-input" required>
+                {% for country in countries %}
                     {% if country == 'Ghana' %}
-                    <option value="{{ country }}" selected>{{ country }}</option>
-                {% else %}
-                    <option value="{{ country }}">{{ country }}</option>
-                {% endif %}
-                    {% endfor %}
+                        <option value="{{ country }}" selected>{{ country }}</option>
+                    {% else %}
+                        <option value="{{ country }}">{{ country }}</option>
+                    {% endif %}
+                {% endfor %}
                 </select>
-                <button onclick="showDropdown('country')" type="button">+</button>
+                <button class="add-dropdown-button" onclick="showDropdown('country')" type="button">Add Country</button>
             </div>
             &#x2800
         </div>
@@ -100,7 +100,7 @@
                 Method
             </div>
             <div class="input-column">
-                <input type="checkbox" value="PCM" name="method">PCM<br>
+                <input type="checkbox" value="PCM" class="space-input" name="method">PCM<br>
             </div>
             &#x2800
         </div>
@@ -110,7 +110,7 @@
             </div>
             <div class="input-column">
                 {% for energy_type in energy_types %}
-                <input type="checkbox" value="{{ energy_type }}" name="energy_type">{{ energy_type }}<br>
+                <input type="checkbox" value="{{ energy_type }}" name="energy_type" class="space-input">{{ energy_type }}<br>
                 {% endfor %}
             </div>
             &#x2800
@@ -121,8 +121,8 @@
             </div>
             <div class="input-column">
                 <div name="last_stage">
-                    <input type="radio" value="Final" name="last_stage" checked>Final<br>
-                    <input type="radio" value="Useful" name="last_stage">Useful<br>
+                    <input type="radio" value="Final" name="last_stage" checked class="space-input">Final<br>
+                    <input type="radio" value="Useful" name="last_stage" class="space-input">Useful<br>
                 </div>
             </div>
             &#x2800
@@ -133,11 +133,11 @@
             </div>
             <div class="input-column">
                 {% for ieamw in ieamws %}
-                {%if ieamw == 'IEA'%}
-                <input type="checkbox" value="{{ ieamw }}" name="ieamw" checked>{{ ieamw }}<br>
-                {%else%}
-                <input type="checkbox" value="{{ ieamw }}" name="ieamw">{{ ieamw }}<br>
-                {%endif%}
+                    {%if ieamw == 'IEA'%}
+                        <input type="checkbox" value="{{ ieamw }}" name="ieamw" checked class="space-input">{{ ieamw }}<br>
+                    {%else%}
+                        <input type="checkbox" value="{{ ieamw }}" name="ieamw" class="space-input">{{ ieamw }}<br>
+                    {%endif%}
                 {% endfor %}
             </div>
             &#x2800
@@ -147,7 +147,7 @@
                 Include NEU
             </div>
             <div class="input-column">
-                <input type="checkbox" value="true" name="including_neu">
+                <input type="checkbox" value="true" name="including_neu" class="space-input">
             </div>
             &#x2800
         </div>
@@ -155,61 +155,87 @@
         <!-- metadata specifics inputs -->
 
         <!-- efficiency dropdown -->
-        <p>
-            Efficiency
-            <select name="efficiency" class="styled-dropdown" id="efficiency-dropdown">
-                <!-- TODO: don't hardcode these -->
-                <option value="EXp">EXp</option>
-                <option value="EXf">EXf</option>
-                <option value="EXu">EXu</option>
-                <option value="etapf">etapf</option>
-                <option value="etafu">etafu</option>
-                <option value="etapu">etapu</option>
-            </select>
-        </p>
+        <div class="query-choice">
+            <div class="info-text">
+                Efficiency
+            </div>
+            <div class="input-column">
+                <select name="efficiency" class="styled-dropdown space-input" id="efficiency-dropdown">
+                    <!-- TODO: don't hardcode these -->
+                    <option value="EXp">EXp</option>
+                    <option value="EXf">EXf</option>
+                    <option value="EXu">EXu</option>
+                    <option value="etapf">etapf</option>
+                    <option value="etafu">etafu</option>
+                    <option value="etapu">etapu</option>
+                </select>
+            </div>
+            &#x2800
+        </div>
         <!-- efficiency dropdown end -->
 
         <!-- single year input -->
-        <p>
-            Year
-            <input name="year" class="styled-dropdown" id="single-year-input" value="1971">
-        </p>
+        <div class="query-choice">
+            <div class="info-text">
+                Year
+            </div>
+            <div class="input-column">
+                <input name="year" class="styled-dropdown space-input" id="single-year-input" value="1971">
+            </div>
+            &#x2800
+        </div>
         <!-- single year input -->
+
         <!-- year range input -->
-        <p>
-            From year
-            <input name="year" class="styled-dropdown" id="from-year-input" value="1971">
-            <br>
-            to year
-            <input name="to_year" class="styled-dropdown" id="to-year-input"value="2020">
-        </p>
+        <div class="query-choice">
+            <div class="info-text">
+                From year
+            </div>
+            <div class="input-column">
+                <input name="year" class="styled-dropdown space-input" id="from-year-input" value="1971">
+            </div>
+            <div class="info-text">
+                to year
+            </div>
+            <div class="input-column">
+                <input name="to_year" class="styled-dropdown space-input" id="to-year-input"value="2020">
+            </div>
+            &#x2800
+        </div>
         <!-- year range input end-->
 
         <!-- matrix dropdown -->
-        <p>
-            Matrix
-            <select name="matname" id="matname-dropdown" class="styled-dropdown">
-                <option value selected hidden>Please select something</option>
-                <option value="RUVY">RUVY</option>
-                {% for matname in matnames %}
-                <option value="{{ matname }}">{{ matname }}</option>
-                {% endfor %}
-            </select>
-        </p>
+        <div class="query-choice">
+            <div class="info-text">
+                Matrix
+            </div>
+            <div class="input-column">
+                <select name="matname" id="matname-dropdown" class="styled-dropdown space-input" class="space-input" >
+                    <option value="RUVY" selected >RUVY</option>
+                    {% for matname in matnames %}
+                    <option value="{{ matname }}">{{ matname }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            &#x2800
+        </div>
         <!-- matrix dropdown end -->
-        <div class="button-container">
+        
         <!-- metadata specifics inputs end -->
-        <button hx-post="/plot" hx-swap="innerHTML" hx-target="#plot-section" hx-indicator="#plot-spinner" type="button"
-            id="get" onclick='document.getElementById("plot-section").scrollIntoView()'>
-            <!-- onclick for bringing user to plot area -->
-            Make Plot
-        </button>
-        <button type="submit" id="download"
-            onclick="return confirm('By accepting you confirm that you understand IEA data is proprietary and cannot be shared with those not authorized to see it.')">
-            <!-- onclick for bringing user to plot area -->
-            Download Data
-        </button>
-    </div>
+
+
+        <div class="button-container">
+            <button hx-post="/plot" hx-swap="innerHTML" hx-target="#plot-section" hx-indicator="#plot-spinner" type="button"
+                id="get" onclick='document.getElementById("plot-section").scrollIntoView()'>
+                <!-- onclick for bringing user to plot area -->
+                Make Plot
+            </button>
+            <button type="submit" id="download"
+                onclick="return confirm('By accepting you confirm that you understand IEA data is proprietary and cannot be shared with those not authorized to see it.')">
+                <!-- onclick for bringing user to plot area -->
+                Download Data
+            </button>
+        </div>
     </form>
     <!-- main form end -->
 
