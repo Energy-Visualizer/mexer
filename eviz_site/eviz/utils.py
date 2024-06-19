@@ -77,10 +77,7 @@ def translate_query(
     if v := query.get("last_stage"):
         translated_query["LastStage"] = Translator.laststage_translate(v)
     if v := query.get("ieamw"):
-        if type(v) == list:
             # both were selected, use the both option in the table
-            translated_query["IEAMW"] = Translator.ieamw_translate("Both")
-        else:
             translated_query["IEAMW"] = Translator.ieamw_translate(v)
     # includes neu either is in the query or not, it's value does need to be more than empty string, though
     translated_query["IncludesNEU"] = Translator.includesNEU_translate(

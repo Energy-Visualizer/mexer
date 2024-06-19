@@ -35,8 +35,11 @@
         <path d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z" style="stroke: none; fill:#393E46;"></path>
     </svg>
     <!-- toolbar end -->
+    <div id="history-section">
 
-
+    </div>
+    
+    
 
     <!-- main form -->
     <form method="post" action="/data" id="query-form">
@@ -65,11 +68,23 @@
             </div>
             <div class="input-column">
                 {% for dataset in datasets %}
+                {%if iea%}
                 {%if dataset == 'CLPFUv2.0a2'%}
                 <input type='radio' value="{{ dataset }}" name="dataset" checked>{{dataset}}<br>
                 {%else%}
                 <input type="radio" value="{{ dataset }}" name="dataset" required>{{ dataset }}<br>
                 {% endif %}
+                {%else%}
+                
+                {%if dataset != "IEAEWEB2022"%}
+                {%if dataset == 'CLPFUv2.0a2'%}
+                <input type='radio' value="{{ dataset }}" name="dataset" checked>{{dataset}}<br>
+                {%else%}
+                    <input type="radio" value="{{ dataset }}" name="dataset" required>{{ dataset }}<br>
+                    {% endif %}
+                {%endif%}
+                
+                    {%endif%}
                 {% endfor %}
             </div>
             &#x2800
@@ -97,7 +112,7 @@
                 Method
             </div>
             <div class="input-column">
-                <input type="checkbox" value="PCM" name="method">PCM<br>
+                <input type="checkbox" value="PCM" name="method" checked>PCM<br>
             </div>
             &#x2800
         </div>
@@ -107,7 +122,11 @@
             </div>
             <div class="input-column">
                 {% for energy_type in energy_types %}
+                {% if energy_type == 'Energy' %}
+                    <input type="checkbox" value="{{ energy_type }}" name="energy_type" checked>{{ energy_type }}<br>
+                {% else %}
                 <input type="checkbox" value="{{ energy_type }}" name="energy_type">{{ energy_type }}<br>
+                {%endif%}
                 {% endfor %}
             </div>
             &#x2800
@@ -126,14 +145,14 @@
         </div>
         <div class="query-choice">
             <div class="info-text">
-                With IEAMW
+                IEA and/or MW
             </div>
             <div class="input-column">
                 {% for ieamw in ieamws %}
                 {%if ieamw == 'IEA'%}
-                <input type="checkbox" value="{{ ieamw }}" name="ieamw" checked>{{ ieamw }}<br>
+                <input type="radio" value="{{ ieamw }}" name="ieamw" checked>{{ ieamw }}<br>
                 {%else%}
-                <input type="checkbox" value="{{ ieamw }}" name="ieamw">{{ ieamw }}<br>
+                <input type="radio" value="{{ ieamw }}" name="ieamw">{{ ieamw }}<br>
                 {%endif%}
                 {% endfor %}
             </div>
@@ -144,7 +163,7 @@
                 Include NEU
             </div>
             <div class="input-column">
-                <input type="checkbox" value="true" name="including_neu">
+                <input type="checkbox" value="true" name="including_neu" checked>
             </div>
             &#x2800
         </div>
@@ -196,7 +215,7 @@
         <!-- matrix dropdown end -->
         <div class="button-container">
         <!-- metadata specifics inputs end -->
-        <button hx-post="/plot" hx-swap="innerHTML" hx-target="#plot-section" hx-indicator="#plot-spinner" type="button"
+        <button hx-post="/plot" hx-swap="innerHTML" hx-target="#plot-section" hx-indicator="#plot-spinner" hx-trigger="refreshHistory" type="button"
             id="get" onclick='document.getElementById("plot-section").scrollIntoView()'>
             <!-- onclick for bringing user to plot area -->
             Make Plot
@@ -224,3 +243,19 @@
 </body>
 
 </html>
+
+<script>
+    function refreshHistory() {
+        htmx.ajax('GET', '{% url "render_history" %}', '#history-section');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        refreshHistory();
+    });
+
+    htmx.on('htmx:afterSwap', function(evt) {
+        if (evt.target.id === 'plot-section') {
+            refreshHistory();
+        }
+    });
+</script>

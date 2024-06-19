@@ -93,6 +93,15 @@ class matname(models.Model):
         db_table = "matname"
         managed = False
 
+class GrossNet(models.Model):
+    GrossNetID = models.PositiveSmallIntegerField(primary_key=True)
+    GrossNet = models.TextField()
+    FullName = models.TextField()
+    Description = models.TextField()
+    class Meta:
+        db_table = "GrossNet"
+        managed = False
+
         
 class Index(models.Model):
     IndexID = models.PositiveSmallIntegerField(primary_key=True)
@@ -154,3 +163,15 @@ class AggEtaPFU(models.Model):
     etapu = models.FloatField()
     
 
+# from django.contrib.auth.models import User
+
+# class UserQuery(models.Model):
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#     query_data = models.JSONField()
+#     plot_type = models.CharField(max_length=100)
+#     created_at = models.DateTimeField(auto_now_add=True)
+
+# class UserPlot(models.Model):
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#     query = models.ForeignKey(UserQuery, on_delete=models.CASCADE)
+#     plot_data = models.BinaryField()
