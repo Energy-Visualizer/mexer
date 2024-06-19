@@ -1,4 +1,3 @@
-# for low-level psycopg2 connection. to access other db connections, import connections
 from scipy.sparse import coo_matrix
 from eviz.models import AggEtaPFU
 from json import loads as json_from_string
@@ -7,15 +6,12 @@ import plotly.express as px  # for making the scatter plot
 import pandas.io.sql as pd_sql  # for getting data into a pandas dataframe
 from eviz.models import PSUT, Index, Dataset, Country, Method, EnergyType, LastStage, IEAMW, matname, AggLevel
 import sys
-# for silencing stdout warnings (pandas using psycopg2 connection right now)
 from os import devnull
 from django.db import connection
 import plotly.graph_objects as pgo
 
 
 from time import time
-
-
 def time_view(v):
     '''Wrapper to time how long it takes to deliver a view
 
@@ -641,3 +637,10 @@ class Silent():
         self.dn.close()
         sys.stdout = self.real_stdout
         sys.stderr = self.real_stderr
+
+from uuid import uuid4
+email_auth_codes: dict = dict()
+def new_email_code(form) -> str:
+    code = str(uuid4())
+    email_auth_codes[code] = form
+    return code

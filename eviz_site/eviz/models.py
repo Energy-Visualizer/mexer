@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.contrib.auth.models import User as DjangoUser
 
 class Dataset(models.Model):
     DatasetID = models.PositiveSmallIntegerField(primary_key=True)
@@ -153,4 +153,6 @@ class AggEtaPFU(models.Model):
     etafu = models.FloatField()
     etapu = models.FloatField()
     
-
+class EvizUser(DjangoUser):
+    institution = models.CharField(max_length=255)
+    country = models.CharField(max_length=255)

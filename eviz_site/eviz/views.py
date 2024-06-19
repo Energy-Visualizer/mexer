@@ -12,9 +12,6 @@ from eviz.forms import SignupForm, LoginForm
 # Visualization imports
 from plotly.offline import plot
 
-# Misc imports
-from random import randint
-
 @time_view
 def index(request):
     return render(request, "index.html")
@@ -142,15 +139,9 @@ def user_signup(request):
         form = SignupForm(request.POST)
         if form.is_valid():
             new_user_email = form.cleaned_data["email"]
-            print(new_user_email)
-            new_user = form.save()
-            # immediately deactivate account until their email is authenticated
-            new_user.is_active = False
-            new_user.save()
 
             # handle the email construction and sending
-            code = new_email_code(new_user)
-
+            code = new_email_code(form)
             send_mail(
                 subject="New EVIZ Account",
                 # TODO: change this to actual eviz site
@@ -158,28 +149,23 @@ def user_signup(request):
                 from_email="eviz@eviz.com",
                 recipient_list=[new_user_email]
             )
+
+            # finally send the user back to login
             return redirect('login')
     else:
         form = SignupForm()
     return render(request, 'signup.html', {'form': form})
 
-email_auth_codes: dict[int, User] = dict[int, User]()
-def new_email_code(user: User) -> int:
-    code = randint(1000000000, 9999999999)
-    email_auth_codes[code] = user
-    return code
-
 def verify_email(request):
     if request.method == "GET":
-        code = int(request.GET.get("code"))
-        new_user = email_auth_codes.get(code)
-        # TODO: getting user object is good, code doesn't execute the following
-        if new_user != None:
-            new_user.is_active = True
+        code = request.GET.get("code")
+        new_user = email_auth_codes.get(code) # try to get associated user from code
+        if new_user:
+            # if there is an associated user, set up their account
+            new_user.save()
             del email_auth_codes[code]
 
     return redirect("login")
-
 
 def user_login(request):
     # for if a user is stopped and asked to log in first
@@ -219,7 +205,7 @@ def user_login(request):
 
 def user_logout(request):
     logout(request)
-    return redirect('login')
+    return redirect('home')
 
 
 # Static handling
