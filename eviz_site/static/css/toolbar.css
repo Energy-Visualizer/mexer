@@ -12,6 +12,7 @@ body {
     align-items: center;
     box-sizing: border-box;
     display: flex;
+    height: 50px;
 }
 
 .topbar .left {
@@ -24,7 +25,8 @@ body {
     align-items: center;
 }
 
-.topbar a {
+.topbar a,
+.topbar p {
     text-align: center;
     padding: 15px;
     width: 75px;

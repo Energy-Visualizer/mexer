@@ -6,6 +6,7 @@ body {
     background-color: #131d2c;
     position: relative;
     overflow: hidden;
+    /* height: calc(100vh - 50px); */ /* to make heading box take up the whole screen */
 }
 
 h1 {
@@ -192,4 +193,14 @@ article>h3 {
     100% {
         background-position: 100vw bottom;
     }
+}
+
+a.related-paper {
+    margin-bottom: 25px;
+    display: block;
+}
+
+a.related-paper > p {
+    margin: 0;
+    text-align: left;
 }
