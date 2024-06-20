@@ -17,8 +17,8 @@ urlpatterns = [
     path('data-info/', views.data_info, name="data-info"),
     re_path(r"static/css/([^(\.css)]*\.css)", views.handle_css_static),
 
-    # service hooks
-    path("plot", views.get_plot),
-    path("data", views.get_data),
-    path("verify", views.verify_email)
+    # api services
+    path("plot/", views.get_plot),
+    path("data/", views.get_data),
+    path("verify/", views.verify_email)
 ]
