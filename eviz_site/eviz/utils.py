@@ -4,7 +4,7 @@ from json import loads as json_from_string
 from django.contrib.auth.models import User
 import plotly.express as px  # for making the scatter plot
 import pandas.io.sql as pd_sql  # for getting data into a pandas dataframe
-from eviz.models import PSUT, Index, Dataset, Country, Method, EnergyType, LastStage, IEAMW, matname, AggLevel
+from eviz.models import PSUT, Index, Dataset, Country, Method, EnergyType, LastStage, IEAMW, matname, AggLevel, EmailAuthCodes
 import sys
 from os import devnull
 from django.db import connection
@@ -639,8 +639,9 @@ class Silent():
         sys.stderr = self.real_stderr
 
 from uuid import uuid4
-email_auth_codes: dict = dict()
+from pickle import dumps as pickle_dumps
 def new_email_code(form) -> str:
     code = str(uuid4())
-    email_auth_codes[code] = form
+    account_info = pickle_dumps(form)
+    EmailAuthCodes(code=code, account_info=account_info).save() # save account setup info to database
     return code

@@ -156,3 +156,7 @@ class AggEtaPFU(models.Model):
 class EvizUser(DjangoUser):
     institution = models.CharField(max_length=255)
     country = models.CharField(max_length=255)
+
+class EmailAuthCodes(models.Model):
+    code = models.TextField(max_length=255)
+    account_info = models.BinaryField()

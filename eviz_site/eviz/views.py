@@ -144,8 +144,7 @@ def user_signup(request):
             code = new_email_code(form)
             send_mail(
                 subject="New EVIZ Account",
-                # TODO: change this to actual eviz site
-                message=f"localhost:8000/verify?code={str(code)}",
+                message=f"eviz.cs.calvin.edu/verify?code={str(code)}",
                 from_email="eviz@eviz.com",
                 recipient_list=[new_user_email]
             )
@@ -156,14 +155,16 @@ def user_signup(request):
         form = SignupForm()
     return render(request, 'signup.html', {'form': form})
 
+from pickle import loads as pickle_loads
 def verify_email(request):
     if request.method == "GET":
         code = request.GET.get("code")
-        new_user = email_auth_codes.get(code) # try to get associated user from code
+        new_user = EmailAuthCodes.objects.get(code = code) # try to get associated user from code
         if new_user:
             # if there is an associated user, set up their account
-            new_user.save()
-            del email_auth_codes[code]
+            # load the serialized account info from the database and save it
+            pickle_loads(new_user.account_info).save()
+            new_user.delete() # get rid of row in database
 
     return redirect("login")
 
