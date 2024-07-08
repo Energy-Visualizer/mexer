@@ -149,8 +149,8 @@ def user_signup(request):
                 recipient_list=[new_user_email]
             )
 
-            # finally send the user back to login
-            return redirect('login')
+            # send the user to a page explaining what to do next (check email)
+            return render(request, 'verify_explain.html')
     else:
         form = SignupForm()
     return render(request, 'signup.html', {'form': form})
@@ -165,6 +165,9 @@ def verify_email(request):
             # load the serialized account info from the database and save it
             pickle_loads(new_user.account_info).save()
             new_user.delete() # get rid of row in database
+            messages.add_message(request, messages.INFO, "Verification was successful!")
+        else:
+            messages.add_message(request, messages.INFO, "Bad verification code!")
 
     return redirect("login")
 

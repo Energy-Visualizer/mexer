@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Signup</title>
+    <link rel="stylesheet" href="../static/css/toolbar.css" type="text/css" />
+    <link rel="stylesheet" href="../static/css/signup.css" type="text/css" />
+  </head>
+  <body class="gradient">
+    <div class="topbar">
+      <div class="left">
+        <a class="main" href="{% url 'home' %}">EVIZ</a>
+      </div>
+      <div class="right">
+        <a class="links" href="{% url 'visualizer' %}">Visualizer</a>
+        <a class="links" href="{% url 'about' %}">About</a>
+        <!-- <a class="links" href="{% url 'login' %}">Sign In</a> -->
+      </div>
+    </div>
+    <svg viewBox="0 0 500 10" preserveAspectRatio="xMinYMin meet">
+      <path d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z" style="stroke: none; fill: #393e46"></path>
+    </svg>
+
+    <div style="text-align: center;">
+        <div class="energy-visulizer" style="box-shadow: inset rgba(100,100,100,0.5) 0px 0px 50px; border-radius: 10%;">
+          <h1>Next Steps</h1>
+          <p>Please check the provided email to get instructions for activating your new EVIZ account.</p>
+          <p>Once activated, log in and make great energy visualizations!</p>
+        </div>
+    </div>
+
+    <div id="para-bg-5" class="para-bg"></div>
+    <div id="para-bg-4" class="para-bg"></div>
+    <div id="para-bg-3" class="para-bg"></div>
+    <div id="para-bg-2" class="para-bg"></div>
+    <div id="para-bg-1" class="para-bg"></div>
+    <div id="para-bg-0" class="para-bg"></div>
+  </body>
+</html>

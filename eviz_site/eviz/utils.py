@@ -192,8 +192,6 @@ from pathlib import Path
 with open(f"{Path(__file__).resolve().parent.parent}/internal_resources/sankey_color_scheme.json") as f:
     colors_data = f.read()
 SANKEY_COLORS: dict[str, str] = json_from_string(colors_data)
-
-
 def get_sankey(query: dict) -> pgo.Figure:
     '''Gets a sankey diagram for a query
 
@@ -236,6 +234,9 @@ def get_sankey(query: dict) -> pgo.Figure:
     node_colors = list()
     flow_colors = list()
 
+    # TODO: the columns of R V, rows of U Y, should be invisible nodes
+    # also colors are based on the prefix of the node name
+    # e.g. "Hydro [from ...]" should be considered "Hydro" in the color scheme
     for row, col, magnitude in data:
         translated_row = Translator.index_reverse_translate(row)
         translated_col = Translator.index_reverse_translate(col)

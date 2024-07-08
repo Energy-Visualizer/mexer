@@ -144,7 +144,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CSRF_TRUSTED_ORIGINS = ['https://eviz.cs.calvin.edu']
 
 
-# TODO: temp!
+# TODO: temp! the following line prints emails only to the console
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_HOST = "ursa.calvin.edu"
 EMAIL_PORT = 587
