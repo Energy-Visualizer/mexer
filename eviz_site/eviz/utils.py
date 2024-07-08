@@ -4,7 +4,7 @@ from json import loads as json_from_string
 from django.contrib.auth.models import User
 import plotly.express as px  # for making the scatter plot
 import pandas.io.sql as pd_sql  # for getting data into a pandas dataframe
-from eviz.models import PSUT, Index, Dataset, Country, Method, EnergyType, LastStage, IEAMW, matname, AggLevel, EmailAuthCodes
+from eviz.models import *
 import sys
 from os import devnull
 from django.db import connection
@@ -418,6 +418,24 @@ class Translator():
     __productaggregation_translations = None
 
     @staticmethod
+    def get_available_options(model: models.Model) -> list[str]:
+        column_name = model.__name__
+
+        values = set(PSUT.objects.values_list(column_name)[0])
+
+        if column_name == "LastStage":
+            readable_values = model.objects.filter( **{"ECCStageID__in": values} )
+        else:
+            readable_values = model.objects.filter( **{f"{column_name}ID__in": values} )
+        
+        if column_name in ["EnergyType", "Country"]:
+            return [getattr(val, "FullName") for val in readable_values]
+        elif column_name == "LastStage":
+            return [getattr(val, "ECCStage") for val in readable_values]
+        
+        return [getattr(val, column_name) for val in readable_values]
+
+    @staticmethod
     def index_translate(name: str) -> int:
         if Translator.__index_translations == None:
             indexes = Index.objects.values_list("IndexID", "Index")
@@ -451,12 +469,16 @@ class Translator():
         return Translator.__dataset_translations[name]
 
     @staticmethod
-    def get_datasets() -> list[str]:
+    def get_datasets(only_available: bool = False) -> list[str]:
         if Translator.__dataset_translations == None:
             datasets = Dataset.objects.values_list("DatasetID", "Dataset")
             Translator.__dataset_translations = {
                 name: id for id, name in datasets}
 
+        if (only_available):
+            return Translator.get_available_options(Dataset)
+
+        # return all possible options
         return list(Translator.__dataset_translations.keys())
 
     @staticmethod
@@ -469,12 +491,16 @@ class Translator():
         return Translator.__country_translations[name]
 
     @staticmethod
-    def get_countries() -> list[str]:
+    def get_countries(only_available: bool = False) -> list[str]:
         if Translator.__country_translations == None:
             countries = Country.objects.values_list("CountryID", "FullName")
             Translator.__country_translations = {
                 name: id for id, name in countries}
 
+        if (only_available):
+            return Translator.get_available_options(Country)
+
+        # return all possible options
         return list(Translator.__country_translations.keys())
 
     @staticmethod
@@ -487,12 +513,16 @@ class Translator():
         return Translator.__method_translations[name]
 
     @staticmethod
-    def get_methods() -> list[str]:
+    def get_methods(only_available: bool = False) -> list[str]:
         if Translator.__method_translations == None:
             methods = Method.objects.values_list("MethodID", "Method")
             Translator.__method_translations = {
                 name: id for id, name in methods}
 
+        if (only_available):
+            return Translator.get_available_options(Method)
+
+        # return all possible options
         return list(Translator.__method_translations.keys())
 
     @staticmethod
@@ -506,13 +536,17 @@ class Translator():
         return Translator.__energytype_translations[name]
 
     @staticmethod
-    def get_energytypes() -> list[str]:
+    def get_energytypes(only_available: bool = False) -> list[str]:
         if Translator.__energytype_translations == None:
             enerytpyes = EnergyType.objects.values_list(
                 "EnergyTypeID", "FullName")
             Translator.__energytype_translations = {
                 name: id for id, name in enerytpyes}
 
+        if (only_available):
+            return Translator.get_available_options(EnergyType)
+
+        # return all possible options
         return list(Translator.__energytype_translations.keys())
 
     @staticmethod
@@ -526,13 +560,17 @@ class Translator():
         return Translator.__laststage_translations[name]
 
     @staticmethod
-    def get_laststages() -> list[str]:
+    def get_laststages(only_available: bool = False) -> list[str]:
         if Translator.__laststage_translations == None:
             laststages = LastStage.objects.values_list(
                 "ECCStageID", "ECCStage")
             Translator.__laststage_translations = {
                 name: id for id, name in laststages}
 
+        if (only_available):
+            return Translator.get_available_options(LastStage)
+
+        # return all possible options
         return list(Translator.__laststage_translations.keys())
 
     @staticmethod
@@ -544,11 +582,15 @@ class Translator():
         return Translator.__IEAMW_translations[name]
 
     @staticmethod
-    def get_ieamws() -> list[str]:
+    def get_ieamws(only_available: bool = False) -> list[str]:
         if Translator.__IEAMW_translations == None:
             IEAMWs = IEAMW.objects.values_list("IEAMWID", "IEAMW")
             Translator.__IEAMW_translations = {name: id for id, name in IEAMWs}
 
+        if (only_available):
+            return Translator.get_available_options(IEAMW)
+
+        # return all possible options
         return list(Translator.__IEAMW_translations.keys())
 
     @staticmethod
@@ -556,7 +598,12 @@ class Translator():
         return int(name)
 
     @staticmethod
-    def get_includesNEUs() -> list[str]:
+    def get_includesNEUs(only_available: bool = False) -> list[str]:
+
+        if (only_available):
+            return Translator.get_available_options("IncludesNEU")
+
+        # return all possible options
         return ["True", "False"]
 
     @staticmethod
@@ -577,6 +624,7 @@ class Translator():
             Translator.__productaggregation_translations = {
                 name: id for id, name in productaggregations}
 
+        # return all possible options
         return list(Translator.__productaggregation_translations.keys())
 
     @staticmethod
@@ -589,13 +637,18 @@ class Translator():
         return Translator.__matname_translations[name]
 
     @staticmethod
-    def get_matnames() -> list[str]:
+    def get_matnames(only_available: bool = False) -> list[str]:
         if Translator.__matname_translations == None:
             matnames = matname.objects.values_list("matnameID", "matname")
             Translator.__matname_translations = {
                 name: id for id, name in matnames}
 
+        if (only_available):
+            return Translator.get_available_options(matname)
+
+        # return all possible options
         return list(Translator.__matname_translations.keys())
+    
 
 # TODO: this needs to be fixed...
 # def temp_add_get():

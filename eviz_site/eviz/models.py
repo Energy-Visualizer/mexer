@@ -126,7 +126,6 @@ class PSUT(models.Model):
     j = models.PositiveSmallIntegerField()
     x = models.FloatField()
 
-
 class AggEtaPFU(models.Model):
 
     class Meta:

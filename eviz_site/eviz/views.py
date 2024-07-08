@@ -107,15 +107,25 @@ def get_plot(request):
 @login_required(login_url="/login")
 @time_view
 def visualizer(request):
-    datasets = Translator.get_datasets()
-    countries = Translator.get_countries()
+    datasets = Translator.get_datasets(only_available=True)
+    print(datasets)
+
+    countries = Translator.get_countries(only_available=True)
     countries.sort()
-    methods = Translator.get_methods()
-    energy_types = Translator.get_energytypes()
-    last_stages = Translator.get_laststages()
-    ieamws = Translator.get_ieamws()
-    ieamws.remove("Both") # TODO: this should be less hard coded
-    matnames = Translator.get_matnames()
+
+    methods = Translator.get_methods(only_available=True)
+
+    energy_types = Translator.get_energytypes(only_available=True)
+
+    last_stages = Translator.get_laststages(only_available=True)
+
+    ieamws = Translator.get_ieamws(only_available=True)
+    try:
+        ieamws.remove("Both")
+    except ValueError:
+        pass # if "Both" wasn't in ieamws, then it didn't need to be removed
+
+    matnames = Translator.get_matnames(only_available=True)
     matnames.sort(key=len) # sort matrix names by how long they are... seems reasonable
     
     context = {"datasets":datasets, "countries":countries, "methods":methods,
