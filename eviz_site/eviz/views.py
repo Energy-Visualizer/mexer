@@ -70,9 +70,6 @@ def get_plot(request):
                     sankey_diagram.update_layout(title_text="Test Sankey", font_size=10)
                     plot_div = plot(sankey_diagram, output_type="div", include_plotlyjs=False)
 
-                    # add the reset button and start up the plot panning and zomming
-                    plot_div += '<button id="plot-reset" onclick="initPlotUtils()">RESET</button>' + '<script>initPlotUtils()</script>'
-
             case "xy_plot":
                 efficiency_metric = query.pop('efficiency')
                 query = translate_query(query)
