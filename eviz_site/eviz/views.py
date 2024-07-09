@@ -52,22 +52,21 @@ import pandas as pd
 from scipy.sparse import coo_matrix
 import pickle
 from datetime import datetime
+from django.views.decorators.csrf import csrf_exempt
 
-
-def serialize_data(data):
-    return pickle.dumps(data)
-
-def deserialize_data(data):
-    return pickle.loads(data)
-
-
+@csrf_exempt
 @time_view
 def get_plot(request):
 
     plot_div = None
     if request.method == "POST":
-
+        print(request.POST)
+        # print(request.body)
         plot_type, query = shape_post_request(request.POST, get_plot_type = True)
+        # color_by = request.POST.get("color_by")
+        # color_scheme = request.POST.get("color_scheme")
+        # line_style = request.POST.get("line_style")
+        # line_by = request.POST.get("line_by")
 
         if not iea_valid(request.user, query):
             return HttpResponse("You do not have access to IEA data. Please contact <a style='color: #00adb5' :visited='{color: #87CEEB}' href='mailto:matthew.heun@calvin.edu'>matthew.heun@calvin.edu</a> with questions."
@@ -122,39 +121,35 @@ def get_plot(request):
 
             case _: # default
                 plot_div = "Plot type not specified or supported"
-        if plot_div:
-            user_history = get_user_history(request)
-            print("User history:", user_history)  # Add this print statement
-            if not isinstance(user_history, list):
-                user_history = [user_history]
-            history_data = {
-                'query': query,
-                'plot_type': plot_type,
-                'created_at': str(datetime.now())
-            }
-            print("History data:", history_data) 
-            user_history.append(history_data)
-            print("Updated user history:", user_history) 
-            serialized_data = serialize_data(user_history)
-            response = HttpResponse(plot_div)
-            response.set_cookie('user_history', serialized_data.hex(), max_age=30*24*60*60) 
-            return response
-    
-    return HttpResponse(plot_div)
+                
+        response = HttpResponse(plot_div)
+        
+        plot_type, query = shape_post_request(request.POST, get_plot_type = True)
+        serialized_data = update_user_history(request, plot_type, query)
+        response.set_cookie('user_history', serialized_data.hex(), max_age=30 * 24 * 60 * 60)
+            
+    return response
 
-@time_view
+import json
 def render_history(request):
     user_history = get_user_history(request)
-    return render(request, 'history_section.html', {'user_history': user_history})
-
-def get_user_history(request):
-    serialized_data = request.COOKIES.get('user_history')
-    
-    if serialized_data:
-        user_history = deserialize_data(bytes.fromhex(serialized_data))
+    history_html = ''
+    if user_history:
+        for history_item in user_history:
+            plot_type = history_item['plot_type'],
+            query = history_item['query']
+            query_item = {'plot_type': plot_type}
+            query_item.update(query)
+            serialized_query = json.dumps(query_item)
+            history_html += f'''
+            <button type="button" hx-vals='{serialized_query}' hx-post="/plot" hx-target="#plot-section" hx-swap="innerHTML" onclick='document.getElementById("plot-section").scrollIntoView();' style="border-radius: 30px;">
+                Plot Type: {plot_type},
+                Query: {query}<br>
+            </button><br><br>
+            '''
     else:
-        user_history = []
-    return user_history
+        history_html = '<p>No history available.</p>'
+    return HttpResponse(history_html)
 
 
 #@login_required(login_url="/login")

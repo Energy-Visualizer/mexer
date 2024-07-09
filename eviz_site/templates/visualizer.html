@@ -35,12 +35,44 @@
         <path d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z" style="stroke: none; fill:#393E46;"></path>
     </svg>
     <!-- toolbar end -->
-    <div id="history-section">
 
+    <div  id="history-section" class="sidebar">
+        <h2>History</h2>
+        <div id="history-list">
+            
+        </div>
     </div>
+ {% comment %} <div class="sidebars">
+        <h3>Advanced Graph Options</h3>
+        <div class="option">
+            <label for="color-by">Color by:</label>
+            <select name="color_by" id="color-by">
+                <option value="country">Country</option>
+                <option value="energy_type">Energy Type</option>
+                <option value="includes_neu">Includes NEU</option>
+                <option value="last_stage">Last Stage</option>
+            </select>
+        </div>
+        <div>
+            <label for="color-scheme">Color Scheme:</label>
+            <select id="color-scheme" name="color_scheme">
+                <option value="Green">Green</option>
+                <option value="Red">Red</option>
+                <option value="Yellow">Yellow</option>
+                <option value="Blue">Blue</option>
+            </select>
+        </div>
     
-    
-
+        <div class="option">
+            <label for="line-style">Line Style:</label>
+            <select name="line_style" id="line-style">
+                <option value="solid">Solid</option>
+                <option value="dash">Dashed</option>
+                <option value="dot">Dotted</option>
+            </select>
+        </div>
+        
+    </div> {% endcomment %}
     <!-- main form -->
     <form method="post" action="/data" id="query-form">
         {% csrf_token %}
@@ -215,8 +247,8 @@
         <!-- matrix dropdown end -->
         <div class="button-container">
         <!-- metadata specifics inputs end -->
-        <button hx-post="/plot" hx-swap="innerHTML" hx-target="#plot-section" hx-indicator="#plot-spinner" hx-trigger="refreshHistory" type="button"
-            id="get" onclick='document.getElementById("plot-section").scrollIntoView()'>
+        <button hx-post="/plot" hx-swap="innerHTML" hx-target="#plot-section" hx-indicator="#plot-spinner" type="button"
+            id="get" onclick='document.getElementById("plot-section").scrollIntoView(); refreshHistory();'>
             <!-- onclick for bringing user to plot area -->
             Make Plot
         </button>
@@ -237,25 +269,15 @@
             <!-- This will be replaced with the plot from HTMX -->
         </div>
         <div id="spinner-container"><span id="plot-spinner" class="loader htmx-indicator"></span></div>
+        <button id="compare-btn">Compare</button>
     </div>
     <!-- plotting area end -->
 
 </body>
 
 </html>
-
 <script>
     function refreshHistory() {
-        htmx.ajax('GET', '{% url "render_history" %}', '#history-section');
+        htmx.ajax("GET", "/history", {target:"#history-list", swap:"innerHTML"});
     }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        refreshHistory();
-    });
-
-    htmx.on('htmx:afterSwap', function(evt) {
-        if (evt.target.id === 'plot-section') {
-            refreshHistory();
-        }
-    });
 </script>

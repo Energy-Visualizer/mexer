@@ -11,7 +11,6 @@ urlpatterns = [
     path('login/', views.user_login, name='login'),
     path('signup/', views.user_signup, name='signup'),
     path('logout/', views.user_logout, name='logout'),
-    path('render_history/', views.render_history, name='render_history'),
     # misc pages
     path('about/', views.about, name='about'),
     path('data-info/', views.data_info, name="data-info"),
@@ -19,5 +18,6 @@ urlpatterns = [
 
     # service hooks
     path("plot", views.get_plot),
-    path("data", views.get_data)
+    path("data", views.get_data),
+    path("history", views.render_history)
 ]

@@ -1,4 +1,3 @@
-# for low-level psycopg2 connection. to access other db connections, import connections
 from scipy.sparse import coo_matrix
 from eviz.models import AggEtaPFU
 from json import loads as json_from_string
@@ -7,15 +6,12 @@ import plotly.express as px  # for making the scatter plot
 import pandas.io.sql as pd_sql  # for getting data into a pandas dataframe
 from eviz.models import PSUT, Index, Dataset, Country, Method, EnergyType, LastStage, IEAMW, matname, AggLevel
 import sys
-# for silencing stdout warnings (pandas using psycopg2 connection right now)
 from os import devnull
 from django.db import connection
 import plotly.graph_objects as pgo
 
 
 from time import time
-
-
 def time_view(v):
     '''Wrapper to time how long it takes to deliver a view
 
@@ -77,7 +73,10 @@ def translate_query(
     if v := query.get("last_stage"):
         translated_query["LastStage"] = Translator.laststage_translate(v)
     if v := query.get("ieamw"):
+        if type(v) == list:
             # both were selected, use the both option in the table
+            translated_query["IEAMW"] = Translator.ieamw_translate("Both")
+        else:
             translated_query["IEAMW"] = Translator.ieamw_translate(v)
     # includes neu either is in the query or not, it's value does need to be more than empty string, though
     translated_query["IncludesNEU"] = Translator.includesNEU_translate(
@@ -149,7 +148,7 @@ def shape_post_request(
             plot_type = None
 
     # get rid of security token, is not part of a query
-    del shaped_query["csrfmiddlewaretoken"]
+    shaped_query.pop("csrfmiddlewaretoken", None)
 
     for k, v in shaped_query.items():
 
@@ -189,8 +188,8 @@ def iea_valid(user: User, query: dict) -> bool:
         (user.is_authenticated and user.has_perm("eviz.get_iea"))
     )
 
-
-with open("internal_resources/sankey_color_scheme.json") as f:
+from pathlib import Path
+with open(f"{Path(__file__).resolve().parent.parent}/internal_resources/sankey_color_scheme.json") as f:
     colors_data = f.read()
 SANKEY_COLORS: dict[str, str] = json_from_string(colors_data)
 
@@ -252,7 +251,7 @@ def get_sankey(query: dict) -> pgo.Figure:
 
             # get the associated color for the source, if there is one and apply it
             # if not, the color is wheat
-            node_colors.append(SANKEY_COLORS.get(translated_col, "wheat"))
+            node_colors.append(SANKEY_COLORS.get(translated_row, "wheat"))
 
         sources.append(idx)
 
@@ -268,14 +267,14 @@ def get_sankey(query: dict) -> pgo.Figure:
 
         targets.append(idx)
 
+        # Finish the connection with the magnitude of the connection
+        magnitudes.append(magnitude)
+
         # make in-flow special color if node has special color
         #     i.e. if current target node has color besides default node color
         # only on targets (columns) because only targets can have in-flows
         if ((assoc_color := node_colors[idx]) != "wheat"):
             flow_color = assoc_color
-
-        # Finish the connection with the magnitude of the connection
-        magnitudes.append(magnitude)
 
         flow_colors.append(flow_color)
 
@@ -322,9 +321,7 @@ def get_xy(efficiency_metric, query: dict) -> pgo.Figure:
     )
 
 
-def get_matrix(
-    query: dict
-) -> coo_matrix:
+def get_matrix(query: dict) -> coo_matrix:
     '''Collects, constructs, and returns one of the RUVY matrices
 
     Inputs:
@@ -640,3 +637,47 @@ class Silent():
         self.dn.close()
         sys.stdout = self.real_stdout
         sys.stderr = self.real_stderr
+
+from uuid import uuid4
+email_auth_codes: dict = dict()
+def new_email_code(form) -> str:
+    code = str(uuid4())
+    email_auth_codes[code] = form
+    return code
+
+import pickle
+from datetime import datetime
+
+def serialize_data(data):
+    return pickle.dumps(data)
+
+def deserialize_data(data):
+    return pickle.loads(data)
+
+def get_user_history(request):
+    serialized_data = request.COOKIES.get('user_history')
+
+    if serialized_data:
+        user_history = deserialize_data(bytes.fromhex(serialized_data))
+    else:
+        user_history = []
+
+    return user_history
+
+def update_user_history(request, plot_type, query):
+    user_history = get_user_history(request)
+    history_data = {
+        'plot_type': plot_type,
+        'query': query,
+    }
+    # Check if user_history is not empty
+    if user_history:
+        # Check if the new query already exists in the history list
+        if history_data not in user_history:
+            user_history.append(history_data)
+    else:
+        # If user_history is empty, append the new history_data
+        user_history = [history_data]
+
+    serialized_data = serialize_data(user_history)
+    return serialized_data
