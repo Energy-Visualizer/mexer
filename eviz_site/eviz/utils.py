@@ -148,7 +148,7 @@ def shape_post_request(
             plot_type = None
 
     # get rid of security token, is not part of a query
-    del shaped_query["csrfmiddlewaretoken"]
+    shaped_query.pop("csrfmiddlewaretoken", None)
 
     for k, v in shaped_query.items():
 
@@ -567,9 +567,49 @@ class Silent():
         sys.stderr = self.real_stderr
 
 from uuid import uuid4
-from pickle import dumps as pickle_dumps
+import pickle
 def new_email_code(form) -> str:
     code = str(uuid4())
-    account_info = pickle_dumps(form.clean()) # get the cleaned form (a map) serialized
+    account_info = pickle.dumps(form.clean()) # get the cleaned form (a map) serialized
     EmailAuthCodes(code=code, account_info=account_info).save() # save account setup info to database
     return code
+
+def get_user_history(request) -> list:
+    serialized_data = request.COOKIES.get('user_history')
+
+    if serialized_data:
+        user_history = pickle.loads(bytes.fromhex(serialized_data))
+    else:
+        user_history = list()
+
+    return user_history
+
+MAX_HISTORY = 5
+def update_user_history(request, plot_type, query):
+
+    user_history = get_user_history(request)
+
+    history_data = {
+        'plot_type': plot_type,
+        **query
+    }
+
+    # Check if user_history is not empty
+    if user_history:
+        
+        # if query is already in history, remove it to move it to the top
+        try:
+            user_history.remove(history_data)
+        except ValueError: pass # don't care if not in, trying to remove anyways
+
+        user_history.insert(0, history_data) # finally, add the new query to the top of the history
+
+        # if the queue is full, take the end off
+        if len(user_history) > MAX_HISTORY: user_history.pop()
+
+    else:
+        # If user_history is empty, append the new history_data
+        user_history.append(history_data)
+
+    serialized_data = pickle.dumps(user_history)
+    return serialized_data

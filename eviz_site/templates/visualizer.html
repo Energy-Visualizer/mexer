@@ -12,7 +12,7 @@
 </head>
 
 
-<body onload="initialize()" class="gradient">
+<body onload="initialize(); refreshHistory();" class="gradient">
 
 
 
@@ -39,8 +39,41 @@
     </svg>
     <!-- toolbar end -->
 
-
-
+    <div  id="history-section" class="sidebar">
+        <h2>History</h2>
+        <div id="history-list"></div>
+    </div>
+ {% comment %} <div class="sidebars">
+        <h3>Advanced Graph Options</h3>
+        <div class="option">
+            <label for="color-by">Color by:</label>
+            <select name="color_by" id="color-by">
+                <option value="country">Country</option>
+                <option value="energy_type">Energy Type</option>
+                <option value="includes_neu">Includes NEU</option>
+                <option value="last_stage">Last Stage</option>
+            </select>
+        </div>
+        <div>
+            <label for="color-scheme">Color Scheme:</label>
+            <select id="color-scheme" name="color_scheme">
+                <option value="Green">Green</option>
+                <option value="Red">Red</option>
+                <option value="Yellow">Yellow</option>
+                <option value="Blue">Blue</option>
+            </select>
+        </div>
+    
+        <div class="option">
+            <label for="line-style">Line Style:</label>
+            <select name="line_style" id="line-style">
+                <option value="solid">Solid</option>
+                <option value="dash">Dashed</option>
+                <option value="dot">Dotted</option>
+            </select>
+        </div>
+        
+    </div> {% endcomment %}
     <!-- main form -->
     <form method="post" action="/data" id="query-form">
         {% csrf_token %}
@@ -68,11 +101,21 @@
             </div>
             <div class="input-column">
                 {% for dataset in datasets %}
-                    {%if dataset == 'CLPFUv2.0a2'%}
-                        <input type='radio' value="{{ dataset }}" name="dataset" class="space-input" checked>{{dataset}}<br>
+                    {%if iea%}
+                        {%if dataset == 'CLPFUv2.0a2'%}
+                        <input type='radio' value="{{ dataset }}" name="dataset" checked>{{dataset}}<br>
+                        {%else%}
+                        <input type="radio" value="{{ dataset }}" name="dataset" required>{{ dataset }}<br>
+                        {% endif %}
                     {%else%}
-                        <input type="radio" value="{{ dataset }}" name="dataset" class="space-input" required>{{ dataset }}<br>
-                    {% endif %}
+                        {%if dataset != "IEAEWEB2022"%}
+                            {%if dataset == 'CLPFUv2.0a2'%}
+                            <input type='radio' value="{{ dataset }}" name="dataset" checked>{{dataset}}<br>
+                            {%else%}
+                            <input type="radio" value="{{ dataset }}" name="dataset" required>{{ dataset }}<br>
+                            {% endif %}
+                        {%endif%}
+                    {%endif%}
                 {% endfor %}
             </div>
             &#x2800
@@ -100,7 +143,7 @@
                 Method
             </div>
             <div class="input-column">
-                <input type="checkbox" value="PCM" class="space-input" name="method">PCM<br>
+                <input type="checkbox" value="PCM" class="space-input" name="method" checked>PCM<br>
             </div>
             &#x2800
         </div>
@@ -110,7 +153,11 @@
             </div>
             <div class="input-column">
                 {% for energy_type in energy_types %}
-                <input type="checkbox" value="{{ energy_type }}" name="energy_type" class="space-input">{{ energy_type }}<br>
+                {% if energy_type == 'Energy' %}
+                    <input type="checkbox" value="{{ energy_type }}" class="space-input" name="energy_type" checked>{{ energy_type }}<br>
+                {% else %}
+                <input type="checkbox" value="{{ energy_type }}" class="space-input" name="energy_type">{{ energy_type }}<br>
+                {%endif%}
                 {% endfor %}
             </div>
             &#x2800
@@ -129,7 +176,7 @@
         </div>
         <div class="query-choice">
             <div class="info-text">
-                With IEAMW
+                IEA and/or MW
             </div>
             <div class="input-column">
                 {% for ieamw in ieamws %}
@@ -147,7 +194,7 @@
                 Include NEU
             </div>
             <div class="input-column">
-                <input type="checkbox" value="true" name="including_neu" class="space-input">
+                <input type="checkbox" value="true" name="including_neu" class="space-input" checked>
             </div>
             &#x2800
         </div>
@@ -226,7 +273,7 @@
 
         <div class="button-container">
             <button hx-post="/plot" hx-swap="innerHTML" hx-target="#plot-section" hx-indicator="#plot-spinner" type="button"
-                id="get" onclick='document.getElementById("plot-section").scrollIntoView()'>
+                id="get" onclick='document.getElementById("plot-section").scrollIntoView(); refreshHistory();'>
                 <!-- onclick for bringing user to plot area -->
                 Make Plot
             </button>
@@ -247,6 +294,7 @@
             <!-- This will be replaced with the plot from HTMX -->
         </div>
         <div id="spinner-container"><span id="plot-spinner" class="loader htmx-indicator"></span></div>
+        <button id="compare-btn">Compare</button>
     </div>
     <!-- plotting area end -->
 

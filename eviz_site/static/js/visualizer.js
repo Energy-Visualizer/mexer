@@ -79,9 +79,9 @@ const handleMatrices = () => {
     inputOff(singleYearInput);
     inputOff(efficiencyDropdown);
     
-    inputOn(matnameDropdown);
     inputOn(fromYearInput);
     inputOn(toYearInput);
+    inputOn(matnameDropdown);
 }
 
 const showDropdown = (name) => {
@@ -119,3 +119,7 @@ const showDropdown = (name) => {
     // add the dropdown and button to the dom
     desiredDropdown.after(wholeDropdown);
 };
+
+function refreshHistory() {
+    htmx.ajax("GET", "/history", {target:"#history-list", swap:"innerHTML"});
+}
