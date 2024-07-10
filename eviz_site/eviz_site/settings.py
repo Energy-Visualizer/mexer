@@ -145,8 +145,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CSRF_TRUSTED_ORIGINS = ['https://eviz.cs.calvin.edu']
 
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_HOST = "sandbox.smtp.mailtrap.io" # email host for the test smtp server
-EMAIL_HOST = "smtp-mail.outlook.com"
+EMAIL_HOST = "smtp.office365.com"
 EMAIL_PORT = 587
 EMAIL_HOST_USER = "eviz.site@outlook.com"
 EMAIL_HOST_PASSWORD = environ["email_password"]
