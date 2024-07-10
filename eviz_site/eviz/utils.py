@@ -192,8 +192,6 @@ from pathlib import Path
 with open(f"{Path(__file__).resolve().parent.parent}/internal_resources/sankey_color_scheme.json") as f:
     colors_data = f.read()
 SANKEY_COLORS: dict[str, str] = json_from_string(colors_data)
-
-
 def get_sankey(query: dict) -> pgo.Figure:
     '''Gets a sankey diagram for a query
 
@@ -213,8 +211,14 @@ def get_sankey(query: dict) -> pgo.Figure:
         del query["matname"]
 
     # get all four matrices to make the full RUVY matrix
-    data = PSUT.objects.values_list("i", "j", "x").filter(**query, matname__in=[Translator.matname_translate(
-        "R"), Translator.matname_translate("U"), Translator.matname_translate("V"), Translator.matname_translate("Y")])
+    data = PSUT.objects.values_list("i", "j", "x").filter(
+        **query, matname__in = [
+            Translator.matname_translate("R"),
+            Translator.matname_translate("U"),
+            Translator.matname_translate("V"),
+            Translator.matname_translate("Y")
+        ]
+    )
 
     # if no cooresponding data, return as such
     if not data:
@@ -224,34 +228,30 @@ def get_sankey(query: dict) -> pgo.Figure:
     data = set(data)
 
     # begin constructing the sankey
-    # used to know which human-readable label is where in the label list
-    label_to_index = dict()
-    next_index = 0  # used to keep track of where a new label is added in the label list
+    label_to_index = dict() # used to know which human-readable label is where in the label list
+    next_index = 0 # used to keep track of where a new label is added in the label list
 
-    labels = list()  # used to keep track of all the labels
-    sources = list()  # used to keep track of all the sources (from-nodes)
-    targets = list()  # used to keep track of all the targets (to-nodes)
-    magnitudes = list()  # used to keep track of all the magnitudes between the nodes
+    labels = list() # used to keep track of all the labels
+    sources = list() # used to keep track of all the sources (from-nodes)
+    targets = list() # used to keep track of all the targets (to-nodes)
+    magnitudes = list() # used to keep track of all the magnitudes between the nodes
 
-    node_colors = list()
     flow_colors = list()
 
+    # TODO: the columns of R V, rows of U Y, should be invisible nodes
+    # also colors are based on the prefix of the node name
+    # e.g. "Hydro [from ...]" should be considered "Hydro" in the color scheme
     for row, col, magnitude in data:
         translated_row = Translator.index_reverse_translate(row)
         translated_col = Translator.index_reverse_translate(col)
 
-        flow_color = "rgba(100,100,100,0.5)"  # default flow color
-
         # Get the row (source) label's index and make the start of a connection
         idx = label_to_index.get(translated_row, -1)
+
         if idx == -1:  # label is new
             labels.append(translated_row)
             label_to_index[translated_row] = idx = next_index
             next_index += 1
-
-            # get the associated color for the source, if there is one and apply it
-            # if not, the color is wheat
-            node_colors.append(SANKEY_COLORS.get(translated_row, "wheat"))
 
         sources.append(idx)
 
@@ -262,9 +262,6 @@ def get_sankey(query: dict) -> pgo.Figure:
             label_to_index[translated_col] = idx = next_index
             next_index += 1
 
-            # same as above
-            node_colors.append(SANKEY_COLORS.get(translated_col, "wheat"))
-
         targets.append(idx)
 
         # Finish the connection with the magnitude of the connection
@@ -273,23 +270,23 @@ def get_sankey(query: dict) -> pgo.Figure:
         # make in-flow special color if node has special color
         #     i.e. if current target node has color besides default node color
         # only on targets (columns) because only targets can have in-flows
-        if ((assoc_color := node_colors[idx]) != "wheat"):
-            flow_color = assoc_color
+        # if ((assoc_color := node_colors[idx]) != "wheat"):
+        #     flow_color = assoc_color
 
-        flow_colors.append(flow_color)
+        # flow_colors.append(flow_color)
 
     return pgo.Figure(data=[pgo.Sankey(
         node=dict(
             pad=15,
             thickness=20,
             label=labels,
-            color=node_colors
+            # color=node_colors
         ),
         link=dict(
             source=sources,
             target=targets,
             value=magnitudes,
-            color=flow_colors
+            color="rgba(100,100,100,0.5)"
         ))])
 
 
@@ -642,6 +639,6 @@ from uuid import uuid4
 from pickle import dumps as pickle_dumps
 def new_email_code(form) -> str:
     code = str(uuid4())
-    account_info = pickle_dumps(form)
+    account_info = pickle_dumps(form.clean()) # get the cleaned form (a map) serialized
     EmailAuthCodes(code=code, account_info=account_info).save() # save account setup info to database
     return code

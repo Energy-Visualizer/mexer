@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect, HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.core.mail import send_mail # for email verification
+from django.core.mail import EmailMultiAlternatives # for email verification
 
 # Eviz imports
 from eviz.utils import *
@@ -139,15 +139,20 @@ def user_signup(request):
 
             # handle the email construction and sending
             code = new_email_code(form)
-            send_mail(
+            msg = EmailMultiAlternatives(
                 subject="New EVIZ Account",
-                message=f"eviz.cs.calvin.edu/verify?code={str(code)}",
-                from_email="eviz@eviz.com",
-                recipient_list=[new_user_email]
+                body=f"Please visit the following link to verify your account:\neviz.cs.calvin.edu/verify?code={str(code)}",
+                from_email="eviz.site@outlook.com",
+                to=[new_user_email]
             )
+            msg.attach_alternative(
+                content = f"<p>Please <a href='https://eviz.cs.calvin.edu/verify?code={str(code)}'>click here</a> to verify your new account!</p>",
+                mimetype = "text/html"
+            )
+            msg.send()
 
-            # finally send the user back to login
-            return redirect('login')
+            # send the user to a page explaining what to do next (check email)
+            return render(request, 'verify_explain.html')
     else:
         form = SignupForm()
     return render(request, 'signup.html', {'form': form})
@@ -160,8 +165,12 @@ def verify_email(request):
         if new_user:
             # if there is an associated user, set up their account
             # load the serialized account info from the database and save it
-            pickle_loads(new_user.account_info).save()
+            account_info = pickle_loads(new_user.account_info)
+            SignupForm(account_info).save()
             new_user.delete() # get rid of row in database
+            messages.add_message(request, messages.INFO, "Verification was successful!")
+        else:
+            messages.add_message(request, messages.INFO, "Bad verification code!")
 
     return redirect("login")
 
