@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+from os import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -144,7 +145,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CSRF_TRUSTED_ORIGINS = ['https://eviz.cs.calvin.edu']
 
 
-# TODO: temp! the following line prints emails only to the console
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-EMAIL_HOST = "ursa.calvin.edu"
+# EMAIL_HOST = "sandbox.smtp.mailtrap.io" # email host for the test smtp server
+EMAIL_HOST = "smtp-mail.outlook.com"
 EMAIL_PORT = 587
+EMAIL_HOST_USER = "eviz.site@outlook.com"
+EMAIL_HOST_PASSWORD = environ["email_password"]
+EMAIL_USE_TLS = True

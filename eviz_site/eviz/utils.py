@@ -639,6 +639,6 @@ from uuid import uuid4
 from pickle import dumps as pickle_dumps
 def new_email_code(form) -> str:
     code = str(uuid4())
-    account_info = pickle_dumps(form)
+    account_info = pickle_dumps(form.clean()) # get the cleaned form (a map) serialized
     EmailAuthCodes(code=code, account_info=account_info).save() # save account setup info to database
     return code
