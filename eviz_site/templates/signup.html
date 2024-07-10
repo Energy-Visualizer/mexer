@@ -54,11 +54,11 @@
           <div class="form-group">
             {{ form.password2.label_tag }} {{ form.password2 }}
           </div>
-          <div class="form-group">
-            <input type="checkbox" id="terms-conditions" required />
-            <label for="terms-conditions"
-              >I agree to the <a href={% url 'terms_and_conditions' %}>terms and conditions</a></label
-            >
+          <div class="form-group" style="display: flex;">
+            <input type="checkbox" id="terms-conditions" required style="width:20%"/>
+            <label for="terms-conditions">
+              I agree to the <a href={% url 'terms_and_conditions' %}>terms and conditions</a>.
+            </label>
           </div>
           {% for error_message in form.errors.values %} {{ error_message }}
           {%endfor %}

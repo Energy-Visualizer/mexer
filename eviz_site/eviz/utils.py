@@ -391,6 +391,8 @@ def get_translated_dataframe(query: dict, columns: list):
         'EnergyType': Translator.energytype_translate,
         'LastStage': Translator.laststage_translate,
         'IEAMW': Translator.ieamw_translate,
+        'ChoppedMat': Translator.matname_translate,
+        'ChoppedVar': Translator.index_translate,
         'ProductAggregation': Translator.agglevel_translate,
         'IndustryAggregation': Translator.agglevel_translate,
         'matname': Translator.matname_translate,
