@@ -114,8 +114,10 @@ def visualizer(request):
     energy_types = Translator.get_all('energytype')
     last_stages = Translator.get_all('laststage')
     ieamws = Translator.get_all('ieamw')
-    if "Both" in ieamws:
-        ieamws.remove("Both")  # TODO: this should be less hard coded
+    try:
+        ieamws.remove("Both")
+    except ValueError:
+        pass # don't care if it's not there, we're trying to remove it anyways
     matnames = Translator.get_all('matname')
     matnames.sort(key=len)  # sort matrix names by how long they are... seems reasonable
     
@@ -130,6 +132,7 @@ def about(request):
 
 def terms_and_conditions(request):
     return render(request, 'terms_and_conditions.html')
+
 def data_info(request):
     datasets = Dataset.objects.all()
     return render(request, 'data_info.html', context = {"datasets":datasets})

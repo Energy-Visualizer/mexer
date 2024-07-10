@@ -304,6 +304,7 @@ def get_xy(efficiency_metric, query: dict) -> pgo.Figure:
         a plotly Figure with the xy data
     '''
 
+    # TODO: maybe use get_translated_dataframe() here???
     agg_query = AggEtaPFU.objects.filter(
         **query).values("Year", efficiency_metric).query
 
@@ -361,8 +362,8 @@ def get_matrix(query: dict) -> coo_matrix:
 def visualize_matrix(mat: coo_matrix) -> pgo.Figure:
     # Convert the matrix to a format suitable for Plotly's heatmap
     rows, cols, vals = mat.row, mat.col, mat.data
-    row_labels = [Translator.index_reverse_translate(i) for i in rows]
-    col_labels = [Translator.index_reverse_translate(i) for i in cols]
+    row_labels = [Translator.index_translate(i) for i in rows]
+    col_labels = [Translator.index_translate(i) for i in cols]
     heatmap = pgo.Heatmap(
         z=vals,
         x=col_labels,
@@ -377,10 +378,12 @@ def visualize_matrix(mat: coo_matrix) -> pgo.Figure:
 
 
 COLUMNS = ["Dataset", "Country", "Method", "EnergyType", "LastStage", "IEAMW", "IncludesNEU", "Year", "ChoppedMat", "ChoppedVar", "ProductAggregation", "IndustryAggregation", "matname", "i", "j", "x"]
-def get_csv_from_query(query: dict, columns = COLUMNS):
+def get_translated_dataframe(query: dict, columns: list):
+    # get the data from database
     db_query = PSUT.objects.filter(**query).values(*columns).query
     with Silent():
         df = pd_sql.read_sql_query(str(db_query), con=connection.cursor().connection)
+
     translate_columns = {
         'Dataset': Translator.dataset_translate,
         'Country': Translator.country_translate,
@@ -394,6 +397,7 @@ def get_csv_from_query(query: dict, columns = COLUMNS):
         'i': Translator.index_translate,
         'j': Translator.index_translate
     }
+
     for col, translate_func in translate_columns.items():
         if col in df.columns:
             df[col] = df[col].apply(translate_func)
@@ -401,27 +405,25 @@ def get_csv_from_query(query: dict, columns = COLUMNS):
     # Handle IncludesNEU separately as it's a boolean
     if 'IncludesNEU' in df.columns:
         df['IncludesNEU'] = df['IncludesNEU'].apply(lambda x: 'Yes' if x else 'No')
+
+def get_csv_from_query(query: dict, columns: list = COLUMNS):
+    
     # index false to not have column of row numbers
-    return df.to_csv(index=False)
+    return get_translated_dataframe(query, columns).to_csv(index=False)
 
 def get_excel_from_query(query: dict, columns = COLUMNS):
-    db_query = PSUT.objects.filter(**query).values(*columns).query
-
-    with Silent():
-        df = pd_sql.read_sql_query(str(db_query), con=connection.cursor().connection)
 
     # index false to not have column of row numbers
-    return df.to_excel(index=False)
+    return get_translated_dataframe(query, columns).to_excel(index=False)
 
 from bidict import bidict
 from django.apps import apps
-
 class Translator:
     # A dictionary where keys are model names and values are bidict objects
     __translations = {}
 
     @staticmethod
-    def _load_bidict(model_name, id_field, name_field):
+    def __load_bidict(model_name, id_field, name_field) -> bidict:
         """
         Load translations for a specific model if not already loaded.
         
@@ -445,7 +447,7 @@ class Translator:
         # Translate a value between its ID and name for a specific model.
         # value: The value to translate (can be either an ID or a name).
         # Returns: The translated value (either ID or name, depending on input).
-        translations = Translator._load_bidict(model_name, id_field, name_field)
+        translations = Translator.__load_bidict(model_name, id_field, name_field)
         return translations.get(value) or translations.inverse.get(value, value)
 
     @staticmethod
@@ -486,10 +488,9 @@ class Translator:
 
     @staticmethod
     def includesNEU_translate(value):
-        return int(value) if isinstance(value, bool) else bool(value)
+        return int(value) if isinstance(value, bool) else int(bool(value))
 
     @staticmethod
-    
     def get_all(attribute):
         """
         Get all possible values for a given attribute.
@@ -517,7 +518,7 @@ class Translator:
         
         # Get model details and load translations
         model_name, id_field, name_field = model_mappings[attribute]
-        translations = Translator._load_bidict(model_name, id_field, name_field)
+        translations = Translator.__load_bidict(model_name, id_field, name_field)
         return list(translations.keys())
 
     @staticmethod

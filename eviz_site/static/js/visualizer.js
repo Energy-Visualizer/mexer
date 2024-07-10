@@ -76,12 +76,12 @@ const handleSankey = () => {
 }
 
 const handleMatrices = () => {
-    inputOff(fromYearInput);
-    inputOff(toYearInput);
+    inputOff(singleYearInput);
     inputOff(efficiencyDropdown);
     
     inputOn(matnameDropdown);
-    inputOn(singleYearInput);
+    inputOn(fromYearInput);
+    inputOn(toYearInput);
 }
 
 const showDropdown = (name) => {
