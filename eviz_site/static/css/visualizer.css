@@ -299,3 +299,45 @@ form {
     width: 70%;
     text-align: left;
 }
+
+.sidebar {
+    width: 250px;
+    background-color: #191b1e;
+    border-radius: 10%;
+    box-shadow: #191b1e 0px 0px 20px;
+    padding: 15px;
+    color: whitesmoke;
+    text-align: center;
+    position: absolute;
+    left: 0;
+    top: 10vh;
+}
+.sidebar h2 {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+/* .sidebar ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.sidebar ul li {
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #e9ecef;
+    border-radius: 5px;
+} */
+
+.history-button {
+    width: 100%;
+    margin: 0;
+    background-color: #3a404a;
+    border-radius: 0;
+    color: whitesmoke;
+    border: 0;
+}
+
+.history-button:hover {
+    background-color: #617392;
+}

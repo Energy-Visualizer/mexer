@@ -148,7 +148,7 @@ def shape_post_request(
             plot_type = None
 
     # get rid of security token, is not part of a query
-    del shaped_query["csrfmiddlewaretoken"]
+    shaped_query.pop("csrfmiddlewaretoken", None)
 
     for k, v in shaped_query.items():
 
@@ -192,8 +192,6 @@ from pathlib import Path
 with open(f"{Path(__file__).resolve().parent.parent}/internal_resources/sankey_color_scheme.json") as f:
     colors_data = f.read()
 SANKEY_COLORS: dict[str, str] = json_from_string(colors_data)
-
-
 def get_sankey(query: dict) -> pgo.Figure:
     '''Gets a sankey diagram for a query
 
@@ -213,8 +211,14 @@ def get_sankey(query: dict) -> pgo.Figure:
         del query["matname"]
 
     # get all four matrices to make the full RUVY matrix
-    data = PSUT.objects.values_list("i", "j", "x").filter(**query, matname__in=[Translator.matname_translate(
-        "R"), Translator.matname_translate("U"), Translator.matname_translate("V"), Translator.matname_translate("Y")])
+    data = PSUT.objects.values_list("i", "j", "x").filter(
+        **query, matname__in = [
+            Translator.matname_translate("R"),
+            Translator.matname_translate("U"),
+            Translator.matname_translate("V"),
+            Translator.matname_translate("Y")
+        ]
+    )
 
     # if no cooresponding data, return as such
     if not data:
@@ -224,34 +228,30 @@ def get_sankey(query: dict) -> pgo.Figure:
     data = set(data)
 
     # begin constructing the sankey
-    # used to know which human-readable label is where in the label list
-    label_to_index = dict()
-    next_index = 0  # used to keep track of where a new label is added in the label list
+    label_to_index = dict() # used to know which human-readable label is where in the label list
+    next_index = 0 # used to keep track of where a new label is added in the label list
 
-    labels = list()  # used to keep track of all the labels
-    sources = list()  # used to keep track of all the sources (from-nodes)
-    targets = list()  # used to keep track of all the targets (to-nodes)
-    magnitudes = list()  # used to keep track of all the magnitudes between the nodes
+    labels = list() # used to keep track of all the labels
+    sources = list() # used to keep track of all the sources (from-nodes)
+    targets = list() # used to keep track of all the targets (to-nodes)
+    magnitudes = list() # used to keep track of all the magnitudes between the nodes
 
-    node_colors = list()
     flow_colors = list()
 
+    # TODO: the columns of R V, rows of U Y, should be invisible nodes
+    # also colors are based on the prefix of the node name
+    # e.g. "Hydro [from ...]" should be considered "Hydro" in the color scheme
     for row, col, magnitude in data:
-        translated_row = Translator.index_reverse_translate(row)
-        translated_col = Translator.index_reverse_translate(col)
-
-        flow_color = "rgba(100,100,100,0.5)"  # default flow color
+        translated_row = Translator.index_translate(row)
+        translated_col = Translator.index_translate(col)
 
         # Get the row (source) label's index and make the start of a connection
         idx = label_to_index.get(translated_row, -1)
+
         if idx == -1:  # label is new
             labels.append(translated_row)
             label_to_index[translated_row] = idx = next_index
             next_index += 1
-
-            # get the associated color for the source, if there is one and apply it
-            # if not, the color is wheat
-            node_colors.append(SANKEY_COLORS.get(translated_row, "wheat"))
 
         sources.append(idx)
 
@@ -262,9 +262,6 @@ def get_sankey(query: dict) -> pgo.Figure:
             label_to_index[translated_col] = idx = next_index
             next_index += 1
 
-            # same as above
-            node_colors.append(SANKEY_COLORS.get(translated_col, "wheat"))
-
         targets.append(idx)
 
         # Finish the connection with the magnitude of the connection
@@ -273,23 +270,23 @@ def get_sankey(query: dict) -> pgo.Figure:
         # make in-flow special color if node has special color
         #     i.e. if current target node has color besides default node color
         # only on targets (columns) because only targets can have in-flows
-        if ((assoc_color := node_colors[idx]) != "wheat"):
-            flow_color = assoc_color
+        # if ((assoc_color := node_colors[idx]) != "wheat"):
+        #     flow_color = assoc_color
 
-        flow_colors.append(flow_color)
+        # flow_colors.append(flow_color)
 
     return pgo.Figure(data=[pgo.Sankey(
         node=dict(
             pad=15,
             thickness=20,
             label=labels,
-            color=node_colors
+            # color=node_colors
         ),
         link=dict(
             source=sources,
             target=targets,
             value=magnitudes,
-            color=flow_colors
+            color="rgba(100,100,100,0.5)"
         ))])
 
 
@@ -307,6 +304,7 @@ def get_xy(efficiency_metric, query: dict) -> pgo.Figure:
         a plotly Figure with the xy data
     '''
 
+    # TODO: maybe use get_translated_dataframe() here???
     agg_query = AggEtaPFU.objects.filter(
         **query).values("Year", efficiency_metric).query
 
@@ -364,8 +362,8 @@ def get_matrix(query: dict) -> coo_matrix:
 def visualize_matrix(mat: coo_matrix) -> pgo.Figure:
     # Convert the matrix to a format suitable for Plotly's heatmap
     rows, cols, vals = mat.row, mat.col, mat.data
-    row_labels = [Translator.index_reverse_translate(i) for i in rows]
-    col_labels = [Translator.index_reverse_translate(i) for i in cols]
+    row_labels = [Translator.index_translate(i) for i in rows]
+    col_labels = [Translator.index_translate(i) for i in cols]
     heatmap = pgo.Heatmap(
         z=vals,
         x=col_labels,
@@ -380,275 +378,156 @@ def visualize_matrix(mat: coo_matrix) -> pgo.Figure:
 
 
 COLUMNS = ["Dataset", "Country", "Method", "EnergyType", "LastStage", "IEAMW", "IncludesNEU", "Year", "ChoppedMat", "ChoppedVar", "ProductAggregation", "IndustryAggregation", "matname", "i", "j", "x"]
-def get_csv_from_query(query: dict, columns = COLUMNS):
+def get_translated_dataframe(query: dict, columns: list):
+    # get the data from database
     db_query = PSUT.objects.filter(**query).values(*columns).query
-
     with Silent():
         df = pd_sql.read_sql_query(str(db_query), con=connection.cursor().connection)
 
+    translate_columns = {
+        'Dataset': Translator.dataset_translate,
+        'Country': Translator.country_translate,
+        'Method': Translator.method_translate,
+        'EnergyType': Translator.energytype_translate,
+        'LastStage': Translator.laststage_translate,
+        'IEAMW': Translator.ieamw_translate,
+        'ChoppedMat': Translator.matname_translate,
+        'ChoppedVar': Translator.index_translate,
+        'ProductAggregation': Translator.agglevel_translate,
+        'IndustryAggregation': Translator.agglevel_translate,
+        'matname': Translator.matname_translate,
+        'i': Translator.index_translate,
+        'j': Translator.index_translate
+    }
+
+    for col, translate_func in translate_columns.items():
+        if col in df.columns:
+            df[col] = df[col].apply(translate_func)
+    
+    # Handle IncludesNEU separately as it's a boolean
+    if 'IncludesNEU' in df.columns:
+        df['IncludesNEU'] = df['IncludesNEU'].apply(lambda x: 'Yes' if x else 'No')
+    
+    return df
+
+def get_csv_from_query(query: dict, columns: list = COLUMNS):
+    
     # index false to not have column of row numbers
-    return df.to_csv(index=False)
+    return get_translated_dataframe(query, columns).to_csv(index=False)
 
 def get_excel_from_query(query: dict, columns = COLUMNS):
-    db_query = PSUT.objects.filter(**query).values(*columns).query
-
-    with Silent():
-        df = pd_sql.read_sql_query(str(db_query), con=connection.cursor().connection)
 
     # index false to not have column of row numbers
-    return df.to_excel(index=False)
+    return get_translated_dataframe(query, columns).to_excel(index=False)
 
-class Translator():
-    '''Contains the tools for translating PSUT metadata
-
-    Translations go from human readable name -> integer representation in the PSUT table
-
-    Reverse translations go from integer representation -> human readable name
-    '''
-
-    __index_translations = None
-    __index_reverse_translations = None
-    __country_translations = None
-    __method_translations = None
-    __energytype_translations = None
-    __laststage_translations = None
-    __IEAMW_translations = None
-    __matname_translations = None
-    __dataset_translations = None
-    __productaggregation_translations = None
+from bidict import bidict
+from django.apps import apps
+class Translator:
+    # A dictionary where keys are model names and values are bidict objects
+    __translations = {}
 
     @staticmethod
-    def get_available_options(model: models.Model) -> list[str]:
-        column_name = model.__name__
-
-        values = set(PSUT.objects.values_list(column_name)[0])
-
-        if column_name == "LastStage":
-            readable_values = model.objects.filter( **{"ECCStageID__in": values} )
-        else:
-            readable_values = model.objects.filter( **{f"{column_name}ID__in": values} )
+    def __load_bidict(model_name, id_field, name_field) -> bidict:
+        """
+        Load translations for a specific model if not already loaded.
         
-        if column_name in ["EnergyType", "Country"]:
-            return [getattr(val, "FullName") for val in readable_values]
-        elif column_name == "LastStage":
-            return [getattr(val, "ECCStage") for val in readable_values]
+        Args:
+            model_name (str): The name of the model to load translations for.
+            id_field (str): The name of the ID field in the model.
+            name_field (str): The name of the field containing the human-readable name.
         
-        return [getattr(val, column_name) for val in readable_values]
+        Returns:
+            bidict: A bidirectional dictionary of translations for the model.
+        """
+        if model_name not in Translator.__translations:
+            # Get the model class dynamically
+            model = apps.get_model(app_label='eviz', model_name=model_name)
+            # Create a bidict with name:id pairs
+            Translator.__translations[model_name] = bidict({getattr(item, name_field): getattr(item, id_field) for item in model.objects.all()})
+        return Translator.__translations[model_name]
 
     @staticmethod
-    def index_translate(name: str) -> int:
-        if Translator.__index_translations == None:
-            indexes = Index.objects.values_list("IndexID", "Index")
-            # get both regular and reverse to limit queries
-            Translator.__index_translations = {
-                name: id for id, name in indexes}
-            Translator.__index_reverse_translations = {
-                id: name for id, name in indexes}
-
-        return Translator.__index_translations[name]
+    def _translate(model_name, value, id_field, name_field):
+        # Translate a value between its ID and name for a specific model.
+        # value: The value to translate (can be either an ID or a name).
+        # Returns: The translated value (either ID or name, depending on input).
+        translations = Translator.__load_bidict(model_name, id_field, name_field)
+        return translations.get(value) or translations.inverse.get(value, value)
 
     @staticmethod
-    def index_reverse_translate(number: int) -> str:
-        if Translator.__index_reverse_translations == None:
-            indexes = Index.objects.values_list("IndexID", "Index")
-            # get both regular and reverse to limit queries
-            Translator.__index_translations = {
-                name: id for id, name in indexes}
-            Translator.__index_reverse_translations = {
-                id: name for id, name in indexes}
-
-        return Translator.__index_reverse_translations[number]
+    def index_translate(value):
+        return Translator._translate('Index', value, 'IndexID', 'Index')
 
     @staticmethod
-    def dataset_translate(name: str) -> int:
-        if Translator.__dataset_translations == None:
-            datasets = Dataset.objects.values_list("DatasetID", "Dataset")
-            Translator.__dataset_translations = {
-                name: id for id, name in datasets}
-
-        return Translator.__dataset_translations[name]
+    def dataset_translate(value):
+        return Translator._translate('Dataset', value, 'DatasetID', 'Dataset')
 
     @staticmethod
-    def get_datasets(only_available: bool = False) -> list[str]:
-        if Translator.__dataset_translations == None:
-            datasets = Dataset.objects.values_list("DatasetID", "Dataset")
-            Translator.__dataset_translations = {
-                name: id for id, name in datasets}
-
-        if (only_available):
-            return Translator.get_available_options(Dataset)
-
-        # return all possible options
-        return list(Translator.__dataset_translations.keys())
+    def country_translate(value):
+        return Translator._translate('Country', value, 'CountryID', 'FullName')
 
     @staticmethod
-    def country_translate(name: str) -> int:
-        if Translator.__country_translations == None:
-            countries = Country.objects.values_list("CountryID", "FullName")
-            Translator.__country_translations = {
-                name: id for id, name in countries}
-
-        return Translator.__country_translations[name]
+    def method_translate(value):
+        return Translator._translate('Method', value, 'MethodID', 'Method')
 
     @staticmethod
-    def get_countries(only_available: bool = False) -> list[str]:
-        if Translator.__country_translations == None:
-            countries = Country.objects.values_list("CountryID", "FullName")
-            Translator.__country_translations = {
-                name: id for id, name in countries}
-
-        if (only_available):
-            return Translator.get_available_options(Country)
-
-        # return all possible options
-        return list(Translator.__country_translations.keys())
+    def energytype_translate(value):
+        return Translator._translate('EnergyType', value, 'EnergyTypeID', 'FullName')
 
     @staticmethod
-    def method_translate(name: str) -> int:
-        if Translator.__method_translations == None:
-            methods = Method.objects.values_list("MethodID", "Method")
-            Translator.__method_translations = {
-                name: id for id, name in methods}
-
-        return Translator.__method_translations[name]
+    def laststage_translate(value):
+        return Translator._translate('LastStage', value, 'ECCStageID', 'ECCStage')
 
     @staticmethod
-    def get_methods(only_available: bool = False) -> list[str]:
-        if Translator.__method_translations == None:
-            methods = Method.objects.values_list("MethodID", "Method")
-            Translator.__method_translations = {
-                name: id for id, name in methods}
-
-        if (only_available):
-            return Translator.get_available_options(Method)
-
-        # return all possible options
-        return list(Translator.__method_translations.keys())
+    def ieamw_translate(value):
+        return Translator._translate('IEAMW', value, 'IEAMWID', 'IEAMW')
 
     @staticmethod
-    def energytype_translate(name: str) -> int:
-        if Translator.__energytype_translations == None:
-            enerytpyes = EnergyType.objects.values_list(
-                "EnergyTypeID", "FullName")
-            Translator.__energytype_translations = {
-                name: id for id, name in enerytpyes}
-
-        return Translator.__energytype_translations[name]
+    def matname_translate(value):
+        return Translator._translate('matname', value, 'matnameID', 'matname')
 
     @staticmethod
-    def get_energytypes(only_available: bool = False) -> list[str]:
-        if Translator.__energytype_translations == None:
-            enerytpyes = EnergyType.objects.values_list(
-                "EnergyTypeID", "FullName")
-            Translator.__energytype_translations = {
-                name: id for id, name in enerytpyes}
-
-        if (only_available):
-            return Translator.get_available_options(EnergyType)
-
-        # return all possible options
-        return list(Translator.__energytype_translations.keys())
+    def agglevel_translate(value):
+        return Translator._translate('AggLevel', value, 'AggLevelID', 'AggLevel')
 
     @staticmethod
-    def laststage_translate(name: str) -> int:
-        if Translator.__laststage_translations == None:
-            laststages = LastStage.objects.values_list(
-                "ECCStageID", "ECCStage")
-            Translator.__laststage_translations = {
-                name: id for id, name in laststages}
-
-        return Translator.__laststage_translations[name]
+    def includesNEU_translate(value):
+        return int(value) if isinstance(value, bool) else int(bool(value))
 
     @staticmethod
-    def get_laststages(only_available: bool = False) -> list[str]:
-        if Translator.__laststage_translations == None:
-            laststages = LastStage.objects.values_list(
-                "ECCStageID", "ECCStage")
-            Translator.__laststage_translations = {
-                name: id for id, name in laststages}
-
-        if (only_available):
-            return Translator.get_available_options(LastStage)
-
-        # return all possible options
-        return list(Translator.__laststage_translations.keys())
-
-    @staticmethod
-    def ieamw_translate(name: str) -> int:
-        if Translator.__IEAMW_translations == None:
-            IEAMWs = IEAMW.objects.values_list("IEAMWID", "IEAMW")
-            Translator.__IEAMW_translations = {name: id for id, name in IEAMWs}
-
-        return Translator.__IEAMW_translations[name]
-
-    @staticmethod
-    def get_ieamws(only_available: bool = False) -> list[str]:
-        if Translator.__IEAMW_translations == None:
-            IEAMWs = IEAMW.objects.values_list("IEAMWID", "IEAMW")
-            Translator.__IEAMW_translations = {name: id for id, name in IEAMWs}
-
-        if (only_available):
-            return Translator.get_available_options(IEAMW)
-
-        # return all possible options
-        return list(Translator.__IEAMW_translations.keys())
+    def get_all(attribute):
+        """
+        Get all possible values for a given attribute.
+        
+        Args:
+            attribute (str): The name of the attribute to get values for.
+        
+        Returns:
+            list: A list of all possible values (names) for the attribute.
+        """
+        # Dictionary mapping attribute names to model details
+        model_mappings = {
+            'dataset': ('Dataset', 'DatasetID', 'Dataset'),
+            'country': ('Country', 'CountryID', 'FullName'),
+            'method': ('Method', 'MethodID', 'Method'),
+            'energytype': ('EnergyType', 'EnergyTypeID', 'FullName'),
+            'laststage': ('LastStage', 'ECCStageID', 'ECCStage'),
+            'ieamw': ('IEAMW', 'IEAMWID', 'IEAMW'),
+            'matname': ('matname', 'matnameID', 'matname'),
+            'agglevel': ('AggLevel', 'AggLevelID', 'AggLevel'),
+        }
+        
+        if attribute not in model_mappings:
+            raise ValueError(f"Unknown attribute: {attribute}")
+        
+        # Get model details and load translations
+        model_name, id_field, name_field = model_mappings[attribute]
+        translations = Translator.__load_bidict(model_name, id_field, name_field)
+        return list(translations.keys())
 
     @staticmethod
-    def includesNEU_translate(name: bool) -> int:
-        return int(name)
-
-    @staticmethod
-    def get_includesNEUs(only_available: bool = False) -> list[str]:
-
-        if (only_available):
-            return Translator.get_available_options("IncludesNEU")
-
-        # return all possible options
-        return ["True", "False"]
-
-    @staticmethod
-    def agglevel_translate(name: str) -> int:
-        if Translator.__productaggregation_translations == None:
-            productaggregations = AggLevel.objects.values_list(
-                "AggLevelID", "AggLevel")
-            Translator.__productaggregation_translations = {
-                name: id for id, name in productaggregations}
-
-        return Translator.__productaggregation_translations[name]
-
-    @staticmethod
-    def get_agglevels() -> list[str]:
-        if Translator.__productaggregation_translations == None:
-            productaggregations = AggLevel.objects.values_list(
-                "AggLevelID", "AggLevel")
-            Translator.__productaggregation_translations = {
-                name: id for id, name in productaggregations}
-
-        # return all possible options
-        return list(Translator.__productaggregation_translations.keys())
-
-    @staticmethod
-    def matname_translate(name: str) -> int:
-        if Translator.__matname_translations == None:
-            matnames = matname.objects.values_list("matnameID", "matname")
-            Translator.__matname_translations = {
-                name: id for id, name in matnames}
-
-        return Translator.__matname_translations[name]
-
-    @staticmethod
-    def get_matnames(only_available: bool = False) -> list[str]:
-        if Translator.__matname_translations == None:
-            matnames = matname.objects.values_list("matnameID", "matname")
-            Translator.__matname_translations = {
-                name: id for id, name in matnames}
-
-        if (only_available):
-            return Translator.get_available_options(matname)
-
-        # return all possible options
-        return list(Translator.__matname_translations.keys())
-    
+    def get_includesNEUs():
+        return [True, False]
 
 # TODO: this needs to be fixed...
 # def temp_add_get():
@@ -692,9 +571,49 @@ class Silent():
         sys.stderr = self.real_stderr
 
 from uuid import uuid4
-from pickle import dumps as pickle_dumps
+import pickle
 def new_email_code(form) -> str:
     code = str(uuid4())
-    account_info = pickle_dumps(form)
+    account_info = pickle.dumps(form.clean()) # get the cleaned form (a map) serialized
     EmailAuthCodes(code=code, account_info=account_info).save() # save account setup info to database
     return code
+
+def get_user_history(request) -> list:
+    serialized_data = request.COOKIES.get('user_history')
+
+    if serialized_data:
+        user_history = pickle.loads(bytes.fromhex(serialized_data))
+    else:
+        user_history = list()
+
+    return user_history
+
+MAX_HISTORY = 5
+def update_user_history(request, plot_type, query):
+
+    user_history = get_user_history(request)
+
+    history_data = {
+        'plot_type': plot_type,
+        **query
+    }
+
+    # Check if user_history is not empty
+    if user_history:
+
+        # if query is already in history, remove it to move it to the top
+        try:
+            user_history.remove(history_data)
+        except ValueError: pass # don't care if not in, trying to remove anyways
+
+        user_history.insert(0, history_data) # finally, add the new query to the top of the history
+
+        # if the queue is full, take the end off
+        if len(user_history) > MAX_HISTORY: user_history.pop()
+
+    else:
+        # If user_history is empty, append the new history_data
+        user_history.append(history_data)
+
+    serialized_data = pickle.dumps(user_history)
+    return serialized_data

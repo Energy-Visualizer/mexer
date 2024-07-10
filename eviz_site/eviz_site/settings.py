@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+from os import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,7 +26,7 @@ SECRET_KEY = 'django-insecure-s$l2zupon$mfco$8!jd0t44$ad=*xds8qttsgg90y(ts@d@oc(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost"]
+ALLOWED_HOSTS = ["localhost", "153.106.102.121"]
 
 
 # Application definition
@@ -144,7 +145,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CSRF_TRUSTED_ORIGINS = ['https://eviz.cs.calvin.edu']
 
 
-# TODO: temp!
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-EMAIL_HOST = "ursa.calvin.edu"
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = "sandbox.smtp.mailtrap.io" # email host for the test smtp server
+EMAIL_HOST = "smtp.office365.com"
 EMAIL_PORT = 587
+EMAIL_HOST_USER = "eviz.site@outlook.com"
+EMAIL_HOST_PASSWORD = environ["email_password"]
+EMAIL_USE_TLS = True

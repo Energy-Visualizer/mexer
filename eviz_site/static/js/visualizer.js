@@ -76,12 +76,12 @@ const handleSankey = () => {
 }
 
 const handleMatrices = () => {
-    inputOff(fromYearInput);
-    inputOff(toYearInput);
+    inputOff(singleYearInput);
     inputOff(efficiencyDropdown);
     
+    inputOn(fromYearInput);
+    inputOn(toYearInput);
     inputOn(matnameDropdown);
-    inputOn(singleYearInput);
 }
 
 const showDropdown = (name) => {
@@ -119,3 +119,7 @@ const showDropdown = (name) => {
     // add the dropdown and button to the dom
     desiredDropdown.after(wholeDropdown);
 };
+
+function refreshHistory() {
+    htmx.ajax("GET", "/history", {target:"#history-list", swap:"innerHTML"});
+}
