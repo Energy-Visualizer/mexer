@@ -405,6 +405,8 @@ def get_translated_dataframe(query: dict, columns: list):
     # Handle IncludesNEU separately as it's a boolean
     if 'IncludesNEU' in df.columns:
         df['IncludesNEU'] = df['IncludesNEU'].apply(lambda x: 'Yes' if x else 'No')
+    
+    return df
 
 def get_csv_from_query(query: dict, columns: list = COLUMNS):
     
@@ -596,7 +598,7 @@ def update_user_history(request, plot_type, query):
 
     # Check if user_history is not empty
     if user_history:
-        
+
         # if query is already in history, remove it to move it to the top
         try:
             user_history.remove(history_data)

@@ -52,7 +52,6 @@ def get_data(request):
 def get_plot(request):
     plot_div = None
     if request.method == "POST":
-        print(request.POST)
         plot_type, query = shape_post_request(request.POST, get_plot_type = True)
         # color_by = request.POST.get("color_by")
         # color_scheme = request.POST.get("color_scheme")
