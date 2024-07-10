@@ -14,6 +14,7 @@ urlpatterns = [
 
     # misc pages
     path('about/', views.about, name='about'),
+    path('terms_and_conditions/', views.terms_and_conditions, name='terms_and_conditions'),
     path('data-info/', views.data_info, name="data-info"),
     re_path(r"static/css/([^(\.css)]*\.css)", views.handle_css_static),
 

@@ -107,16 +107,17 @@ def get_plot(request):
 @login_required(login_url="/login")
 @time_view
 def visualizer(request):
-    datasets = Translator.get_datasets()
-    countries = Translator.get_countries()
+    datasets = Translator.get_all('dataset')
+    countries = Translator.get_all('country')
     countries.sort()
-    methods = Translator.get_methods()
-    energy_types = Translator.get_energytypes()
-    last_stages = Translator.get_laststages()
-    ieamws = Translator.get_ieamws()
-    ieamws.remove("Both") # TODO: this should be less hard coded
-    matnames = Translator.get_matnames()
-    matnames.sort(key=len) # sort matrix names by how long they are... seems reasonable
+    methods = Translator.get_all('method')
+    energy_types = Translator.get_all('energytype')
+    last_stages = Translator.get_all('laststage')
+    ieamws = Translator.get_all('ieamw')
+    if "Both" in ieamws:
+        ieamws.remove("Both")  # TODO: this should be less hard coded
+    matnames = Translator.get_all('matname')
+    matnames.sort(key=len)  # sort matrix names by how long they are... seems reasonable
     
     context = {"datasets":datasets, "countries":countries, "methods":methods,
             "energy_types":energy_types, "last_stages":last_stages, "ieamws":ieamws, "matnames":matnames
@@ -127,6 +128,8 @@ def visualizer(request):
 def about(request):
     return render(request, 'about.html')
 
+def terms_and_conditions(request):
+    return render(request, 'terms_and_conditions.html')
 def data_info(request):
     datasets = Dataset.objects.all()
     return render(request, 'data_info.html', context = {"datasets":datasets})
