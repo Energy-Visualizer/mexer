@@ -188,6 +188,14 @@ def iea_valid(user: User, query: dict) -> bool:
         (user.is_authenticated and user.has_perm("eviz.get_iea"))
     )
 
+# TODO: is this all temp? do we want to keep all the data in seperate db's or will we actually use the dataset column?
+def get_database(query: dict) -> str:
+    db = Translator.dataset_translate(query["Dataset"])
+    # TODO: this is missing IEA, we have to get where that is
+    if db not in ["CLPFUv2.0a1", "CLPFUv2.0a2", "CLPFUv2.0a3"]:
+        return None # database is invalid
+    return db
+
 from pathlib import Path
 with open(f"{Path(__file__).resolve().parent.parent}/internal_resources/sankey_color_scheme.json") as f:
     colors_data = f.read()
@@ -210,8 +218,11 @@ def get_sankey(query: dict) -> pgo.Figure:
     if "matname" in query.keys():
         del query["matname"]
 
+    if (db := get_database(query)) == None:
+        return None
+
     # get all four matrices to make the full RUVY matrix
-    data = PSUT.objects.values_list("i", "j", "x").filter(
+    data = PSUT.objects.using(db).values_list("i", "j", "x").filter(
         **query, matname__in = [
             Translator.matname_translate("R"),
             Translator.matname_translate("U"),
@@ -304,8 +315,11 @@ def get_xy(efficiency_metric, query: dict) -> pgo.Figure:
         a plotly Figure with the xy data
     '''
 
+    if db := get_database(query) == None:
+        return None
+
     # TODO: maybe use get_translated_dataframe() here???
-    agg_query = AggEtaPFU.objects.filter(
+    agg_query = AggEtaPFU.objects.using(db).filter(
         **query).values("Year", efficiency_metric).query
 
     with Silent():
@@ -330,11 +344,15 @@ def get_matrix(query: dict) -> coo_matrix:
         or None if the given query related to no data 
     '''
 
+    if db := get_database(query) == None:
+        return None
+
     # Get the sparse matrix representation
     # i, j, x for row, column, value
     # in 3-tuples
     sparse_matrix = (
         PSUT.objects
+        .using(db)
         .values_list("i", "j", "x")
         .filter(**query)
     )
@@ -379,8 +397,12 @@ def visualize_matrix(mat: coo_matrix) -> pgo.Figure:
 
 COLUMNS = ["Dataset", "Country", "Method", "EnergyType", "LastStage", "IEAMW", "IncludesNEU", "Year", "ChoppedMat", "ChoppedVar", "ProductAggregation", "IndustryAggregation", "matname", "i", "j", "x"]
 def get_translated_dataframe(query: dict, columns: list):
+
+    if db := get_database(query) == None:
+        return None
+    
     # get the data from database
-    db_query = PSUT.objects.filter(**query).values(*columns).query
+    db_query = PSUT.objects.using(db).filter(**query).values(*columns).query
     with Silent():
         df = pd_sql.read_sql_query(str(db_query), con=connection.cursor().connection)
 
@@ -524,6 +546,28 @@ class Translator:
         model_name, id_field, name_field = model_mappings[attribute]
         translations = Translator.__load_bidict(model_name, id_field, name_field)
         return list(translations.keys())
+
+    @staticmethod
+    def get_all_available(attribute):
+        # Dictionary mapping attribute names to model details
+        model_mappings = {
+            'dataset': ('Dataset', 'DatasetID', 'Dataset'),
+            'country': ('Country', 'CountryID', 'FullName'),
+            'method': ('Method', 'MethodID', 'Method'),
+            'energytype': ('EnergyType', 'EnergyTypeID', 'FullName'),
+            'laststage': ('LastStage', 'ECCStageID', 'ECCStage'),
+            'ieamw': ('IEAMW', 'IEAMWID', 'IEAMW'),
+            'matname': ('matname', 'matnameID', 'matname'),
+            'agglevel': ('AggLevel', 'AggLevelID', 'AggLevel'),
+        }
+        
+        if attribute not in model_mappings:
+            raise ValueError(f"Unknown attribute: {attribute}")
+        
+        model_name, id_field, name_field = model_mappings[attribute]
+        translations = Translator.__load_bidict(model_name, id_field, name_field)
+
+        print(PSUT.objects.order_by().values_list(model_name, flat=True).distinct())
 
     @staticmethod
     def get_includesNEUs():
