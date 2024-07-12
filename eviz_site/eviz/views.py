@@ -251,8 +251,6 @@ def user_login(request):
         requested_url = request.GET.get("next")
         if requested_url:
             request.session['requested_url'] = requested_url
-        else:
-            request.session['requested_url'] = None
         form = LoginForm()
 
     # for if the user submitted their login form
