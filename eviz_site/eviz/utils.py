@@ -408,7 +408,7 @@ def get_psut_translated_dataframe(query: dict, columns: list) -> DataFrame:
     df = get_dataframe(PSUT, query, columns)
 
     # no need to do work if dataframe is empty (no data was found for the query)
-    if df.empty(): return df
+    if df.empty: return df
 
     translate_columns = {
         'Dataset': Translator.dataset_translate,
