@@ -136,7 +136,7 @@ form {
     margin-bottom: 20px;
 }
 
-#get {
+.main-button {
     background-color: #00ADB5;
     border-radius: 10px;
     border: 0;
@@ -148,22 +148,11 @@ form {
     
 }
 
-#download {
-    background-color: #00ADB5;
-    border-radius: 10px;
-    border: 0;
-    width: 150px;
-    height: 40px;
-    font-size: 20px;
-    color: #191b1e;
-    margin-left: 10px;
-}
-
-#get:hover {
+.main-button:hover {
     background-color: #30cbd3;
 }
 
-#get:active {
+.main-button:active {
     box-shadow: inset 0px 0px 10px;
 }
 
@@ -316,18 +305,6 @@ form {
     font-size: 18px;
     margin-bottom: 10px;
 }
-
-/* .sidebar ul {
-    list-style-type: none;
-    padding: 0;
-}
-
-.sidebar ul li {
-    margin-bottom: 10px;
-    padding: 10px;
-    background-color: #e9ecef;
-    border-radius: 5px;
-} */
 
 .history-button {
     width: 100%;
