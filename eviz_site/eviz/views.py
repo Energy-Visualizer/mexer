@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.mail import EmailMultiAlternatives # for email verification
 from django.views.decorators.csrf import csrf_exempt
+import logging
 
 # Eviz imports
 from eviz.utils import *
@@ -50,6 +51,8 @@ def get_data(request):
 @csrf_exempt
 @time_view
 def get_plot(request):
+    logger = logging.getLogger("eviz_default")
+
     plot_div = None
     if request.method == "POST":
         plot_type, query = shape_post_request(request.POST, get_plot_type = True)
@@ -73,6 +76,7 @@ def get_plot(request):
                 else:
                     sankey_diagram.update_layout(title_text="Test Sankey", font_size=10)
                     plot_div = plot(sankey_diagram, output_type="div", include_plotlyjs=False)
+                    logger.info("Sankey plot made")
 
             case "xy_plot":
                 efficiency_metric = query.pop('efficiency')

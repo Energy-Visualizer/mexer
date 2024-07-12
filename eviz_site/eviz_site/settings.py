@@ -171,3 +171,27 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = "eviz.site@outlook.com"
 EMAIL_HOST_PASSWORD = environ["email_password"]
 EMAIL_USE_TLS = True
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "default": {
+            "format": "[{asctime}] {levelname} (File:{filename} Function:{funcName} Line:{lineno}) {message}",
+            "style": "{" # '{' to format above string
+        }
+    },
+    "handlers": {
+        "file": {
+            "class": "logging.FileHandler",
+            "filename": "general.log",
+            "formatter": "default"
+        }
+    },
+    "loggers": {
+        "eviz_default": {
+            "level": "DEBUG",
+            "handlers": ["file"]
+        } 
+    }
+} 
