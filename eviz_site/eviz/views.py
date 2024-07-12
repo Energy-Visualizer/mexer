@@ -67,7 +67,7 @@ def get_plot(request):
                 query = translate_query(query)
                 sankey_diagram = get_sankey(query)
 
-                if sankey_diagram == None:
+                if sankey_diagram is None:
                     plot_div = "No cooresponding data"
 
                 else:
@@ -78,7 +78,11 @@ def get_plot(request):
                 efficiency_metric = query.pop('efficiency')
                 query = translate_query(query)
                 xy = get_xy(efficiency_metric, query)
-                plot_div = plot(xy, output_type="div", include_plotlyjs=False)
+
+                if xy is None:
+                    plot_div = "No corresponding data"
+                else:
+                    plot_div = plot(xy, output_type="div", include_plotlyjs=False)
 
             case "matrices":
                 matrix_name = query.get("matname")

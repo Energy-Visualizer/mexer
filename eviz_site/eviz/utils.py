@@ -4,10 +4,11 @@ from json import loads as json_from_string
 from django.contrib.auth.models import User
 import plotly.express as px  # for making the scatter plot
 import pandas.io.sql as pd_sql  # for getting data into a pandas dataframe
+from pandas import DataFrame
 from eviz.models import *
 import sys
 from os import devnull
-from django.db import connection
+from django.db import connections
 import plotly.graph_objects as pgo
 
 
@@ -218,7 +219,7 @@ def get_sankey(query: dict) -> pgo.Figure:
     if "matname" in query.keys():
         del query["matname"]
 
-    if (db := get_database(query)) == None:
+    if (db := get_database(query)) is None:
         return None
 
     # get all four matrices to make the full RUVY matrix
@@ -315,16 +316,10 @@ def get_xy(efficiency_metric, query: dict) -> pgo.Figure:
         a plotly Figure with the xy data
     '''
 
-    if db := get_database(query) == None:
-        return None
-
-    # TODO: maybe use get_translated_dataframe() here???
-    agg_query = AggEtaPFU.objects.using(db).filter(
-        **query).values("Year", efficiency_metric).query
-
-    with Silent():
-        df = pd_sql.read_sql_query(
-            str(agg_query), con=connection.cursor().connection)
+    # get the respective data from the database
+    df = get_dataframe(AggEtaPFU, query, ["Year", efficiency_metric])
+        
+    if df.empty: return None # if no data, return as such
 
     return px.line(
         df, x="Year", y=efficiency_metric,
@@ -344,7 +339,7 @@ def get_matrix(query: dict) -> coo_matrix:
         or None if the given query related to no data 
     '''
 
-    if db := get_database(query) == None:
+    if (db := get_database(query)) is None:
         return None
 
     # Get the sparse matrix representation
@@ -394,17 +389,26 @@ def visualize_matrix(mat: coo_matrix) -> pgo.Figure:
     # convert to a more general figure
     return pgo.Figure(data=heatmap)
 
-
-COLUMNS = ["Dataset", "Country", "Method", "EnergyType", "LastStage", "IEAMW", "IncludesNEU", "Year", "ChoppedMat", "ChoppedVar", "ProductAggregation", "IndustryAggregation", "matname", "i", "j", "x"]
-def get_translated_dataframe(query: dict, columns: list):
-
-    if db := get_database(query) == None:
-        return None
+def get_dataframe(model: models.Model, query: dict, columns: list) -> DataFrame:
+    if (db := get_database(query)) is None:
+        return DataFrame() # empty data frame if database is wrong
     
     # get the data from database
-    db_query = PSUT.objects.using(db).filter(**query).values(*columns).query
+    db_query = model.objects.filter(**query).values(*columns).query
     with Silent():
-        df = pd_sql.read_sql_query(str(db_query), con=connection.cursor().connection)
+        df = pd_sql.read_sql_query(
+            str(db_query),
+            con=connections[db].cursor().connection # get the connection associated with the requested database
+        )
+    
+    return df
+
+COLUMNS = ["Dataset", "Country", "Method", "EnergyType", "LastStage", "IEAMW", "IncludesNEU", "Year", "ChoppedMat", "ChoppedVar", "ProductAggregation", "IndustryAggregation", "matname", "i", "j", "x"]
+def get_psut_translated_dataframe(query: dict, columns: list) -> DataFrame:
+    df = get_dataframe(PSUT, query, columns)
+
+    # no need to do work if dataframe is empty (no data was found for the query)
+    if df.empty(): return df
 
     translate_columns = {
         'Dataset': Translator.dataset_translate,
@@ -435,12 +439,12 @@ def get_translated_dataframe(query: dict, columns: list):
 def get_csv_from_query(query: dict, columns: list = COLUMNS):
     
     # index false to not have column of row numbers
-    return get_translated_dataframe(query, columns).to_csv(index=False)
+    return get_psut_translated_dataframe(query, columns).to_csv(index=False)
 
 def get_excel_from_query(query: dict, columns = COLUMNS):
 
     # index false to not have column of row numbers
-    return get_translated_dataframe(query, columns).to_excel(index=False)
+    return get_psut_translated_dataframe(query, columns).to_excel(index=False)
 
 from bidict import bidict
 from django.apps import apps
@@ -600,7 +604,7 @@ class Silent():
     instance = None
 
     def __new__(cls):
-        if cls.instance == None:
+        if cls.instance is None:
             cls.instance = super().__new__(cls)
         return cls.instance
 

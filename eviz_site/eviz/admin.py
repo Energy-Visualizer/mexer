@@ -9,7 +9,7 @@ GET_IEA_PERMISSION = None
 @admin_action(description="Give access to IEA data")
 def allow_iea(modeladmin, request, queryset):
     global GET_IEA_PERMISSION # tell the function to use the globally defined variable instead of a local one
-    if GET_IEA_PERMISSION == None: GET_IEA_PERMISSION = Permission.objects.get(codename="get_iea")
+    if GET_IEA_PERMISSION is None: GET_IEA_PERMISSION = Permission.objects.get(codename="get_iea")
 
     for u in queryset:
         u.user_permissions.add(GET_IEA_PERMISSION)
@@ -19,7 +19,7 @@ def allow_iea(modeladmin, request, queryset):
 @admin_action(description="Remove access to IEA data")
 def remove_iea(modeladmin, request, queryset):
     global GET_IEA_PERMISSION # tell the function to use the globally defined variable instead of a local one
-    if GET_IEA_PERMISSION == None: GET_IEA_PERMISSION = Permission.objects.get(codename="get_iea")
+    if GET_IEA_PERMISSION is None: GET_IEA_PERMISSION = Permission.objects.get(codename="get_iea")
 
     for u in queryset:
         u.user_permissions.remove(GET_IEA_PERMISSION)
