@@ -1,6 +1,6 @@
 from scipy.sparse import coo_matrix
 from eviz.models import AggEtaPFU
-from json import loads as json_from_string
+from json import loads as json_from_string, dumps as json_dumps
 from django.contrib.auth.models import User
 import plotly.express as px  # for making the scatter plot
 import pandas.io.sql as pd_sql  # for getting data into a pandas dataframe
@@ -211,7 +211,7 @@ def get_sankey(query: dict) -> pgo.Figure:
         del query["matname"]
 
     # get all four matrices to make the full RUVY matrix
-    data = PSUT.objects.values_list("i", "j", "x").filter(
+    data = PSUT.objects.values_list("matname", "i", "j", "x").filter(
         **query, matname__in = [
             Translator.matname_translate("R"),
             Translator.matname_translate("U"),
@@ -227,67 +227,92 @@ def get_sankey(query: dict) -> pgo.Figure:
     # get rid of any duplicate i,j,x combinations (many exist)
     data = set(data)
 
-    # begin constructing the sankey
-    label_to_index = dict() # used to know which human-readable label is where in the label list
-    next_index = 0 # used to keep track of where a new label is added in the label list
+    nodes = [list(), list(), list()]
+    links = list()
+    options = dict()
 
-    labels = list() # used to keep track of all the labels
-    sources = list() # used to keep track of all the sources (from-nodes)
-    targets = list() # used to keep track of all the targets (to-nodes)
-    magnitudes = list() # used to keep track of all the magnitudes between the nodes
+    # nodes[0].append(dict(label = "A"))
+    # nodes[1].append(dict(label = "B"))
 
-    flow_colors = list()
+    # links.append({"from": dict(column = 0, node = 0), "to": dict(column = 1, node = 0), "value": 5})
 
-    # TODO: the columns of R V, rows of U Y, should be invisible nodes
-    # also colors are based on the prefix of the node name
-    # e.g. "Hydro [from ...]" should be considered "Hydro" in the color scheme
-    for row, col, magnitude in data:
-        translated_row = Translator.index_reverse_translate(row)
-        translated_col = Translator.index_reverse_translate(col)
+    for matname, row, col, magnitude in data:
+        match(Translator.matname_translate(matname)):
+            case("R"):
+                nodes[0].append(Translator.index_translate(row))
 
-        # Get the row (source) label's index and make the start of a connection
-        idx = label_to_index.get(translated_row, -1)
+            case("U"):
+                nodes[1].append(Translator.index_translate(row))
 
-        if idx == -1:  # label is new
-            labels.append(translated_row)
-            label_to_index[translated_row] = idx = next_index
-            next_index += 1
+            case("V"):
+                nodes[1].append(Translator.index_translate(col))
+            
+            case("Y"):
+                nodes[2].append(Translator.index_translate(col))
 
-        sources.append(idx)
+    return json_dumps(nodes), json_dumps(links), json_dumps(options)
 
-        # Get the col (target) label's index and make the end of a connection
-        idx = label_to_index.get(translated_col, -1)
-        if idx == -1:  # label is new
-            labels.append(translated_col)
-            label_to_index[translated_col] = idx = next_index
-            next_index += 1
+    # # begin constructing the sankey
+    # label_to_index = dict() # used to know which human-readable label is where in the label list
+    # next_index = 0 # used to keep track of where a new label is added in the label list
 
-        targets.append(idx)
+    # labels = list() # used to keep track of all the labels
+    # sources = list() # used to keep track of all the sources (from-nodes)
+    # targets = list() # used to keep track of all the targets (to-nodes)
+    # magnitudes = list() # used to keep track of all the magnitudes between the nodes
 
-        # Finish the connection with the magnitude of the connection
-        magnitudes.append(magnitude)
+    # flow_colors = list()
 
-        # make in-flow special color if node has special color
-        #     i.e. if current target node has color besides default node color
-        # only on targets (columns) because only targets can have in-flows
-        # if ((assoc_color := node_colors[idx]) != "wheat"):
-        #     flow_color = assoc_color
+    # # TODO: the columns of R V, rows of U Y, should be invisible nodes
+    # # also colors are based on the prefix of the node name
+    # # e.g. "Hydro [from ...]" should be considered "Hydro" in the color scheme
+    # for row, col, magnitude in data:
+    #     translated_row = Translator.index_reverse_translate(row)
+    #     translated_col = Translator.index_reverse_translate(col)
 
-        # flow_colors.append(flow_color)
+    #     # Get the row (source) label's index and make the start of a connection
+    #     idx = label_to_index.get(translated_row, -1)
 
-    return pgo.Figure(data=[pgo.Sankey(
-        node=dict(
-            pad=15,
-            thickness=20,
-            label=labels,
-            # color=node_colors
-        ),
-        link=dict(
-            source=sources,
-            target=targets,
-            value=magnitudes,
-            color="rgba(100,100,100,0.5)"
-        ))])
+    #     if idx == -1:  # label is new
+    #         labels.append(translated_row)
+    #         label_to_index[translated_row] = idx = next_index
+    #         next_index += 1
+
+    #     sources.append(idx)
+
+    #     # Get the col (target) label's index and make the end of a connection
+    #     idx = label_to_index.get(translated_col, -1)
+    #     if idx == -1:  # label is new
+    #         labels.append(translated_col)
+    #         label_to_index[translated_col] = idx = next_index
+    #         next_index += 1
+
+    #     targets.append(idx)
+
+    #     # Finish the connection with the magnitude of the connection
+    #     magnitudes.append(magnitude)
+
+    #     # make in-flow special color if node has special color
+    #     #     i.e. if current target node has color besides default node color
+    #     # only on targets (columns) because only targets can have in-flows
+    #     # if ((assoc_color := node_colors[idx]) != "wheat"):
+    #     #     flow_color = assoc_color
+
+    #     # flow_colors.append(flow_color)
+
+    # return pgo.Figure(data=[pgo.Sankey(
+    #     node=dict(
+    #         pad=15,
+    #         thickness=20,
+    #         label=labels,
+    #         # color=node_colors
+    #     ),
+    #     link=dict(
+    #         source=sources,
+    #         target=targets,
+    #         value=magnitudes,
+    #         color="rgba(100,100,100,0.5)"
+    #     ))])
 
 
 def get_xy(efficiency_metric, query: dict) -> pgo.Figure:

@@ -33,7 +33,9 @@ form {
     box-shadow: #191b1e 0px 0px 50px;
     overflow: hidden;
     position: relative;
-    display: block;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 #plot-section>div {
@@ -298,4 +300,11 @@ form {
     float: left;
     width: 70%;
     text-align: left;
+}
+
+/* get the SanKEY auto generated container to flex center the actual plot inside */
+#sankey_plot_auto_container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }

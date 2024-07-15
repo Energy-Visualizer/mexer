@@ -3,12 +3,19 @@
 
 <head>
     <title>EVIZ Visualizer</title>
-    <link rel="stylesheet" href="../static/css/toolbar.css" type="text/css" />
-    <link rel="stylesheet" href="../static/css/visualizer.css" type="text/css" />
+    
     <script src="https://unpkg.com/htmx.org@1.9.12"></script> <!-- HTMX -->
     <script src="https://cdn.plot.ly/plotly-latest.min.js" charset="utf-8"></script> <!-- Plotly -->
+
+    <script src="https://cdn.anychart.com/releases/8.12.1/js/anychart-core.min.js"></script> <!-- Anychart Core -->
+    <script src="https://cdn.anychart.com/releases/8.12.1/js/anychart-sankey.min.js"></script> <!-- Anychart Sankey -->
+
+    <link rel="stylesheet" href='../static/js/sankey-js/SanKEY_styles.css'> <!-- SanKEY css -->
+
+    <link rel="stylesheet" href="../static/css/toolbar.css" type="text/css" />
+    <link rel="stylesheet" href="../static/css/visualizer.css" type="text/css" />
     <script src="../static/js/visualizer.js"></script>
-    <script src="../static/js/plotUtil.js"></script>
+    <script type="module" src="../static/js/plotUtil.js"></script> <!-- type is module because we import SanKEY code -->
 </head>
 
 

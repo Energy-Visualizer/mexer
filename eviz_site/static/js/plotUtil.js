@@ -1,3 +1,34 @@
+import {PlotCreator} from './sankey-js/SanKEY_script.js'
+
+const plotSection = document.getElementById("plot-section");
+
+const createSankey = (nodes, links, options) => {
+    new PlotCreator(
+        plotSection, // container in the dom
+        nodes,
+        links,
+        plotSection.clientWidth, // plot width
+        plotSection.clientHeight, // plot height
+        0, // first column to show
+        3, // last column to show (e.g. 0, 4 shows columns 0,1,2,3)
+
+        // further options
+        {
+            plot_background_color: '#f4edf7',
+            default_links_opacity: 0.8,
+            default_gradient_links_opacity: 0.8,
+            lines_style_object: {stroke:'black','stroke-opacity':0.2, 'stroke-dasharray':'10,5'},
+            column_names_style_object: { color:'black', opacity:0.6,},
+            column_names: ["1", "2", "3"]
+        }
+    )
+}
+
+// to let us use the function outside of this module
+window.createSankey = createSankey;
+
+/* OLD Code
+
 // to hold the div in which is the plot
 var plotSection;
 
@@ -76,3 +107,5 @@ const initPlotUtils = () => {
 //     if (event.detail.target.id == "plot-section")
 //          initPlotUtils();
 // });
+
+end OLD Code */
