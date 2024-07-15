@@ -453,6 +453,7 @@ def get_translated_dataframe(query: dict, columns: list):
         'ProductAggregation': Translator.agglevel_translate,
         'IndustryAggregation': Translator.agglevel_translate,
         'matname': Translator.matname_translate,
+        'grossnet': Translator.grossnet_translte,
         'i': Translator.index_translate,
         'j': Translator.index_translate
     }

@@ -150,6 +150,7 @@ def visualizer(request):
     energy_types = Translator.get_all('energytype')
     last_stages = Translator.get_all('laststage')
     ieamws = Translator.get_all('ieamw')
+    grossnets = Translator.get_all('grossnets')
     try:
         ieamws.remove("Both")
     except ValueError:
@@ -160,7 +161,7 @@ def visualizer(request):
     context = {
         "datasets":datasets, "countries":countries, "methods":methods,
         "energy_types":energy_types, "last_stages":last_stages, "ieamws":ieamws,
-        "matnames":matnames,
+        "matnames":matnames, "grossnets":grossnets,
         "iea":request.user.is_authenticated and request.user.has_perm("eviz.get_iea")
         }
 
