@@ -12,6 +12,7 @@ const initialize = () => {
     lineBy = document.getElementById("line-by");
     facetBy = document.getElementById("facet-by");
     colorScale = document.getElementById("color-scale");
+    GrossNet = document.getElementById("grossnet_radio");
 
     // have specifics show differently for different plots
     let selectedValue = null; // to be filled in the following loop
@@ -48,6 +49,11 @@ const initialize = () => {
         inputOff(efficiencyDropdown);
         inputOff(matnameDropdown);
         inputOff(singleYearInput);
+        inputOff(colorBy);
+        inputOff(lineBy);
+        inputOff(facetBy);
+        inputOff(colorScale);
+        inputOff(GrossNet);
     }
 }
 

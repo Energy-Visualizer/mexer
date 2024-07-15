@@ -202,7 +202,17 @@
             </div>
             &#x2800
         </div>
-
+        <div class="query-choice">
+            <div class="info-text">
+                GrossNet
+            </div>
+            <div id="grossnet_radio" class="input-column">
+                {% for grossnet in grossnets %}
+                <input type="radio" value="{{ grossnet }}" name="grossnet"  required>{{ grossnet }}<br>
+                {% endfor %}
+            </div>
+            &#x2800
+        </div>
         <!-- metadata specifics inputs -->
 
         <!-- efficiency dropdown -->
