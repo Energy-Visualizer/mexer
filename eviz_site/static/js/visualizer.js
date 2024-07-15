@@ -72,6 +72,7 @@ const handleXYPlot = () => {
     inputOff(matnameDropdown);
     inputOff(colorScale);
 
+    inputOn(grossNet)
     inputOn(fromYearInput);
     inputOn(toYearInput);
     inputOn(efficiencyDropdown);
@@ -89,6 +90,7 @@ const handleSankey = () => {
     inputOff(lineBy);
     inputOff(facetBy);
     inputOff(colorScale);
+    inputOff(grossNet)
 
     inputOn(singleYearInput);
 }
@@ -99,6 +101,7 @@ const handleMatrices = () => {
     inputOff(colorBy);
     inputOff(lineBy);
     inputOff(facetBy);
+    inputOff(grossNet)
     
     inputOn(fromYearInput);
     inputOn(toYearInput);
