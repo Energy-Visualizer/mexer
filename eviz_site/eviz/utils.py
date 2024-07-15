@@ -223,7 +223,7 @@ def get_sankey(query: dict) -> pgo.Figure:
         return None
 
     # get all four matrices to make the full RUVY matrix
-    data = PSUT.objects.values_list("matname", "i", "j", "x").filter(
+    data = PSUT.objects.using(db).values_list("matname", "i", "j", "x").filter(
         **query, matname__in = [
             Translator.matname_translate("R"),
             Translator.matname_translate("U"),
@@ -239,7 +239,7 @@ def get_sankey(query: dict) -> pgo.Figure:
     # get rid of any duplicate i,j,x combinations (many exist)
     data = set(data)
 
-    nodes = [list(), list(), list()]
+    nodes = [set(), set(), set()]
     links = list()
     options = dict()
 
@@ -247,20 +247,6 @@ def get_sankey(query: dict) -> pgo.Figure:
     # nodes[1].append(dict(label = "B"))
 
     # links.append({"from": dict(column = 0, node = 0), "to": dict(column = 1, node = 0), "value": 5})
-
-    for matname, row, col, magnitude in data:
-        match(Translator.matname_translate(matname)):
-            case("R"):
-                nodes[0].append(Translator.index_translate(row))
-
-            case("U"):
-                nodes[1].append(Translator.index_translate(row))
-
-            case("V"):
-                nodes[1].append(Translator.index_translate(col))
-            
-            case("Y"):
-                nodes[2].append(Translator.index_translate(col))
 
     return json_dumps(nodes), json_dumps(links), json_dumps(options)
 
