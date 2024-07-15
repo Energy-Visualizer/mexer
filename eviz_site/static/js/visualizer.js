@@ -8,6 +8,10 @@ const initialize = () => {
     toYearInput = document.getElementById("to-year-input");
     efficiencyDropdown = document.getElementById('efficiency-dropdown');
     matnameDropdown = document.getElementById("matname-dropdown");
+    colorBy = document.getElementById("color-by");
+    lineBy = document.getElementById("line-by");
+    facetBy = document.getElementById("facet-by");
+    colorScale = document.getElementById("color-scale");
 
     // have specifics show differently for different plots
     let selectedValue = null; // to be filled in the following loop
@@ -60,10 +64,14 @@ const inputOff = (element) => {
 const handleXYPlot = () => {
     inputOff(singleYearInput);
     inputOff(matnameDropdown);
+    inputOff(colorScale);
 
     inputOn(fromYearInput);
     inputOn(toYearInput);
     inputOn(efficiencyDropdown);
+    inputOn(colorBy);
+    inputOn(lineBy);
+    inputOn(facetBy);
 }
 
 const handleSankey = () => {
@@ -71,6 +79,10 @@ const handleSankey = () => {
     inputOff(toYearInput);
     inputOff(efficiencyDropdown);
     inputOff(matnameDropdown);
+    inputOff(colorBy);
+    inputOff(lineBy);
+    inputOff(facetBy);
+    inputOff(colorScale);
 
     inputOn(singleYearInput);
 }
@@ -78,10 +90,14 @@ const handleSankey = () => {
 const handleMatrices = () => {
     inputOff(singleYearInput);
     inputOff(efficiencyDropdown);
+    inputOff(colorBy);
+    inputOff(lineBy);
+    inputOff(facetBy);
     
     inputOn(fromYearInput);
     inputOn(toYearInput);
     inputOn(matnameDropdown);
+    inputOn(colorScale);
 }
 
 const showDropdown = (name) => {

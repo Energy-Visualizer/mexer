@@ -53,10 +53,6 @@ def get_plot(request):
     plot_div = None
     if request.method == "POST":
         plot_type, query = shape_post_request(request.POST, get_plot_type = True)
-        # color_by = request.POST.get("color_by")
-        # color_scheme = request.POST.get("color_scheme")
-        # line_style = request.POST.get("line_style")
-        # line_by = request.POST.get("line_by")
 
         if not iea_valid(request.user, query):
             return HttpResponse("You do not have access to IEA data. Please contact <a style='color: #00adb5' :visited='{color: #87CEEB}' href='mailto:matthew.heun@calvin.edu'>matthew.heun@calvin.edu</a> with questions."
@@ -76,15 +72,23 @@ def get_plot(request):
 
             case "xy_plot":
                 efficiency_metric = query.pop('efficiency')
+                color_by = request.POST.get("color_by")
+                line_by = request.POST.get("line_by")
+                facet_by = request.POST.get("facet_by")
+                energy_type = request.POST.get("energy_type")
+                if 'Energy' in energy_type and 'Exergy' in energy_type:
+                    energy_type = 'Energy, Exergy'
+                print(energy_type)
                 query = translate_query(query)
-                xy = get_xy(efficiency_metric, query)
+                xy = get_xy(efficiency_metric, query, color_by, line_by, facet_by, energy_type)
                 plot_div = plot(xy, output_type="div", include_plotlyjs=False)
 
             case "matrices":
                 matrix_name = query.get("matname")
+                color_scale = request.POST.get('color_scale')
                 # Retrieve the matrix
                 query = translate_query(query)
-                matrix = get_matrix(query)
+                matrix = get_matrix(query, color_scale)
                 
                 if matrix is None:
                     plot_div = "No corresponding data"

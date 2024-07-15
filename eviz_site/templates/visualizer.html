@@ -43,37 +43,6 @@
         <h2>History</h2>
         <div id="history-list"></div>
     </div>
- {% comment %} <div class="sidebars">
-        <h3>Advanced Graph Options</h3>
-        <div class="option">
-            <label for="color-by">Color by:</label>
-            <select name="color_by" id="color-by">
-                <option value="country">Country</option>
-                <option value="energy_type">Energy Type</option>
-                <option value="includes_neu">Includes NEU</option>
-                <option value="last_stage">Last Stage</option>
-            </select>
-        </div>
-        <div>
-            <label for="color-scheme">Color Scheme:</label>
-            <select id="color-scheme" name="color_scheme">
-                <option value="Green">Green</option>
-                <option value="Red">Red</option>
-                <option value="Yellow">Yellow</option>
-                <option value="Blue">Blue</option>
-            </select>
-        </div>
-    
-        <div class="option">
-            <label for="line-style">Line Style:</label>
-            <select name="line_style" id="line-style">
-                <option value="solid">Solid</option>
-                <option value="dash">Dashed</option>
-                <option value="dot">Dotted</option>
-            </select>
-        </div>
-        
-    </div> {% endcomment %}
     <!-- main form -->
     <form method="post" action="/data" id="query-form">
         {% csrf_token %}
@@ -97,6 +66,11 @@
 
         <div class="query-choice">
             <div class="info-text">
+                <span class="popup-icon">&#9432;
+                    <span class="popup-text">
+                        Choose the dataset of interest.
+                    </span>
+                </span>
                 From dataset
             </div>
             <div class="input-column">
@@ -122,6 +96,11 @@
         </div>
         <div class="query-choice">
             <div class="info-text">
+                <span class="popup-icon">&#9432;
+                    <span class="popup-text">
+                        Choose the countries of interest. Click "Add Country" to enable additional countries.
+                    </span>
+                </span>
                 Country(ies)
             </div>
             <div class="input-column">
@@ -140,6 +119,11 @@
         </div>
         <div class="query-choice">
             <div class="info-text">
+                <span class="popup-icon">&#9432;
+                    <span class="popup-text">
+                        Choose the method of accounting for the primary equivalent of renewable electricity.
+                    </span>
+                </span>
                 Method
             </div>
             <div class="input-column">
@@ -149,6 +133,11 @@
         </div>
         <div class="query-choice">
             <div class="info-text">
+                <span class="popup-icon">&#9432;
+                    <span class="popup-text">
+                        Choose one of energy or exergy. Energy is a heat quantification of energy. Exergy is a work quantification of energy.
+                    </span>
+                </span>
                 Energy type
             </div>
             <div class="input-column">
@@ -164,6 +153,11 @@
         </div>
         <div class="query-choice">
             <div class="info-text">
+                <span class="popup-icon">&#9432;
+                    <span class="popup-text">
+                        Choose the last stage of the energy conversion chain, either final or useful.
+                    </span>
+                </span>
                 Last stage
             </div>
             <div class="input-column">
@@ -176,6 +170,11 @@
         </div>
         <div class="query-choice">
             <div class="info-text">
+                <span class="popup-icon">&#9432;
+                    <span class="popup-text">
+                        Choose IEA data only, muscle work data only (MW) or both.
+                    </span>
+                </span>
                 IEA and/or MW
             </div>
             <div class="input-column">
@@ -191,6 +190,11 @@
         </div>
         <div class="query-choice">
             <div class="info-text">
+                <span class="popup-icon">&#9432;
+                    <span class="popup-text">
+                        Choose whether to include non-energy uses (NEU) of energy carriers in final demand.
+                    </span>
+                </span>
                 Include NEU
             </div>
             <div class="input-column">
@@ -204,6 +208,11 @@
         <!-- efficiency dropdown -->
         <div class="query-choice">
             <div class="info-text">
+                <span class="popup-icon">&#9432;
+                    <span class="popup-text">
+                        Choose the Efficiency of interest.
+                    </span>
+                </span>
                 Efficiency
             </div>
             <div class="input-column">
@@ -249,11 +258,77 @@
             </div>
             &#x2800
         </div>
+        <div class="query-choice">
+            <div class="info-text">
+                Color by: 
+            </div>
+        <div class="input-column">
+                <select name="color_by" id="color-by" class="styled-dropdown space-input">
+                    <option value="country">Country</option>
+                    <option value="energy_type">Energy Type</option>
+                    <option value="includes_neu">Includes NEU</option>
+                    <option value="last_stage">Last Stage</option>
+                </select>
+        </div> 
+        &#x2800
+    </div>
+        <div class="query-choice">
+            <div class="info-text">
+            Line by:
+        </div>
+        <div class="input-column">
+                <select name="line_by" id="line-by" class="styled-dropdown space-input">
+                    <option value="country">Country</option>
+                    <option value="energy_type">Energy Type</option>
+                    <option value="includes_neu">Includes NEU</option>
+                    <option value="last_stage">Last Stage</option>
+                </select>
+            </div>
+            &#x2800
+        </div>
+            <div class="query-choice">
+                <div class="info-text">
+                Facet by:
+            </div>
+            <div class="input-column">
+                <select name="facet-by" id="facet-by" class="styled-dropdown space-input">
+                    <option value="country">Country</option>
+                    <option value="energy_type">Energy Type</option>
+                    <option value="includes_neu">Includes NEU</option>
+                    <option value="last_stage">Last Stage</option>
+                </select>
+            </div>
+            &#x2800 
+        </div>
         <!-- year range input end-->
-
+        <div class="query-choice">
+            <div class="info-text">
+                <span class="popup-icon">&#9432;
+                    <span class="popup-text">
+                        Choose the color scale for the matrix visualization.
+                    </span>
+                </span>
+                Color Scale
+            </div>
+            <div class="input-column">
+                <select name="color_scale" id="color-scale" class="styled-dropdown space-input">
+                    <option value="viridis">Viridis</option>
+                    <option value="inferno">Inferno</option>
+                    <option value="plasma">Plasma</option>
+                    <option value="magma">Magma</option>
+                    <option value="cividis">Cividis</option>
+                </select>
+            </div>
+            &#x2800
+        </div>
         <!-- matrix dropdown -->
         <div class="query-choice">
             <div class="info-text">
+                <span class="popup-icon">&#9432;
+                    <span class="popup-text">
+                        Choose the Matrix of interest.
+                    </span>
+                </span>
                 Matrix
             </div>
             <div class="input-column">
@@ -286,15 +361,12 @@
     </form>
     <!-- main form end -->
 
-
-
     <!-- plotting area -->
     <div id="plot-with-extra">
         <div id="plot-section">
             <!-- This will be replaced with the plot from HTMX -->
         </div>
         <div id="spinner-container"><span id="plot-spinner" class="loader htmx-indicator"></span></div>
-        <button id="compare-btn">Compare</button>
     </div>
     <!-- plotting area end -->
 

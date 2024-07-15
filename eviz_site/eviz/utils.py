@@ -301,36 +301,71 @@ def get_sankey(query: dict) -> pgo.Figure:
         ))])
 
 
-def get_xy(efficiency_metric, query: dict) -> pgo.Figure:
-    '''Gets an xy plot for a query
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
 
-    Inputs:
+def get_xy(efficiency_metric, query: dict, color_by: str, line_by: str, facet_by: str = None, energy_type: str = None) -> go.Figure:
+    db = get_database(query)
+    if db is None:
+        return go.Figure().add_annotation(text="No database found", showarrow=False)
 
-        efficiency_metric, string: the efficiency matrix to get the plot for
+    # Create a list of fields to select, always including 'Year' and the efficiency metric
+    fields_to_select = ["Year", efficiency_metric]
 
-        query, dict: a query ready to hit the database, i.e. translated as neccessary (see translate_query())
+    # Map the names to the actual database field names
+    field_mapping = {
+        'country': 'Country',
+        'energy_type': 'EnergyType',
+        'includes_neu': 'IncludesNEU',
+        'last_stage': 'LastStage'
+    }
 
-    Output:
+    # Add color_by and line_by fields if they're valid
+    for field in [color_by, line_by, facet_by]:
+        if field in field_mapping:
+            fields_to_select.append(field_mapping[field])
+        
+    agg_query = AggEtaPFU.objects.using(db).filter(**query).values(*fields_to_select)
 
-        a plotly Figure with the xy data
-    '''
+    # Use pandas to read the query results
+    df = pd.DataFrame(list(agg_query))
 
-    if db := get_database(query) == None:
-        return None
+    if df.empty:
+        return go.Figure().add_annotation(text="No data found for the given query", showarrow=False)
 
-    # TODO: maybe use get_translated_dataframe() here???
-    agg_query = AggEtaPFU.objects.using(db).filter(
-        **query).values("Year", efficiency_metric).query
+    try:
+        fig = px.line(
+            df, x="Year", y=efficiency_metric, 
+            color=field_mapping.get(color_by, color_by),
+            line_dash=field_mapping.get(line_by, line_by),
+            # facet_col=field_mapping.get(facet_by,facet_by),
+            # facet_col="Country",
+        )
+        if 'Energy' in energy_type and 'Exergy' in energy_type:
+            fig.update_layout(
+                plot_bgcolor="white",
+                xaxis=dict(showgrid=False, zeroline=False, ticklen=10, gridcolor='white', ticks="inside", title=None),
+                yaxis=dict(showgrid=False, zeroline=False, ticklen=10, gridcolor='white', ticks="inside", title=f"EX<sub>{efficiency_metric[-1]}</sub> [TJ]" )
+            )
+        elif energy_type == 'Exergy':
+            fig.update_layout(
+                plot_bgcolor="white",
+                xaxis=dict(showgrid=False, zeroline=False, ticklen=10, gridcolor='white', ticks="inside", title=None),
+                yaxis=dict(showgrid=False, zeroline=False, ticklen=10, gridcolor='white', ticks="inside", title=f"X<sub>{efficiency_metric[-1]}</sub> [TJ]" )
+            )
+        elif energy_type == 'Energy':
+            fig.update_layout(
+                plot_bgcolor="white",
+                xaxis=dict(showgrid=False, zeroline=False, ticklen=10, gridcolor='white', ticks="inside", title=None),
+                yaxis=dict(showgrid=False, zeroline=False, ticklen=10, gridcolor='white', ticks="inside", title=f"E<sub>{efficiency_metric[-1]}</sub> [TJ]" )
+            )
 
-    with Silent():
-        df = pd_sql.read_sql_query(
-            str(agg_query), con=connection.cursor().connection)
 
-    return px.line(
-        df, x="Year", y=efficiency_metric,
-        title=f"Efficiency of {efficiency_metric} by year",
-        template="plotly_dark"
-    )
+        return fig
+    except Exception as e:
+        return go.Figure().add_annotation(text=f"Error creating plot: {str(e)}", showarrow=False)
+
 
 
 def get_matrix(query: dict) -> coo_matrix:
