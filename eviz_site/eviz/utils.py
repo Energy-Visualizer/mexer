@@ -4,10 +4,11 @@ from json import loads as json_from_string, dumps as json_dumps
 from django.contrib.auth.models import User
 import plotly.express as px  # for making the scatter plot
 import pandas.io.sql as pd_sql  # for getting data into a pandas dataframe
-from eviz.models import PSUT, Index, Dataset, Country, Method, EnergyType, LastStage, IEAMW, matname, AggLevel, EmailAuthCodes
+from pandas import DataFrame
+from eviz.models import *
 import sys
 from os import devnull
-from django.db import connection
+from django.db import connections
 import plotly.graph_objects as pgo
 
 
@@ -148,7 +149,7 @@ def shape_post_request(
             plot_type = None
 
     # get rid of security token, is not part of a query
-    del shaped_query["csrfmiddlewaretoken"]
+    shaped_query.pop("csrfmiddlewaretoken", None)
 
     for k, v in shaped_query.items():
 
@@ -188,6 +189,14 @@ def iea_valid(user: User, query: dict) -> bool:
         (user.is_authenticated and user.has_perm("eviz.get_iea"))
     )
 
+# TODO: is this all temp? do we want to keep all the data in seperate db's or will we actually use the dataset column?
+def get_database(query: dict) -> str:
+    db = Translator.dataset_translate(query["Dataset"])
+    # TODO: this is missing IEA, we have to get where that is
+    if db not in ["CLPFUv2.0a1", "CLPFUv2.0a2", "CLPFUv2.0a3"]:
+        return None # database is invalid
+    return db
+
 from pathlib import Path
 with open(f"{Path(__file__).resolve().parent.parent}/internal_resources/sankey_color_scheme.json") as f:
     colors_data = f.read()
@@ -209,6 +218,9 @@ def get_sankey(query: dict) -> pgo.Figure:
     # we do a little shaping
     if "matname" in query.keys():
         del query["matname"]
+
+    if (db := get_database(query)) is None:
+        return None
 
     # get all four matrices to make the full RUVY matrix
     data = PSUT.objects.values_list("matname", "i", "j", "x").filter(
@@ -329,12 +341,10 @@ def get_xy(efficiency_metric, query: dict) -> pgo.Figure:
         a plotly Figure with the xy data
     '''
 
-    agg_query = AggEtaPFU.objects.filter(
-        **query).values("Year", efficiency_metric).query
-
-    with Silent():
-        df = pd_sql.read_sql_query(
-            str(agg_query), con=connection.cursor().connection)
+    # get the respective data from the database
+    df = get_dataframe(AggEtaPFU, query, ["Year", efficiency_metric])
+        
+    if df.empty: return None # if no data, return as such
 
     return px.line(
         df, x="Year", y=efficiency_metric,
@@ -354,11 +364,15 @@ def get_matrix(query: dict) -> coo_matrix:
         or None if the given query related to no data 
     '''
 
+    if (db := get_database(query)) is None:
+        return None
+
     # Get the sparse matrix representation
     # i, j, x for row, column, value
     # in 3-tuples
     sparse_matrix = (
         PSUT.objects
+        .using(db)
         .values_list("i", "j", "x")
         .filter(**query)
     )
@@ -386,8 +400,8 @@ def get_matrix(query: dict) -> coo_matrix:
 def visualize_matrix(mat: coo_matrix) -> pgo.Figure:
     # Convert the matrix to a format suitable for Plotly's heatmap
     rows, cols, vals = mat.row, mat.col, mat.data
-    row_labels = [Translator.index_reverse_translate(i) for i in rows]
-    col_labels = [Translator.index_reverse_translate(i) for i in cols]
+    row_labels = [Translator.index_translate(i) for i in rows]
+    col_labels = [Translator.index_translate(i) for i in cols]
     heatmap = pgo.Heatmap(
         z=vals,
         x=col_labels,
@@ -400,224 +414,193 @@ def visualize_matrix(mat: coo_matrix) -> pgo.Figure:
     # convert to a more general figure
     return pgo.Figure(data=heatmap)
 
+def get_dataframe(model: models.Model, query: dict, columns: list) -> DataFrame:
+    if (db := get_database(query)) is None:
+        return DataFrame() # empty data frame if database is wrong
+    
+    # get the data from database
+    db_query = model.objects.filter(**query).values(*columns).query
+    with Silent():
+        df = pd_sql.read_sql_query(
+            str(db_query),
+            con=connections[db].cursor().connection # get the connection associated with the requested database
+        )
+    
+    return df
 
 COLUMNS = ["Dataset", "Country", "Method", "EnergyType", "LastStage", "IEAMW", "IncludesNEU", "Year", "ChoppedMat", "ChoppedVar", "ProductAggregation", "IndustryAggregation", "matname", "i", "j", "x"]
-def get_csv_from_query(query: dict, columns = COLUMNS):
-    db_query = PSUT.objects.filter(**query).values(*columns).query
+def get_psut_translated_dataframe(query: dict, columns: list) -> DataFrame:
+    df = get_dataframe(PSUT, query, columns)
 
-    with Silent():
-        df = pd_sql.read_sql_query(str(db_query), con=connection.cursor().connection)
+    # no need to do work if dataframe is empty (no data was found for the query)
+    if df.empty: return df
 
+    translate_columns = {
+        'Dataset': Translator.dataset_translate,
+        'Country': Translator.country_translate,
+        'Method': Translator.method_translate,
+        'EnergyType': Translator.energytype_translate,
+        'LastStage': Translator.laststage_translate,
+        'IEAMW': Translator.ieamw_translate,
+        'ChoppedMat': Translator.matname_translate,
+        'ChoppedVar': Translator.index_translate,
+        'ProductAggregation': Translator.agglevel_translate,
+        'IndustryAggregation': Translator.agglevel_translate,
+        'matname': Translator.matname_translate,
+        'i': Translator.index_translate,
+        'j': Translator.index_translate
+    }
+
+    for col, translate_func in translate_columns.items():
+        if col in df.columns:
+            df[col] = df[col].apply(translate_func)
+    
+    # Handle IncludesNEU separately as it's a boolean
+    if 'IncludesNEU' in df.columns:
+        df['IncludesNEU'] = df['IncludesNEU'].apply(lambda x: 'Yes' if x else 'No')
+    
+    return df
+
+def get_csv_from_query(query: dict, columns: list = COLUMNS):
+    
     # index false to not have column of row numbers
-    return df.to_csv(index=False)
+    return get_psut_translated_dataframe(query, columns).to_csv(index=False)
 
 def get_excel_from_query(query: dict, columns = COLUMNS):
-    db_query = PSUT.objects.filter(**query).values(*columns).query
-
-    with Silent():
-        df = pd_sql.read_sql_query(str(db_query), con=connection.cursor().connection)
 
     # index false to not have column of row numbers
-    return df.to_excel(index=False)
+    return get_psut_translated_dataframe(query, columns).to_excel(index=False)
 
-class Translator():
-    '''Contains the tools for translating PSUT metadata
-
-    Translations go from human readable name -> integer representation in the PSUT table
-
-    Reverse translations go from integer representation -> human readable name
-    '''
-
-    __index_translations = None
-    __index_reverse_translations = None
-    __country_translations = None
-    __method_translations = None
-    __energytype_translations = None
-    __laststage_translations = None
-    __IEAMW_translations = None
-    __matname_translations = None
-    __dataset_translations = None
-    __productaggregation_translations = None
+from bidict import bidict
+from django.apps import apps
+class Translator:
+    # A dictionary where keys are model names and values are bidict objects
+    __translations = {}
 
     @staticmethod
-    def index_translate(name: str) -> int:
-        if Translator.__index_translations == None:
-            indexes = Index.objects.values_list("IndexID", "Index")
-            # get both regular and reverse to limit queries
-            Translator.__index_translations = {
-                name: id for id, name in indexes}
-            Translator.__index_reverse_translations = {
-                id: name for id, name in indexes}
-
-        return Translator.__index_translations[name]
-
-    @staticmethod
-    def index_reverse_translate(number: int) -> str:
-        if Translator.__index_reverse_translations == None:
-            indexes = Index.objects.values_list("IndexID", "Index")
-            # get both regular and reverse to limit queries
-            Translator.__index_translations = {
-                name: id for id, name in indexes}
-            Translator.__index_reverse_translations = {
-                id: name for id, name in indexes}
-
-        return Translator.__index_reverse_translations[number]
+    def __load_bidict(model_name, id_field, name_field) -> bidict:
+        """
+        Load translations for a specific model if not already loaded.
+        
+        Args:
+            model_name (str): The name of the model to load translations for.
+            id_field (str): The name of the ID field in the model.
+            name_field (str): The name of the field containing the human-readable name.
+        
+        Returns:
+            bidict: A bidirectional dictionary of translations for the model.
+        """
+        if model_name not in Translator.__translations:
+            # Get the model class dynamically
+            model = apps.get_model(app_label='eviz', model_name=model_name)
+            # Create a bidict with name:id pairs
+            Translator.__translations[model_name] = bidict({getattr(item, name_field): getattr(item, id_field) for item in model.objects.all()})
+        return Translator.__translations[model_name]
 
     @staticmethod
-    def dataset_translate(name: str) -> int:
-        if Translator.__dataset_translations == None:
-            datasets = Dataset.objects.values_list("DatasetID", "Dataset")
-            Translator.__dataset_translations = {
-                name: id for id, name in datasets}
-
-        return Translator.__dataset_translations[name]
-
-    @staticmethod
-    def get_datasets() -> list[str]:
-        if Translator.__dataset_translations == None:
-            datasets = Dataset.objects.values_list("DatasetID", "Dataset")
-            Translator.__dataset_translations = {
-                name: id for id, name in datasets}
-
-        return list(Translator.__dataset_translations.keys())
+    def _translate(model_name, value, id_field, name_field):
+        # Translate a value between its ID and name for a specific model.
+        # value: The value to translate (can be either an ID or a name).
+        # Returns: The translated value (either ID or name, depending on input).
+        translations = Translator.__load_bidict(model_name, id_field, name_field)
+        return translations.get(value) or translations.inverse.get(value, value)
 
     @staticmethod
-    def country_translate(name: str) -> int:
-        if Translator.__country_translations == None:
-            countries = Country.objects.values_list("CountryID", "FullName")
-            Translator.__country_translations = {
-                name: id for id, name in countries}
-
-        return Translator.__country_translations[name]
+    def index_translate(value):
+        return Translator._translate('Index', value, 'IndexID', 'Index')
 
     @staticmethod
-    def get_countries() -> list[str]:
-        if Translator.__country_translations == None:
-            countries = Country.objects.values_list("CountryID", "FullName")
-            Translator.__country_translations = {
-                name: id for id, name in countries}
-
-        return list(Translator.__country_translations.keys())
+    def dataset_translate(value):
+        return Translator._translate('Dataset', value, 'DatasetID', 'Dataset')
 
     @staticmethod
-    def method_translate(name: str) -> int:
-        if Translator.__method_translations == None:
-            methods = Method.objects.values_list("MethodID", "Method")
-            Translator.__method_translations = {
-                name: id for id, name in methods}
-
-        return Translator.__method_translations[name]
+    def country_translate(value):
+        return Translator._translate('Country', value, 'CountryID', 'FullName')
 
     @staticmethod
-    def get_methods() -> list[str]:
-        if Translator.__method_translations == None:
-            methods = Method.objects.values_list("MethodID", "Method")
-            Translator.__method_translations = {
-                name: id for id, name in methods}
-
-        return list(Translator.__method_translations.keys())
+    def method_translate(value):
+        return Translator._translate('Method', value, 'MethodID', 'Method')
 
     @staticmethod
-    def energytype_translate(name: str) -> int:
-        if Translator.__energytype_translations == None:
-            enerytpyes = EnergyType.objects.values_list(
-                "EnergyTypeID", "FullName")
-            Translator.__energytype_translations = {
-                name: id for id, name in enerytpyes}
-
-        return Translator.__energytype_translations[name]
+    def energytype_translate(value):
+        return Translator._translate('EnergyType', value, 'EnergyTypeID', 'FullName')
 
     @staticmethod
-    def get_energytypes() -> list[str]:
-        if Translator.__energytype_translations == None:
-            enerytpyes = EnergyType.objects.values_list(
-                "EnergyTypeID", "FullName")
-            Translator.__energytype_translations = {
-                name: id for id, name in enerytpyes}
-
-        return list(Translator.__energytype_translations.keys())
+    def laststage_translate(value):
+        return Translator._translate('LastStage', value, 'ECCStageID', 'ECCStage')
 
     @staticmethod
-    def laststage_translate(name: str) -> int:
-        if Translator.__laststage_translations == None:
-            laststages = LastStage.objects.values_list(
-                "ECCStageID", "ECCStage")
-            Translator.__laststage_translations = {
-                name: id for id, name in laststages}
-
-        return Translator.__laststage_translations[name]
+    def ieamw_translate(value):
+        return Translator._translate('IEAMW', value, 'IEAMWID', 'IEAMW')
 
     @staticmethod
-    def get_laststages() -> list[str]:
-        if Translator.__laststage_translations == None:
-            laststages = LastStage.objects.values_list(
-                "ECCStageID", "ECCStage")
-            Translator.__laststage_translations = {
-                name: id for id, name in laststages}
-
-        return list(Translator.__laststage_translations.keys())
+    def matname_translate(value):
+        return Translator._translate('matname', value, 'matnameID', 'matname')
 
     @staticmethod
-    def ieamw_translate(name: str) -> int:
-        if Translator.__IEAMW_translations == None:
-            IEAMWs = IEAMW.objects.values_list("IEAMWID", "IEAMW")
-            Translator.__IEAMW_translations = {name: id for id, name in IEAMWs}
-
-        return Translator.__IEAMW_translations[name]
+    def agglevel_translate(value):
+        return Translator._translate('AggLevel', value, 'AggLevelID', 'AggLevel')
 
     @staticmethod
-    def get_ieamws() -> list[str]:
-        if Translator.__IEAMW_translations == None:
-            IEAMWs = IEAMW.objects.values_list("IEAMWID", "IEAMW")
-            Translator.__IEAMW_translations = {name: id for id, name in IEAMWs}
-
-        return list(Translator.__IEAMW_translations.keys())
+    def includesNEU_translate(value):
+        return int(value) if isinstance(value, bool) else int(bool(value))
 
     @staticmethod
-    def includesNEU_translate(name: bool) -> int:
-        return int(name)
+    def get_all(attribute):
+        """
+        Get all possible values for a given attribute.
+        
+        Args:
+            attribute (str): The name of the attribute to get values for.
+        
+        Returns:
+            list: A list of all possible values (names) for the attribute.
+        """
+        # Dictionary mapping attribute names to model details
+        model_mappings = {
+            'dataset': ('Dataset', 'DatasetID', 'Dataset'),
+            'country': ('Country', 'CountryID', 'FullName'),
+            'method': ('Method', 'MethodID', 'Method'),
+            'energytype': ('EnergyType', 'EnergyTypeID', 'FullName'),
+            'laststage': ('LastStage', 'ECCStageID', 'ECCStage'),
+            'ieamw': ('IEAMW', 'IEAMWID', 'IEAMW'),
+            'matname': ('matname', 'matnameID', 'matname'),
+            'agglevel': ('AggLevel', 'AggLevelID', 'AggLevel'),
+        }
+        
+        if attribute not in model_mappings:
+            raise ValueError(f"Unknown attribute: {attribute}")
+        
+        # Get model details and load translations
+        model_name, id_field, name_field = model_mappings[attribute]
+        translations = Translator.__load_bidict(model_name, id_field, name_field)
+        return list(translations.keys())
 
     @staticmethod
-    def get_includesNEUs() -> list[str]:
-        return ["True", "False"]
+    def get_all_available(attribute):
+        # Dictionary mapping attribute names to model details
+        model_mappings = {
+            'dataset': ('Dataset', 'DatasetID', 'Dataset'),
+            'country': ('Country', 'CountryID', 'FullName'),
+            'method': ('Method', 'MethodID', 'Method'),
+            'energytype': ('EnergyType', 'EnergyTypeID', 'FullName'),
+            'laststage': ('LastStage', 'ECCStageID', 'ECCStage'),
+            'ieamw': ('IEAMW', 'IEAMWID', 'IEAMW'),
+            'matname': ('matname', 'matnameID', 'matname'),
+            'agglevel': ('AggLevel', 'AggLevelID', 'AggLevel'),
+        }
+        
+        if attribute not in model_mappings:
+            raise ValueError(f"Unknown attribute: {attribute}")
+        
+        model_name, id_field, name_field = model_mappings[attribute]
+        translations = Translator.__load_bidict(model_name, id_field, name_field)
+
+        print(PSUT.objects.order_by().values_list(model_name, flat=True).distinct())
 
     @staticmethod
-    def agglevel_translate(name: str) -> int:
-        if Translator.__productaggregation_translations == None:
-            productaggregations = AggLevel.objects.values_list(
-                "AggLevelID", "AggLevel")
-            Translator.__productaggregation_translations = {
-                name: id for id, name in productaggregations}
-
-        return Translator.__productaggregation_translations[name]
-
-    @staticmethod
-    def get_agglevels() -> list[str]:
-        if Translator.__productaggregation_translations == None:
-            productaggregations = AggLevel.objects.values_list(
-                "AggLevelID", "AggLevel")
-            Translator.__productaggregation_translations = {
-                name: id for id, name in productaggregations}
-
-        return list(Translator.__productaggregation_translations.keys())
-
-    @staticmethod
-    def matname_translate(name: str) -> int:
-        if Translator.__matname_translations == None:
-            matnames = matname.objects.values_list("matnameID", "matname")
-            Translator.__matname_translations = {
-                name: id for id, name in matnames}
-
-        return Translator.__matname_translations[name]
-
-    @staticmethod
-    def get_matnames() -> list[str]:
-        if Translator.__matname_translations == None:
-            matnames = matname.objects.values_list("matnameID", "matname")
-            Translator.__matname_translations = {
-                name: id for id, name in matnames}
-
-        return list(Translator.__matname_translations.keys())
+    def get_includesNEUs():
+        return [True, False]
 
 # TODO: this needs to be fixed...
 # def temp_add_get():
@@ -646,7 +629,7 @@ class Silent():
     instance = None
 
     def __new__(cls):
-        if cls.instance == None:
+        if cls.instance is None:
             cls.instance = super().__new__(cls)
         return cls.instance
 
@@ -661,9 +644,49 @@ class Silent():
         sys.stderr = self.real_stderr
 
 from uuid import uuid4
-from pickle import dumps as pickle_dumps
+import pickle
 def new_email_code(form) -> str:
     code = str(uuid4())
-    account_info = pickle_dumps(form)
+    account_info = pickle.dumps(form.clean()) # get the cleaned form (a map) serialized
     EmailAuthCodes(code=code, account_info=account_info).save() # save account setup info to database
     return code
+
+def get_user_history(request) -> list:
+    serialized_data = request.COOKIES.get('user_history')
+
+    if serialized_data:
+        user_history = pickle.loads(bytes.fromhex(serialized_data))
+    else:
+        user_history = list()
+
+    return user_history
+
+MAX_HISTORY = 5
+def update_user_history(request, plot_type, query):
+
+    user_history = get_user_history(request)
+
+    history_data = {
+        'plot_type': plot_type,
+        **query
+    }
+
+    # Check if user_history is not empty
+    if user_history:
+
+        # if query is already in history, remove it to move it to the top
+        try:
+            user_history.remove(history_data)
+        except ValueError: pass # don't care if not in, trying to remove anyways
+
+        user_history.insert(0, history_data) # finally, add the new query to the top of the history
+
+        # if the queue is full, take the end off
+        if len(user_history) > MAX_HISTORY: user_history.pop()
+
+    else:
+        # If user_history is empty, append the new history_data
+        user_history.append(history_data)
+
+    serialized_data = pickle.dumps(user_history)
+    return serialized_data

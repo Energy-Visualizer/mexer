@@ -93,6 +93,15 @@ class matname(models.Model):
         db_table = "matname"
         managed = False
 
+class GrossNet(models.Model):
+    GrossNetID = models.PositiveSmallIntegerField(primary_key=True)
+    GrossNet = models.TextField()
+    FullName = models.TextField()
+    Description = models.TextField()
+    class Meta:
+        db_table = "GrossNet"
+        managed = False
+
         
 class Index(models.Model):
     IndexID = models.PositiveSmallIntegerField(primary_key=True)
@@ -125,7 +134,6 @@ class PSUT(models.Model):
     i = models.PositiveSmallIntegerField()
     j = models.PositiveSmallIntegerField()
     x = models.FloatField()
-
 
 class AggEtaPFU(models.Model):
 

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+from os import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,7 +26,7 @@ SECRET_KEY = 'django-insecure-s$l2zupon$mfco$8!jd0t44$ad=*xds8qttsgg90y(ts@d@oc(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost"]
+ALLOWED_HOSTS = ["localhost", "153.106.102.121"]
 
 
 # Application definition
@@ -78,9 +79,28 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "OPTIONS": {
-            "service": "v2.0a2"
+            "service": "v2.0a3"
             # All other information provided through environment variables
             # PGSERVICEFILE and PGPASSFILE
+        }
+    },
+    # this is functionally a duplicate to default, but allows the database to be refered to manually
+    "CLPFUv2.0a3": {
+        "ENGINE": "django.db.backends.postgresql",
+        "OPTIONS": {
+            "service": "v2.0a3"
+        }
+    },
+    'CLPFUv2.0a2': {
+        'ENGINE': 'django.db.backends.postgresql',
+        "OPTIONS":{
+            "service": "v2.0a2"
+        }
+    },
+    'CLPFUv2.0a1': {
+        'ENGINE': 'django.db.backends.postgresql',
+        "OPTIONS":{
+            "service": "v2.0a1"
         }
     },
     'users': {
@@ -144,7 +164,34 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CSRF_TRUSTED_ORIGINS = ['https://eviz.cs.calvin.edu']
 
 
-# TODO: temp! the following line prints emails only to the console
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-EMAIL_HOST = "ursa.calvin.edu"
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = "sandbox.smtp.mailtrap.io" # email host for the test smtp server
+EMAIL_HOST = "smtp.office365.com"
 EMAIL_PORT = 587
+EMAIL_HOST_USER = "eviz.site@outlook.com"
+EMAIL_HOST_PASSWORD = environ["email_password"]
+EMAIL_USE_TLS = True
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "default": {
+            "format": "[{asctime}] {levelname} (File:{filename} Function:{funcName} Line:{lineno}) {message}",
+            "style": "{" # '{' to format above string
+        }
+    },
+    "handlers": {
+        "file": {
+            "class": "logging.FileHandler",
+            "filename": "general.log",
+            "formatter": "default"
+        }
+    },
+    "loggers": {
+        "eviz_default": {
+            "level": "DEBUG",
+            "handlers": ["file"]
+        } 
+    }
+} 
