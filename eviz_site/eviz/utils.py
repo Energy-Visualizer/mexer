@@ -239,14 +239,14 @@ def get_sankey(query: dict) -> pgo.Figure:
     # get rid of any duplicate i,j,x combinations (many exist)
     data = set(data)
 
-    nodes = [set(), set(), set()]
+    nodes = [list()]
     links = list()
     options = dict()
 
-    # nodes[0].append(dict(label = "A"))
-    # nodes[1].append(dict(label = "B"))
+    nodes[0].append(dict(label = "A"))
+    nodes[0].append(dict(label = "B"))
 
-    # links.append({"from": dict(column = 0, node = 0), "to": dict(column = 1, node = 0), "value": 5})
+    links.append({"from": dict(column=0, node = 0), "to": dict(column=0, node = 0), "value": 5})
 
     return json_dumps(nodes), json_dumps(links), json_dumps(options)
 
