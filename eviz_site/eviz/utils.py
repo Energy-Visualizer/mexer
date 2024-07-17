@@ -200,7 +200,8 @@ def get_database(query: dict) -> str:
 from pathlib import Path
 with open(f"{Path(__file__).resolve().parent.parent}/internal_resources/sankey_color_scheme.json") as f:
     colors_data = f.read()
-SANKEY_COLORS: dict[str, str] = json_from_string(colors_data)
+    SANKEY_COLORS: dict[str, str] = json_from_string(colors_data)
+    del colors_data # don't need it clogging up the namespace
 def get_sankey(query: dict) -> pgo.Figure:
     '''Gets a sankey diagram for a query
 
@@ -242,7 +243,11 @@ def get_sankey(query: dict) -> pgo.Figure:
     # 5 lists, one for each column in the plot
     nodes = [list(), list(), list(), list(), list()]
     links = list()
-    options = dict()
+    options = dict(
+        plot_background_color = '#f4edf7',
+        default_links_opacity = 0.8,
+        default_gradient_links_opacity = 0.8
+    )
 
     # track which label is which index in the column lists
     label2index = dict()
@@ -256,8 +261,8 @@ def get_sankey(query: dict) -> pgo.Figure:
     j_idx = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0}
 
     for matname, i, j, magnitude in data:
-        row_name = Translator.index_translate(i)
-        col_name = Translator.index_translate(j)
+        row_name: str = Translator.index_translate(i)
+        col_name: str = Translator.index_translate(j)
 
         from_node_col = to_node_col = -1
 
@@ -287,20 +292,28 @@ def get_sankey(query: dict) -> pgo.Figure:
         from_node_idx = label2index.get(row_name, -1)
         if from_node_idx == -1:
             # add it if it is a new label and get new from_node_idx
-            nodes[from_node_col].append(dict(label=row_name))
+            carrier_name = row_name.split()[0] # get first word of label for color
+            nodes[from_node_col].append(dict(label=row_name,
+                                             color=SANKEY_COLORS.get(carrier_name) or SANKEY_COLORS["Unspecified"]))
             label2index[row_name] = from_node_idx = i_idx[from_node_col]
             i_idx[from_node_col] += 1
 
         to_node_idx = label2index.get(col_name, -1)
         if to_node_idx == -1:
-            nodes[to_node_col].append(dict(label=col_name))
+            carrier_name = col_name.split()[0]
+            nodes[to_node_col].append(dict(label=col_name,
+                                           color=SANKEY_COLORS.get(carrier_name) or SANKEY_COLORS["Unspecified"]))
             label2index[col_name] = to_node_idx = j_idx[to_node_col]
             j_idx[to_node_col] += 1
 
         # set up the flow from the two labels above
         links.append({"from": dict(column=from_node_col, node = from_node_idx),
-                "to": dict(column=to_node_col, node = to_node_idx),
-                "value": magnitude})
+                      "to": dict(column=to_node_col, node = to_node_idx),
+                      "value": magnitude})
+        
+    links.append({"from": dict(column=3, node = 0),
+                      "to": dict(column=1, node = 0),
+                      "value": 100_000})
 
     # convert everything to json to send it to the javascript renderer
     return json_dumps(nodes), json_dumps(links), json_dumps(options)

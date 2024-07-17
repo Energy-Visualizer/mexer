@@ -13,11 +13,12 @@ const createSankey = (nodes, links, options) => {
         5, // last column to show (e.g. 0, 4 shows columns 0-3)
 
         // further options
-        {
-            plot_background_color: '#f4edf7',
-            default_links_opacity: 0.8,
-            default_gradient_links_opacity: 0.8
-        }
+        // combination of "options" param and options defined here
+        Object.assign(options, {
+            on_link_hover_function: (link_info,link_data_reference,link_element,event) => {
+                return `${link_info["from_label"]}\n${link_info["value"]}\n${link_info["to_label"]}`
+            }
+        })
     )
 }
 

@@ -82,7 +82,7 @@ def get_plot(request):
 
                 else:
                     nodes,links,options = get_sankey(query)
-                    plot_div =f"<script>createSankey({nodes},{links})</script>"
+                    plot_div =f"<script>createSankey({nodes},{links},{options})</script>"
 
             case "xy_plot":
                 efficiency_metric = query.pop('efficiency')
