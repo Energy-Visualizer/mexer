@@ -252,7 +252,7 @@ def get_sankey(query: dict) -> pgo.Figure:
         del query["matname"]
 
     if (db := get_database(query)) is None:
-        return None
+        return (None, None, None)
 
     # get all four matrices to make the full RUVY matrix
     data = PSUT.objects.using(db).values_list("matname", "i", "j", "x").filter(
@@ -266,7 +266,7 @@ def get_sankey(query: dict) -> pgo.Figure:
 
     # if no cooresponding data, return as such
     if not data:
-        return None
+        return (None, None, None)
 
     # get rid of any duplicate i,j,x combinations (many exist)
     data = set(data)
@@ -347,8 +347,7 @@ def get_xy(efficiency_metric, query: dict, color_by: str, line_by: str, facet_co
     
     # Retrieve the database based on the query
     db = get_database(query)
-    if db is None:
-        return go.Figure().add_annotation(text="No database found", showarrow=False)
+    if db is None: return None
 
     # Create a list of fields to select, always including 'Year' and the efficiency metric
     fields_to_select = ["Year", efficiency_metric]
@@ -365,15 +364,9 @@ def get_xy(efficiency_metric, query: dict, color_by: str, line_by: str, facet_co
     for field in [color_by, line_by, facet_col_by, facet_row_by]:
         if field in field_mapping:
             fields_to_select.append(field_mapping[field])
-        
-    # Query the database
-    agg_query = AggEtaPFU.objects.using(db).filter(**query).values(*fields_to_select)
-
-    # Convert query results to a pandas DataFrame
-    df = pd.DataFrame(list(agg_query))
 
     # get the respective data from the database
-    df = get_dataframe(AggEtaPFU, query, ["Year", efficiency_metric])
+    df = get_translated_dataframe(AggEtaPFU, query, fields_to_select)
         
     if df.empty: return None # if no data, return as such
 
@@ -533,8 +526,8 @@ def get_dataframe(model: models.Model, query: dict, columns: list) -> DataFrame:
     return df
 
 COLUMNS = ["Dataset", "Country", "Method", "EnergyType", "LastStage", "IEAMW", "IncludesNEU", "Year", "ChoppedMat", "ChoppedVar", "ProductAggregation", "IndustryAggregation", "matname", "i", "j", "x"]
-def get_psut_translated_dataframe(query: dict, columns: list) -> DataFrame:
-    df = get_dataframe(PSUT, query, columns)
+def get_translated_dataframe(model: models.Model, query: dict, columns: list) -> DataFrame:
+    df = get_dataframe(model, query, columns)
 
     # no need to do work if dataframe is empty (no data was found for the query)
     if df.empty: return df
@@ -571,12 +564,12 @@ def get_psut_translated_dataframe(query: dict, columns: list) -> DataFrame:
 def get_csv_from_query(query: dict, columns: list = COLUMNS):
     
     # index false to not have column of row numbers
-    return get_psut_translated_dataframe(query, columns).to_csv(index=False)
+    return get_translated_dataframe(query, columns).to_csv(index=False)
 
 def get_excel_from_query(query: dict, columns = COLUMNS):
 
     # index false to not have column of row numbers
-    return get_psut_translated_dataframe(query, columns).to_excel(index=False)
+    return get_translated_dataframe(query, columns).to_excel(index=False)
 
 from bidict import bidict
 from django.apps import apps
@@ -842,3 +835,40 @@ def update_user_history(request, plot_type, query):
     # Serialize the updated user history
     serialized_data = pickle.dumps(user_history)
     return serialized_data
+
+from django.urls import reverse
+def get_history_html(user_history: list[dict]) -> str:
+    history_html = ''
+    
+    if user_history:
+        # Iterate through each history item and create HTML buttons
+        for index, history_item in enumerate(user_history):
+            # Create HTML for each history item, including plot and delete buttons
+            history_html += f'''
+            <div class="history-item">
+                <button type="button" 
+                    hx-vals='{json_dumps(history_item)}' 
+                    hx-indicator="#plot-spinner" 
+                    hx-post="/plot" 
+                    hx-target="#plot-section" 
+                    hx-swap="innerHTML" 
+                    onclick='document.getElementById("plot-section").scrollIntoView();' 
+                    class="history-button">
+                    Plot Type: {history_item["plot_type"].capitalize()}<br>
+                    Dataset: {history_item["dataset"]}<br>
+                    Country: {history_item["country"]}
+                </button>
+                <button class="delete-history" 
+                    hx-post="{reverse('delete_history_item')}" 
+                    hx-vals='{{"index": {index}}}' 
+                    hx-target="#history-list" 
+                    hx-swap="innerHTML">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div><br>
+            '''
+    else:
+        # If no history is available, display a message
+        history_html = '<p>No history available.</p>'
+
+    return history_html

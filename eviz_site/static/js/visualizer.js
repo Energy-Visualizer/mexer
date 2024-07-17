@@ -26,9 +26,9 @@ const initialize = () => {
     menuInputs.push(lineBy);
     facetColBy = document.getElementById("facet-col-by");
     menuInputs.push(facetColBy);
-    grossNet = document.getElementById("grossnet_radio");
     facetRowBy = document.getElementById("facet-row-by");
     menuInputs.push(facetRowBy);
+    grossNet = document.getElementById("grossnet_radio");
 
     colorScale = document.getElementById("color-scale");
     menuInputs.push(colorScale);

@@ -103,34 +103,32 @@ def get_plot(request):
         # Use match-case to handle different plot types
         match plot_type:
             case "sankey":
-                query = translate_query(query)
-                sankey_diagram = get_sankey(query)
+                translated_query = translate_query(query)
+                nodes,links,options = get_sankey(translated_query)
 
-                if sankey_diagram is None:
-                    plot_div = "No cooresponding data"
-
+                if nodes is None:
+                    plot_div = "Error: No cooresponding data"
                 else:
-                    nodes,links,options = get_sankey(query)
                     plot_div =f"<script>createSankey({nodes},{links},{options})</script>"
 
             case "xy_plot":
                 # Extract specific parameters for xy_plot
-                efficiency_metric = query.pop('efficiency', None)
-                color_by = query.pop("color_by", None)
-                line_by = query.pop("line_by", None)
-                facet_col_by = query.pop("facet-col-by", None)
-                facet_row_by = query.pop("facet-row-by", None)
+                efficiency_metric = query.get('efficiency')
+                color_by = query.get("color_by")
+                line_by = query.get("line_by")
+                facet_col_by = query.get("facet-col-by")
+                facet_row_by = query.get("facet-row-by")
                 energy_type = query.get("energy_type")
                 
                 # Handle combined Energy and Exergy case
                 if 'Energy' in energy_type and 'Exergy' in energy_type:
                     energy_type = 'Energy, Exergy'
                 
-                query = translate_query(query)
-                xy = get_xy(efficiency_metric, query, color_by, line_by, facet_col_by, facet_row_by, energy_type)
+                translated_query = translate_query(query)
+                xy = get_xy(efficiency_metric, translated_query, color_by, line_by, facet_col_by, facet_row_by, energy_type)
 
                 if xy is None:
-                    plot_div = "No corresponding data"
+                    plot_div = "Error: No corresponding data"
                 else:
                     plot_div = plot(xy, output_type="div", include_plotlyjs=False)
                     LOGGER.info("XY plot made")
@@ -138,13 +136,13 @@ def get_plot(request):
             case "matrices":
                 # Extract specific parameters for matrices
                 matrix_name = query.get("matname")
-                color_scale = query.pop('color_scale', "viridis")
+                color_scale = query.get('color_scale', "viridis")
                 # Retrieve the matrix
-                query = translate_query(query)
-                matrix = get_matrix(query)
+                translated_query = translate_query(query)
+                matrix = get_matrix(translated_query)
                 
                 if matrix is None:
-                    plot_div = "No corresponding data"
+                    plot_div = "Error: No corresponding data"
                 
                 else:
                     heatmap= visualize_matrix(matrix, color_scale)
@@ -165,21 +163,20 @@ def get_plot(request):
         
 
             case _: # default
-                plot_div = "Plot type not specified or supported"
+                plot_div = "Error: Plot type not specified or supported"
                 LOGGER.warning("Unrecognized plot type requested")
                 
         response = HttpResponse(plot_div)
         
         # Update user history
-        plot_type, query = shape_post_request(request.POST, get_plot_type = True)
-        serialized_data = update_user_history(request, plot_type, query)
-        # Set cookie to expire in 30 days
-        response.set_cookie('user_history', serialized_data.hex(), max_age=30 * 24 * 60 * 60)
-            
+        if not plot_div.startswith("Error"):
+            serialized_data = update_user_history(request, plot_type, query)
+            response.content += b"<script>refreshHistory();</script>"
+            # Set cookie to expire in 30 days
+            response.set_cookie('user_history', serialized_data.hex(), max_age=30 * 24 * 60 * 60)
+
     return response
 
-import json
-from django.urls import reverse
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -200,45 +197,12 @@ def render_history(request):
     """
     # Retrieve the user's plot history from cookies
     user_history = get_user_history(request)
-    history_html = ''
-    
-    if user_history:
-        # Iterate through each history item and create HTML buttons
-        for index, history_item in enumerate(user_history):
-            # Create HTML for each history item, including plot and delete buttons
-            history_html += f'''
-            <div class="history-item">
-                <button type="button" 
-                    hx-vals='{json.dumps(history_item)}' 
-                    hx-indicator="#plot-spinner" 
-                    hx-post="/plot" 
-                    hx-target="#plot-section" 
-                    hx-swap="innerHTML" 
-                    onclick='document.getElementById("plot-section").scrollIntoView();' 
-                    class="history-button">
-                    Plot Type: {history_item["plot_type"].capitalize()}<br>
-                    Dataset: {history_item["dataset"]}<br>
-                    Country: {history_item["country"]}
-                </button>
-                <button class="delete-history" 
-                    hx-post="{reverse('delete_history_item')}" 
-                    hx-vals='{{"index": {index}}}' 
-                    hx-target="#history-list" 
-                    hx-swap="innerHTML">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
-            </div><br>
-            '''
-    else:
-        # If no history is available, display a message
-        history_html = '<p>No history available.</p>'
-    
+    history_html = get_history_html(user_history)
     return HttpResponse(history_html)
 
 @require_POST
 @csrf_exempt
 def delete_history_item(request):
-    
     """
     Delete a specific item from the user's plot history.
     
@@ -251,6 +215,7 @@ def delete_history_item(request):
     Outputs:
         HttpResponse: A response containing the updated history HTML or an error message.
     """
+        
     # Get the index of the item to delete from the POST data
     print("POST data:", request.POST)
     index = int(request.POST.get('index', -1))
@@ -271,7 +236,7 @@ def delete_history_item(request):
             
             if user_history:
                 # If there are still items in the history, render them
-                response = render_history(request)
+                response = HttpResponse(get_history_html(user_history))
             else:
                 # If the history is now empty, return a message
                 response = HttpResponse('<p>No history available.</p>')
