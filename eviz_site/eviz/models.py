@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User as DjangoUser
 
 class Dataset(models.Model):
+    """ Model representing a database table named 'Dataset'."""
     DatasetID = models.PositiveSmallIntegerField(primary_key=True)
     Dataset = models.TextField()
     FullName = models.TextField()
@@ -9,9 +10,10 @@ class Dataset(models.Model):
 
     class Meta:
         db_table = "Dataset"
-        managed = False
+        managed = False # Django won't manage these tables
         
 class Country(models.Model):
+    """ Model representing a database table named 'Country'."""
     CountryID = models.PositiveSmallIntegerField(primary_key=True)
     Country = models.TextField()
     FullName = models.TextField()
@@ -24,6 +26,7 @@ class Country(models.Model):
         managed = False
 
 class Method(models.Model):
+    """ Model representing a database table named 'Method'."""
     MethodID = models.PositiveSmallIntegerField(primary_key=True)
     Method = models.TextField()
     FullName = models.TextField()
@@ -33,6 +36,7 @@ class Method(models.Model):
         managed = False
     
 class EnergyType(models.Model):
+    """ Model representing a database table named 'EnergyType'."""
     EnergyTypeID = models.PositiveSmallIntegerField(primary_key=True)
     EnergyType = models.TextField()
     FullName = models.TextField()
@@ -42,6 +46,7 @@ class EnergyType(models.Model):
         managed = False
 
 class LastStage(models.Model):
+    """ Model representing a database table named 'LastStage'."""
     ECCStageID = models.PositiveSmallIntegerField(primary_key=True)
     ECCStage = models.TextField()
     FullName = models.TextField()
@@ -51,6 +56,7 @@ class LastStage(models.Model):
         managed = False
     
 class IEAMW(models.Model):
+    """ Model representing a database table named 'IEAMW'."""
     IEAMWID = models.PositiveSmallIntegerField(primary_key=True)
     IEAMW = models.TextField()
     FullName = models.TextField()
@@ -60,6 +66,7 @@ class IEAMW(models.Model):
         managed = False
 
 class IncludesNEU(models.Model):
+    """ Model representing a database table named 'IncludesNEU'."""
     IncludesNEUID = models.PositiveSmallIntegerField(primary_key=True)
     IncludesNEU = models.BooleanField()
     FullName = models.TextField()
@@ -69,6 +76,7 @@ class IncludesNEU(models.Model):
         managed = False
 
 class Year(models.Model):
+    """ Model representing a database table named 'Year'."""
     YearID = models.PositiveSmallIntegerField(primary_key=True)
     Year = models.PositiveSmallIntegerField()
     class Meta:
@@ -76,6 +84,7 @@ class Year(models.Model):
         managed = False
         
 class AggLevel(models.Model):
+    """ Model representing a database table named 'AggLevel'."""
     AggLevelID = models.PositiveSmallIntegerField(primary_key=True)
     AggLevel = models.TextField()
     FullName = models.TextField()
@@ -85,6 +94,7 @@ class AggLevel(models.Model):
         managed = False
 
 class matname(models.Model):
+    """ Model representing a database table named 'matname'."""
     matnameID = models.PositiveSmallIntegerField(primary_key=True)
     matname = models.TextField()
     FullName = models.TextField()
@@ -94,6 +104,7 @@ class matname(models.Model):
         managed = False
 
 class GrossNet(models.Model):
+    """ Model representing a database table named 'GrossNet'."""
     GrossNetID = models.PositiveSmallIntegerField(primary_key=True)
     GrossNet = models.TextField()
     FullName = models.TextField()
@@ -104,6 +115,7 @@ class GrossNet(models.Model):
 
         
 class Index(models.Model):
+    """ Model representing a database table named 'Index'."""
     IndexID = models.PositiveSmallIntegerField(primary_key=True)
     Index = models.TextField()
     class Meta:
@@ -112,7 +124,7 @@ class Index(models.Model):
         
 
 class PSUT(models.Model):
-
+    """ Model representing a datatbase table named 'PSUT'."""
     # define meta attributes
     class Meta:
         db_table = "PSUTReAllChopAllDsAllGrAll"
@@ -136,7 +148,7 @@ class PSUT(models.Model):
     x = models.FloatField()
 
 class AggEtaPFU(models.Model):
-
+    """ Model representing a database table named 'AggEtaPFU'."""
     class Meta:
         db_table = "AggEtaPFU"
         managed = False
@@ -162,9 +174,11 @@ class AggEtaPFU(models.Model):
     etapu = models.FloatField()
     
 class EvizUser(DjangoUser):
+    """ Model representing a database table named 'EvizUser'."""
     institution = models.CharField(max_length=255)
     country = models.CharField(max_length=255)
 
 class EmailAuthCodes(models.Model):
+    """ Model for storing email auhtentication codes and associated account information."""
     code = models.TextField(max_length=255)
     account_info = models.BinaryField()

@@ -3,24 +3,29 @@
 
 <head>
     <title>EVIZ Visualizer</title>
+    <!-- CSS stylesheets -->
     <link rel="stylesheet" href="../static/css/toolbar.css" type="text/css" />
     <link rel="stylesheet" href="../static/css/visualizer.css" type="text/css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <!-- External libraries -->
     <script src="https://unpkg.com/htmx.org@1.9.12"></script> <!-- HTMX -->
     <script src="https://cdn.plot.ly/plotly-latest.min.js" charset="utf-8"></script> <!-- Plotly -->
     <script src="../static/js/visualizer.js"></script>
     <script src="../static/js/plotUtil.js"></script>
+
 </head>
 
 
 <body onload="initialize(); refreshHistory();" class="gradient">
 
 
-
     <!-- toolbar -->
     <div class="topbar">
+        <!-- Left side of the toolbar -->
         <div class="left">
             <a class="main" href="{% url 'home' %}">EVIZ</a>
         </div>
+        <!-- Right side of the toolbar -->
         <div class="right">
             {% if request.user.is_authenticated %}
                 <p style="color: #33ebed;">{{ request.user.username }}</p>
@@ -34,18 +39,26 @@
             {% endif %}
         </div>
     </div>
+
+    <!-- SVG for decorative wave effect below toolbar -->
     <svg viewBox="0 0 500 10" preserveAspectRatio="xMinYMin meet">
         <path d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z" style="stroke: none; fill:#393E46;"></path>
     </svg>
     <!-- toolbar end -->
 
+    <!-- Sidebar for displaying history -->
     <div  id="history-section" class="sidebar">
         <h2>History</h2>
         <div id="history-list"></div>
     </div>
+    <!-- Sidebar end-->
+
     <!-- main form -->
     <form method="post" action="/data" id="query-form">
         {% csrf_token %}
+        <!-- Various form elements for selecting visulaization toold-->
+        <!-- Each div with class "query-choice" represents a form field or group of related fields -->
+        <!-- ... (form fields for plot type, dataset, country, method, energy type, etc.) ... -->
         <div class="query-choice">
             <div class="column info-text">
                 <span class="popup-icon">&#9432;
@@ -208,7 +221,11 @@
             </div>
             <div id="grossnet_radio" class="input-column">
                 {% for grossnet in grossnets %}
+                {%if grossnet == 'Gross'%}
+                <input type="radio" value="{{ grossnet }}" name="grossnet" checked>{{ grossnet }} <br>
+                {%else%}
                 <input type="radio" value="{{ grossnet }}" name="grossnet"  required>{{ grossnet }}<br>
+                {%endif%}
                 {% endfor %}
             </div>
             &#x2800
@@ -268,13 +285,14 @@
             </div>
             &#x2800
         </div>
+        <!-- year range input end-->
         <div class="query-choice">
             <div class="info-text">
                 Color by: 
             </div>
         <div class="input-column">
                 <select name="color_by" id="color-by" class="styled-dropdown space-input">
-                    <option value="country">Country</option>
+                    <option value="country" selected>Country</option>
                     <option value="energy_type">Energy Type</option>
                     <option value="includes_neu">Includes NEU</option>
                     <option value="last_stage">Last Stage</option>
@@ -282,6 +300,8 @@
         </div> 
         &#x2800
     </div>
+
+
         <div class="query-choice">
             <div class="info-text">
             Line by:
@@ -290,27 +310,46 @@
                 <select name="line_by" id="line-by" class="styled-dropdown space-input">
                     <option value="country">Country</option>
                     <option value="energy_type">Energy Type</option>
-                    <option value="includes_neu">Includes NEU</option>
+                    <option value="includes_neu" selected>Includes NEU</option>
                     <option value="last_stage">Last Stage</option>
                 </select>
             </div>
             &#x2800
         </div>
+
+
             <div class="query-choice">
                 <div class="info-text">
-                Facet by:
+                Facet col by:
             </div>
             <div class="input-column">
-                <select name="facet-by" id="facet-by" class="styled-dropdown space-input">
+                <select name="facet-col-by" id="facet-col-by" class="styled-dropdown space-input">
                     <option value="country">Country</option>
-                    <option value="energy_type">Energy Type</option>
+                    <option value="energy_type" selected>Energy Type</option>
                     <option value="includes_neu">Includes NEU</option>
                     <option value="last_stage">Last Stage</option>
                 </select>
             </div>
             &#x2800 
         </div>
-        <!-- year range input end-->
+
+
+        <div class="query-choice">
+            <div class="info-text">
+            Facet row by:
+        </div>
+        <div class="input-column">
+            <select name="facet-row-by" id="facet-row-by" class="styled-dropdown space-input">
+                <option value="country">Country</option>
+                <option value="energy_type">Energy Type</option>
+                <option value="includes_neu">Includes NEU</option>
+                <option value="last_stage" selected>Last Stage</option>
+            </select>
+        </div>
+        &#x2800 
+    </div>
+
+
         <div class="query-choice">
             <div class="info-text">
                 <span class="popup-icon">&#9432;
@@ -331,6 +370,8 @@
             </div>
             &#x2800
         </div>
+
+
         <!-- matrix dropdown -->
         <div class="query-choice">
             <div class="info-text">
@@ -352,10 +393,9 @@
             &#x2800
         </div>
         <!-- matrix dropdown end -->
-        
         <!-- metadata specifics inputs end -->
 
-
+        <!-- Buttons for plot generation and data download -->
         <div class="button-container">
             <button hx-post="/plot" hx-swap="innerHTML" hx-target="#plot-section" hx-indicator="#plot-spinner" type="button"
                 id="get" onclick='document.getElementById("plot-section").scrollIntoView(); refreshHistory();'>
@@ -371,7 +411,7 @@
     </form>
     <!-- main form end -->
 
-    <!-- plotting area -->
+    <!-- Area for displaying the generated plot -->
     <div id="plot-with-extra">
         <div id="plot-section">
             <!-- This will be replaced with the plot from HTMX -->

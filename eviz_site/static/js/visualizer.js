@@ -1,3 +1,7 @@
+/**
+ * Initializes the application UI and sets up event listeners.
+ * This function is called when the page loads.
+ */
 const initialize = () => {
     // main metadata
     countryDropdown = document.getElementById("country-dropdown");
@@ -10,15 +14,17 @@ const initialize = () => {
     matnameDropdown = document.getElementById("matname-dropdown");
     colorBy = document.getElementById("color-by");
     lineBy = document.getElementById("line-by");
-    facetBy = document.getElementById("facet-by");
+    facetColBy = document.getElementById("facet-col-by");
     colorScale = document.getElementById("color-scale");
-    GrossNet = document.getElementById("grossnet_radio");
+    grossNet = document.getElementById("grossnet_radio");
+    facetRowBy = document.getElementById("facet-row-by");
 
     // have specifics show differently for different plots
     let selectedValue = null; // to be filled in the following loop
     const plotTypeButtons = document.querySelectorAll('#plot-type-input');
     plotTypeButtons.forEach( (plotTypeButton) => {
 
+        // Add approptiate event listener based on plot type
         if (plotTypeButton.checked)
             selectedValue = plotTypeButton.value; // if a button is already selected, remember its value
         
@@ -51,64 +57,71 @@ const initialize = () => {
         inputOff(singleYearInput);
         inputOff(colorBy);
         inputOff(lineBy);
-        inputOff(facetBy);
+        inputOff(facetColBy);
+        inputOff(facetRowBy);
         inputOff(colorScale);
-        inputOff(GrossNet);
+        inputOff(grossNet);
     }
 }
 
+/** Enables an input element and displays its container. */
 const inputOn = (element) => {
     element.disabled = false;
     element.closest('.query-choice').style.display = "block"; // the closest p ancestor has the associated text and input itself
 }
 
+/** Disables an input element and hides its container. */
 const inputOff = (element) => {
     element.disabled = true;
     element.closest('.query-choice').style.display = "none"; // the closest p ancestor has the associated text and input itself
 }
 
-const handleXYPlot = () => {
-    inputOff(singleYearInput);
-    inputOff(matnameDropdown);
-    inputOff(colorScale);
-
-    inputOn(grossNet)
-    inputOn(fromYearInput);
-    inputOn(toYearInput);
-    inputOn(efficiencyDropdown);
-    inputOn(colorBy);
-    inputOn(lineBy);
-    inputOn(facetBy);
+/** Enables all radio buttons within an element and displays the container */
+const inputRadioOn = (element) => {
+    const radioButtons = element.querySelectorAll('input[type="radio"]');
+    radioButtons.forEach(radio => {
+        radio.disabled = false;
+    });
+    element.closest('.query-choice').style.display = "block";
 }
 
+/** Disables all radio buttons within an element and displays the container */
+const inputRadioOff = (element) => {
+    const radioButtons = element.querySelectorAll('input[type="radio"]');
+    radioButtons.forEach(radio => {
+        radio.disabled = true;
+    });
+    element.closest('.query-choice').style.display = "none";
+}
+
+// Configures UI for XY Plot
+const handleXYPlot = () => {
+    // Disable and hide irrelevant inputs
+    [singleYearInput, matnameDropdown, colorScale].forEach(inputOff);
+
+    // Enable and show relevant inputs
+    [fromYearInput, toYearInput, efficiencyDropdown, colorBy, lineBy, facetColBy, facetRowBy].forEach(inputOn);
+}
+
+// Configure UI for Sankey Diagram
 const handleSankey = () => {
-    inputOff(fromYearInput);
-    inputOff(toYearInput);
-    inputOff(efficiencyDropdown);
-    inputOff(matnameDropdown);
-    inputOff(colorBy);
-    inputOff(lineBy);
-    inputOff(facetBy);
-    inputOff(colorScale);
-    inputOff(grossNet)
+
+    [fromYearInput, toYearInput, efficiencyDropdown, matnameDropdown, colorBy, lineBy, 
+        facetColBy, facetRowBy, colorScale].forEach(inputOff);
 
     inputOn(singleYearInput);
 }
 
+// Configure UI for matrices
 const handleMatrices = () => {
-    inputOff(singleYearInput);
-    inputOff(efficiencyDropdown);
-    inputOff(colorBy);
-    inputOff(lineBy);
-    inputOff(facetBy);
-    inputOff(grossNet)
     
-    inputOn(fromYearInput);
-    inputOn(toYearInput);
-    inputOn(matnameDropdown);
-    inputOn(colorScale);
+    [singleYearInput, efficiencyDropdown, colorBy, lineBy, facetColBy, facetRowBy].forEach(inputOff);
+    inputRadioOff(grossNet);
+    
+    [fromYearInput, toYearInput, matnameDropdown, colorScale].forEach(inputOn);
 }
 
+/** Add a new dropdown for a specified category */
 const showDropdown = (name) => {
 
     // figure out which dropdown we want to add
@@ -145,6 +158,7 @@ const showDropdown = (name) => {
     desiredDropdown.after(wholeDropdown);
 };
 
+//Refreshes the history list using HTMX
 function refreshHistory() {
     htmx.ajax("GET", "/history", {target:"#history-list", swap:"innerHTML"});
 }
