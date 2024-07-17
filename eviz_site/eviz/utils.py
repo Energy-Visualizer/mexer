@@ -239,79 +239,71 @@ def get_sankey(query: dict) -> pgo.Figure:
     # get rid of any duplicate i,j,x combinations (many exist)
     data = set(data)
 
-    nodes = [list()]
+    # 5 lists, one for each column in the plot
+    nodes = [list(), list(), list(), list(), list()]
     links = list()
     options = dict()
 
-    nodes[0].append(dict(label = "A"))
-    nodes[0].append(dict(label = "B"))
+    # track which label is which index in the column lists
+    label2index = dict()
 
-    links.append({"from": dict(column=0, node = 0), "to": dict(column=0, node = 0), "value": 5})
+    # i_idx and j_idx keep track of the index a new label is added to
+    # this prevents having to repeatedly calculate the length of the
+    # column lists
+    # keys = column lists by index in nodes list above
+    # values = index at which a new label will be added to a column list
+    i_idx = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0}
+    j_idx = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0}
 
+    for matname, i, j, magnitude in data:
+        row_name = Translator.index_translate(i)
+        col_name = Translator.index_translate(j)
+
+        from_node_col = to_node_col = -1
+
+        # figure out which column the info should go in
+        match(Translator.matname_translate(matname)):
+            case("R"):
+                from_node_col = 0
+                to_node_col = 1
+
+            case("U"):
+                from_node_col = 1
+                to_node_col = 2
+
+            case("V"):
+                from_node_col = 2
+                to_node_col = 3
+
+            case("Y"):
+                from_node_col = 3
+                to_node_col = 4
+
+        # node_from / to_col will stay -1 if not processed above
+        if from_node_col < 0 or to_node_col < 0:
+            raise ValueError("Unknown matrix name processed")
+
+        # get the from node
+        from_node_idx = label2index.get(row_name, -1)
+        if from_node_idx == -1:
+            # add it if it is a new label and get new from_node_idx
+            nodes[from_node_col].append(dict(label=row_name))
+            label2index[row_name] = from_node_idx = i_idx[from_node_col]
+            i_idx[from_node_col] += 1
+
+        to_node_idx = label2index.get(col_name, -1)
+        if to_node_idx == -1:
+            nodes[to_node_col].append(dict(label=col_name))
+            label2index[col_name] = to_node_idx = j_idx[to_node_col]
+            j_idx[to_node_col] += 1
+
+        # set up the flow from the two labels above
+        links.append({"from": dict(column=from_node_col, node = from_node_idx),
+                "to": dict(column=to_node_col, node = to_node_idx),
+                "value": magnitude})
+
+    # convert everything to json to send it to the javascript renderer
     return json_dumps(nodes), json_dumps(links), json_dumps(options)
-
-    # # begin constructing the sankey
-    # label_to_index = dict() # used to know which human-readable label is where in the label list
-    # next_index = 0 # used to keep track of where a new label is added in the label list
-
-    # labels = list() # used to keep track of all the labels
-    # sources = list() # used to keep track of all the sources (from-nodes)
-    # targets = list() # used to keep track of all the targets (to-nodes)
-    # magnitudes = list() # used to keep track of all the magnitudes between the nodes
-
-    # flow_colors = list()
-
-    # # TODO: the columns of R V, rows of U Y, should be invisible nodes
-    # # also colors are based on the prefix of the node name
-    # # e.g. "Hydro [from ...]" should be considered "Hydro" in the color scheme
-    # for row, col, magnitude in data:
-    #     translated_row = Translator.index_reverse_translate(row)
-    #     translated_col = Translator.index_reverse_translate(col)
-
-    #     # Get the row (source) label's index and make the start of a connection
-    #     idx = label_to_index.get(translated_row, -1)
-
-    #     if idx == -1:  # label is new
-    #         labels.append(translated_row)
-    #         label_to_index[translated_row] = idx = next_index
-    #         next_index += 1
-
-    #     sources.append(idx)
-
-    #     # Get the col (target) label's index and make the end of a connection
-    #     idx = label_to_index.get(translated_col, -1)
-    #     if idx == -1:  # label is new
-    #         labels.append(translated_col)
-    #         label_to_index[translated_col] = idx = next_index
-    #         next_index += 1
-
-    #     targets.append(idx)
-
-    #     # Finish the connection with the magnitude of the connection
-    #     magnitudes.append(magnitude)
-
-    #     # make in-flow special color if node has special color
-    #     #     i.e. if current target node has color besides default node color
-    #     # only on targets (columns) because only targets can have in-flows
-    #     # if ((assoc_color := node_colors[idx]) != "wheat"):
-    #     #     flow_color = assoc_color
-
-    #     # flow_colors.append(flow_color)
-
-    # return pgo.Figure(data=[pgo.Sankey(
-    #     node=dict(
-    #         pad=15,
-    #         thickness=20,
-    #         label=labels,
-    #         # color=node_colors
-    #     ),
-    #     link=dict(
-    #         source=sources,
-    #         target=targets,
-    #         value=magnitudes,
-    #         color="rgba(100,100,100,0.5)"
-    #     ))])
-
 
 def get_xy(efficiency_metric, query: dict) -> pgo.Figure:
     '''Gets an xy plot for a query
