@@ -20,7 +20,7 @@ def time_view(v):
         v, function: the view to time
 
     Outputs:
-        A function which will also print how long the given view took to run to stdout
+        A function which wil prints how long the given view took to run
     '''
 
     def wrap(*args, **kwargs):
@@ -50,7 +50,6 @@ def translate_query(
     translated_query = dict()  # set up to build and return at the end
 
     # common query parts
-
     if v := query.get("dataset"):
         translated_query["Dataset"] = Translator.dataset_translate(v)
     if v := query.get("country"):
@@ -92,20 +91,19 @@ def translate_query(
     if v := query.get("industry_aggregation"):
         translated_query["IndustryAggregation"] = Translator.agglevel_translate(
             v)
-
+    if v := query.get("grossnet"):
+        translated_query["GrossNet"] = Translator.grossnet_translate(
+            v)
     # plot-specific query parts
-
     if v := query.get("to_year"):
         # if year part is a range of years, i.e. to_year present
         # set up query as range
         translated_query["Year__lte"] = int(v)
         if v := query.get("year"):
             translated_query["Year__gte"] = int(v)
-
     elif v := query.get("year"):
         # else just have year be one year
         translated_query["Year"] = int(v)
-
     if v := query.get("matname"):
         if v == "RUVY":
             translated_query["matname__in"] = [Translator.matname_translate("R"), Translator.matname_translate("U"), Translator.matname_translate("V"), Translator.matname_translate("Y")]
@@ -191,7 +189,18 @@ def iea_valid(user: User, query: dict) -> bool:
 
 # TODO: is this all temp? do we want to keep all the data in seperate db's or will we actually use the dataset column?
 def get_database(query: dict) -> str:
+    """Determine the appropriate database to use based on the query parameters.
+
+    Input:
+        query (dict): A dictionary containing query parameters, including a 'Dataset' key.
+
+    Output:
+        str or None: The name of the database to use, or None if the database is invalid.
+    """
+    
+    # Translate the 'Dataset' value from the query to a database identifier
     db = Translator.dataset_translate(query["Dataset"])
+    
     # TODO: this is missing IEA, we have to get where that is
     if db not in ["CLPFUv2.0a1", "CLPFUv2.0a2", "CLPFUv2.0a3"]:
         return None # database is invalid
@@ -225,13 +234,13 @@ def _get_sankey_node_info(label_num: int, label_col: int, node_list: list[list],
     return node_idx, label_col
 
 def get_sankey(query: dict) -> pgo.Figure:
-    '''Gets a sankey diagram for a query
+    ''' Gets a sankey diagram for a query
 
     Input:
 
         query, dict: a query ready to hit the database, i.e. translated as neccessary (see translate_query())
 
-    Output:
+    Outputs:
 
         a plotly Figure with the sankey data
 
@@ -316,31 +325,125 @@ def get_sankey(query: dict) -> pgo.Figure:
     # convert everything to json to send it to the javascript renderer
     return json_dumps(nodes), json_dumps(links), json_dumps(options)
 
-def get_xy(efficiency_metric, query: dict) -> pgo.Figure:
-    '''Gets an xy plot for a query
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+
+def get_xy(efficiency_metric, query: dict, color_by: str, line_by: str, facet_col_by: str = None, facet_row_by: str = None, energy_type: str = None) -> go.Figure:
+    """ Generate a line plot based on the given efficiency metric and query parameters.
 
     Inputs:
+        efficiency_metric: The efficiency metric to plot on the y-axis.
+        query: A dictionary containing filter parameters for the database query.
+        color_by: The field to use for coloring the lines.
+        line_by: The field to use for line dash styles.
+        facet_col_by: The field to use for faceting columns.
+        facet_row_by: The field to use for faceting rows.
+        energy_type: The type of energy (Energy, Exergy, or both) for y-axis label.
 
-        efficiency_metric, string: the efficiency matrix to get the plot for
+    Outputs:
+        go.Figure: A Plotly figure object containing the generated plot.
+    """
+    
+    # Retrieve the database based on the query
+    db = get_database(query)
+    if db is None:
+        return go.Figure().add_annotation(text="No database found", showarrow=False)
 
-        query, dict: a query ready to hit the database, i.e. translated as neccessary (see translate_query())
+    # Create a list of fields to select, always including 'Year' and the efficiency metric
+    fields_to_select = ["Year", efficiency_metric]
 
-    Output:
+    # Map the names to the actual database field names
+    field_mapping = {
+        'country': 'Country',
+        'energy_type': 'EnergyType',
+        'includes_neu': 'IncludesNEU',
+        'last_stage': 'LastStage'
+    }
+    
+    # Add color_by, line_by, facet_col_by, and facet_row_by fields to the selection list
+    for field in [color_by, line_by, facet_col_by, facet_row_by]:
+        if field in field_mapping:
+            fields_to_select.append(field_mapping[field])
+        
+    # Query the database
+    agg_query = AggEtaPFU.objects.using(db).filter(**query).values(*fields_to_select)
 
-        a plotly Figure with the xy data
-    '''
+    # Convert query results to a pandas DataFrame
+    df = pd.DataFrame(list(agg_query))
 
     # get the respective data from the database
     df = get_dataframe(AggEtaPFU, query, ["Year", efficiency_metric])
         
     if df.empty: return None # if no data, return as such
 
-    return px.line(
-        df, x="Year", y=efficiency_metric,
-        title=f"Efficiency of {efficiency_metric} by year",
-        template="plotly_dark"
-    )
+    try:
+        # Create the line plot using Plotly Express
+        fig = px.line(
+            df, x="Year", y=efficiency_metric, 
+            color=field_mapping.get(color_by, color_by),
+            line_dash=field_mapping.get(line_by, line_by),
+            facet_col=field_mapping.get(facet_col_by,facet_col_by),
+            facet_row=field_mapping.get(facet_row_by,facet_row_by),
+            facet_col_spacing=0.05,
+        )
+        
+        # Set the y-axis title based on the energy type
+        if 'Energy' in energy_type and 'Exergy' in energy_type:
+            y_title = f"EX<sub>{efficiency_metric[-1]}</sub> [TJ]"
+        elif energy_type == 'Exergy':
+            y_title = f"X<sub>{efficiency_metric[-1]}</sub> [TJ]"
+        elif energy_type == 'Energy':
+            y_title = f"E<sub>{efficiency_metric[-1]}</sub> [TJ]"
+        else:
+            y_title = efficiency_metric
 
+        # Update layout with axis lines
+        fig.update_xaxes(
+            showgrid=False,
+            zeroline=False,
+            ticklen=10,
+            ticks="inside",
+            title=None,
+            linecolor='black',
+            linewidth=1,
+            mirror=False
+        )
+        fig.update_yaxes(
+            showgrid=False,
+            zeroline=False,
+            ticklen=10,
+            ticks="inside",
+            title=y_title,
+            linecolor='black',
+            linewidth=1,
+            mirror=False,
+            showticklabels=True
+        )
+
+        # Force x-axis to bottom and y-axis to left for all subplots (used because of faceting)
+        fig.update_xaxes(position=0)
+        fig.update_yaxes(position=0)
+
+        # Update overall layout
+        fig.update_layout(
+            plot_bgcolor="white",
+            showlegend=False,
+            margin=dict(l=50, r=50, t=50, b=50),
+        )
+        
+        # Remove y-axis titles for all but the first column when using facet columns
+        if facet_col_by:
+            for i in range(2, len(fig.data) + 1):
+                fig.update_yaxes(title_text="", col=i)
+
+        return fig
+    
+    except Exception as e:
+        # Return a message if plot fails.
+        return go.Figure().add_annotation(text=f"Error creating plot: {str(e)}", showarrow=False)
+    
+    
 
 def get_matrix(query: dict) -> coo_matrix:
     '''Collects, constructs, and returns one of the RUVY matrices
@@ -352,7 +455,6 @@ def get_matrix(query: dict) -> coo_matrix:
         A scipy coo_matrix containing all the values from the specified query
         or None if the given query related to no data 
     '''
-
     if (db := get_database(query)) is None:
         return None
 
@@ -386,11 +488,23 @@ def get_matrix(query: dict) -> coo_matrix:
     )
 
 
-def visualize_matrix(mat: coo_matrix) -> pgo.Figure:
+def visualize_matrix(mat: coo_matrix, color_scale: str = 'viridis') -> pgo.Figure:
+    """Visualize a sparse matrix as a heatmap using Plotly.
+
+    Inputs:
+        mat (coo_matrix): A scipy sparse matrix in COOrdinate format.
+        color_scale (str, optional): The color scale to use for the heatmap. Defaults to 'viridis'.
+
+    Outputs:
+        pgo.Figure: A Plotly graph object Figure containing the heatmap.
+    """
     # Convert the matrix to a format suitable for Plotly's heatmap
     rows, cols, vals = mat.row, mat.col, mat.data
+    # Translate row and column indices to human-readable labels
     row_labels = [Translator.index_translate(i) for i in rows]
     col_labels = [Translator.index_translate(i) for i in cols]
+    
+    # Create a Plotly Heatmap object
     heatmap = pgo.Heatmap(
         z=vals,
         x=col_labels,
@@ -398,6 +512,7 @@ def visualize_matrix(mat: coo_matrix) -> pgo.Figure:
         text=vals,
         texttemplate="%{text:.2f}",
         showscale=False,
+        colorscale=color_scale,
     )
 
     # convert to a more general figure
@@ -423,7 +538,8 @@ def get_psut_translated_dataframe(query: dict, columns: list) -> DataFrame:
 
     # no need to do work if dataframe is empty (no data was found for the query)
     if df.empty: return df
-
+    
+    # Translate the DataFrame's column names
     translate_columns = {
         'Dataset': Translator.dataset_translate,
         'Country': Translator.country_translate,
@@ -436,10 +552,12 @@ def get_psut_translated_dataframe(query: dict, columns: list) -> DataFrame:
         'ProductAggregation': Translator.agglevel_translate,
         'IndustryAggregation': Translator.agglevel_translate,
         'matname': Translator.matname_translate,
+        'grossnet': Translator.grossnet_translate,
         'i': Translator.index_translate,
         'j': Translator.index_translate
     }
 
+    # Apply the translation functions to each column if it exists in the DataFrame
     for col, translate_func in translate_columns.items():
         if col in df.columns:
             df[col] = df[col].apply(translate_func)
@@ -494,6 +612,8 @@ class Translator:
         translations = Translator.__load_bidict(model_name, id_field, name_field)
         return translations.get(value) or translations.inverse.get(value, value)
 
+    # The following methods are specific translation functions for different models
+    # They all use the _translate method with appropriate parameters
     @staticmethod
     def index_translate(value):
         return Translator._translate('Index', value, 'IndexID', 'Index')
@@ -525,6 +645,9 @@ class Translator:
     @staticmethod
     def matname_translate(value):
         return Translator._translate('matname', value, 'matnameID', 'matname')
+    @staticmethod
+    def grossnet_translate(value):
+        return Translator._translate('GrossNet', value, 'GrossNetID', 'GrossNet')
 
     @staticmethod
     def agglevel_translate(value):
@@ -539,10 +662,10 @@ class Translator:
         """
         Get all possible values for a given attribute.
         
-        Args:
+        Inputs:
             attribute (str): The name of the attribute to get values for.
         
-        Returns:
+        Outputs:
             list: A list of all possible values (names) for the attribute.
         """
         # Dictionary mapping attribute names to model details
@@ -555,6 +678,7 @@ class Translator:
             'ieamw': ('IEAMW', 'IEAMWID', 'IEAMW'),
             'matname': ('matname', 'matnameID', 'matname'),
             'agglevel': ('AggLevel', 'AggLevelID', 'AggLevel'),
+            'grossnet': ('GrossNet', 'GrossNetID', 'GrossNet'),
         }
         
         if attribute not in model_mappings:
@@ -567,6 +691,14 @@ class Translator:
 
     @staticmethod
     def get_all_available(attribute):
+        """Get all available values for a given attribute from the PSUT model.
+        
+        Inputs:
+            attribute (str): The name of the attribute to get values for.
+        
+        Outputs:
+            A list of distinct values for the attribute from the PSUT model.
+        """
         # Dictionary mapping attribute names to model details
         model_mappings = {
             'dataset': ('Dataset', 'DatasetID', 'Dataset'),
@@ -577,6 +709,7 @@ class Translator:
             'ieamw': ('IEAMW', 'IEAMWID', 'IEAMW'),
             'matname': ('matname', 'matnameID', 'matname'),
             'agglevel': ('AggLevel', 'AggLevelID', 'AggLevel'),
+            'grossnet': ('GrossNet', 'GrossNetID', 'GrossNet'),
         }
         
         if attribute not in model_mappings:
@@ -585,76 +718,105 @@ class Translator:
         model_name, id_field, name_field = model_mappings[attribute]
         translations = Translator.__load_bidict(model_name, id_field, name_field)
 
+        # Print distinct values for the attribute from the PSUT model
         print(PSUT.objects.order_by().values_list(model_name, flat=True).distinct())
 
     @staticmethod
     def get_includesNEUs():
         return [True, False]
 
-# TODO: this needs to be fixed...
-# def temp_add_get():
-
-#     def mat_get(self, row, col):
-#             if type(row) != str or type(col) != str:
-#                 raise ValueError("Getting item from RUVY matrix must be as follows: matrix['row_name', 'column_name'] or matrix[row_number, col_number]")
-
-#             if type(self) == csc_matrix:
-#                 return self[Translator.index_translate(col), Translator.index_translate(row)]
-#             return self[Translator.index_translate(row), Translator.index_translate(col)]
-
-#     if not hasattr(csr_matrix, "get"): csr_matrix.get = mat_get
-
-#     if not hasattr(csc_matrix, "get"): csc_matrix.get = mat_get
-
-
 # Silent context manager
-
-
 class Silent():
     '''Used as a context manager to silence anything in its block'''
 
-    real_stdout = sys.stdout
-    real_stderr = sys.stderr
-    instance = None
+    real_stdout = sys.stdout # Store the original stdout
+    real_stderr = sys.stderr # Store the original stderr
+    instance = None # Class variable to store the singleton instance
 
     def __new__(cls):
-        if cls.instance is None:
+        '''Implement the Singleton pattern to ensure only one instance of Silent is created.
+        
+        Outputs:
+            Silent: The single instance of the Silent class.
+        '''
+        if cls.instance == None:
             cls.instance = super().__new__(cls)
         return cls.instance
 
     def __enter__(self):
-        self.dn = open(devnull, "w")
-        sys.stdout = self.dn
-        sys.stderr = self.dn
+        '''Called when entering the context manager block.
+        Redirects stdout and stderr to /dev/null.
+        '''
+        self.dn = open(devnull, "w") # Open /dev/null for writing
+        sys.stdout = self.dn  # Redirect stdout to /dev/null
+        sys.stderr = self.dn # Redirect stderr to /dev/null
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        self.dn.close()
-        sys.stdout = self.real_stdout
-        sys.stderr = self.real_stderr
+        '''
+        Called when exiting the context manager block.
+        Restores the original stdout and stderr, and closes the /dev/null file.
+
+        Inputs:
+            exc_type: The type of the exception that caused the context to be exited.
+            exc_value: The instance of the exception that caused the context to be exited.
+            exc_traceback: A traceback object encoding the stack trace.
+        '''
+        self.dn.close()  # Close the /dev/null file
+        sys.stdout = self.real_stdout # Restore the original stdout
+        sys.stderr = self.real_stderr # Restore the original stderr
 
 from uuid import uuid4
 import pickle
 def new_email_code(form) -> str:
+    """Generate a new email verification code and save associated account information.
+
+    Inputs:
+        form: A form object containing cleaned account setup information.
+
+    Outputs:
+        str: A unique verification code.
+    """
+    # Generate a unique code using UUID
     code = str(uuid4())
     account_info = pickle.dumps(form.clean()) # get the cleaned form (a map) serialized
     EmailAuthCodes(code=code, account_info=account_info).save() # save account setup info to database
     return code
 
 def get_user_history(request) -> list:
+    """Retrieve the user's plot history from cookies.
+
+    Inputs:
+        request: The HTTP request object containing cookies.
+
+    Outputs:
+        list: The user's plot history, or an empty list if no history exists.
+    """
+    # Get the serialized user history from cookies
     serialized_data = request.COOKIES.get('user_history')
 
     if serialized_data:
-        user_history = pickle.loads(bytes.fromhex(serialized_data))
+        user_history = pickle.loads(bytes.fromhex(serialized_data)) # Deserialize the data if it exists
     else:
-        user_history = list()
+        user_history = list() # Return an empty list if no history exists
 
     return user_history
 
-MAX_HISTORY = 5
+MAX_HISTORY = 5 # Maximum number of items to keep in the user's history
 def update_user_history(request, plot_type, query):
+    """Update the user's plot history with a new plot query.
 
+    Inputs:
+        request: The HTTP request object.
+        plot_type (str): The type of plot being added to the history.
+        query (dict): The query parameters for the plot.
+
+    Outputs:
+        bytes: Serialized updated user history.
+    """
+    # Get the current user history
     user_history = get_user_history(request)
 
+    # Create a dictionary with the new history data
     history_data = {
         'plot_type': plot_type,
         **query
@@ -677,5 +839,6 @@ def update_user_history(request, plot_type, query):
         # If user_history is empty, append the new history_data
         user_history.append(history_data)
 
+    # Serialize the updated user history
     serialized_data = pickle.dumps(user_history)
     return serialized_data

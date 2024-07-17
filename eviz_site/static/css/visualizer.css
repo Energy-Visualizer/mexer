@@ -327,3 +327,15 @@ form {
 .history-button:hover {
     background-color: #617392;
 }
+
+.history-item {
+    display: flex;
+    align-items: center;
+}
+.delete-history {
+    background: none;
+    border: none;
+    color: #ff0000;
+    cursor: pointer;
+    margin-left: 10px;
+}

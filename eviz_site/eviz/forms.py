@@ -3,6 +3,11 @@ from django.contrib.auth.forms import UserCreationForm
 from .models import EvizUser
 
 class SignupForm(UserCreationForm):
+    """ Custom form for user registration
+    
+    This form extends Django's UserCreationForm to include addidtional fields
+    specific for the EVIZ application such as email, institution, and country.
+    """
     username = forms.CharField(
         max_length=150,
         required=True,
@@ -32,10 +37,15 @@ class SignupForm(UserCreationForm):
     )
 
     class Meta:
+        # Use the custom custom user model
         model = EvizUser 
         fields = ['username', 'email', 'password1', 'password2', 'institution', 'country']
 
 class LoginForm(forms.Form):
+    """Custom form foruser login.
+    
+    This form provides fields for username and password input for user authentication.
+    """
     username = forms.CharField(
         max_length=150,
         required=True,
