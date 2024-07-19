@@ -271,6 +271,13 @@ def visualizer(request):
     
     # Fetch all available options for various parameters from the Translator
     datasets = Translator.get_all('dataset')
+
+    # get rid of broken dataset
+    try:
+        datasets.remove("IEAEWEB2022")
+    except:
+        pass
+
     countries = Translator.get_all('country')
     countries.sort()
     methods = Translator.get_all('method')
