@@ -26,7 +26,7 @@ SECRET_KEY = environ["django_secret_key"]
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "153.106.195.53", ".mexer.site"]
+ALLOWED_HOSTS = ["localhost", "153.106.195.53"]
 
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
@@ -164,7 +164,7 @@ STATIC_BASE = BASE_DIR / "static"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CSRF_TRUSTED_ORIGINS = ['https://eviz.cs.calvin.edu']
+CSRF_TRUSTED_ORIGINS = ['https://eviz.cs.calvin.edu', "https://*.mexer.site"]
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
