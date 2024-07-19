@@ -1,18 +1,31 @@
-from scipy.sparse import coo_matrix
-from eviz.models import AggEtaPFU
-from json import loads as json_from_string, dumps as json_dumps
-from django.contrib.auth.models import User
-import plotly.express as px  # for making the scatter plot
-import pandas.io.sql as pd_sql  # for getting data into a pandas dataframe
-from pandas import DataFrame
-from eviz.models import *
+# Standard library imports
 import sys
 from os import devnull
-from django.db import connections
-import plotly.graph_objects as pgo
-
-
+from pathlib import Path
 from time import time
+from json import loads as json_from_string, dumps as json_dumps
+
+# Third-party imports
+import plotly.express as px  # for making the scatter plot
+import plotly.graph_objects as go
+import plotly.graph_objects as pgo
+from bidict import bidict
+from scipy.sparse import coo_matrix
+import pickle
+from uuid import uuid4
+from pandas import DataFrame
+import pandas.io.sql as pd_sql  # for getting data into a pandas dataframe
+
+# Django imports
+from django.db import connections
+from django.apps import apps
+from django.urls import reverse
+from django.contrib.auth.models import User
+
+# Local imports
+from eviz.models import *
+
+
 def time_view(v):
     '''Wrapper to time how long it takes to deliver a view
 
@@ -206,7 +219,6 @@ def get_database(query: dict) -> str:
         return None # database is invalid
     return db
 
-from pathlib import Path
 with open(f"{Path(__file__).resolve().parent.parent}/internal_resources/sankey_color_scheme.json") as f:
     colors_data = f.read()
     SANKEY_COLORS: dict[str, str] = json_from_string(colors_data)
@@ -324,10 +336,6 @@ def get_sankey(query: dict) -> pgo.Figure:
 
     # convert everything to json to send it to the javascript renderer
     return json_dumps(nodes), json_dumps(links), json_dumps(options)
-
-import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
 
 def get_xy(efficiency_metric, query: dict, color_by: str, line_by: str, facet_col_by: str = None, facet_row_by: str = None, energy_type: str = None) -> go.Figure:
     """ Generate a line plot based on the given efficiency metric and query parameters.
@@ -571,8 +579,6 @@ def get_excel_from_query(query: dict, columns = COLUMNS):
     # index false to not have column of row numbers
     return get_translated_dataframe(query, columns).to_excel(index=False)
 
-from bidict import bidict
-from django.apps import apps
 class Translator:
     # A dictionary where keys are model names and values are bidict objects
     __translations = {}
@@ -758,8 +764,6 @@ class Silent():
         sys.stdout = self.real_stdout # Restore the original stdout
         sys.stderr = self.real_stderr # Restore the original stderr
 
-from uuid import uuid4
-import pickle
 def new_email_code(form) -> str:
     """Generate a new email verification code and save associated account information.
 
@@ -836,7 +840,6 @@ def update_user_history(request, plot_type, query):
     serialized_data = pickle.dumps(user_history)
     return serialized_data
 
-from django.urls import reverse
 def get_history_html(user_history: list[dict]) -> str:
     history_html = ''
     

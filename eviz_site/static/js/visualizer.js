@@ -175,3 +175,4 @@ const showDropdown = (name) => {
 function refreshHistory() {
     htmx.ajax("GET", "/history", {target:"#history-list", swap:"innerHTML"});
 }
+

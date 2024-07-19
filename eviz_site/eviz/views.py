@@ -87,7 +87,7 @@ def get_plot(request):
     # if user is not logged in their username is empty string
     # mark them as anonymous in the logs
     LOGGER.info(f"Plot requested by {request.user.get_username() or "anonymous user"}")
-
+    print(request.POST)
     plot_div = None
     if request.method == "POST":
         # Extract plot type and query parameters from the POST request
@@ -153,8 +153,8 @@ def get_plot(request):
                         xaxis = dict(title=''),
                         xaxis_side = "top",
                         xaxis_tickangle = -45, 
-                        scattermode = "overlay"
-                        
+                        scattermode = "overlay",
+                        # plot_bgcolor = "rgba(0, 0, 0, 0)",
                     )
 
                     # Render the figure as an HTML div
@@ -275,6 +275,8 @@ def visualizer(request):
     last_stages = Translator.get_all('laststage')
     ieamws = Translator.get_all('ieamw')
     grossnets = Translator.get_all('grossnet')
+    product_aggregations = Translator.get_all('agglevel')
+    industry_aggregations = Translator.get_all('agglevel')
     # Remove 'Both' from ieamws if present
     try:
         ieamws.remove("Both")
@@ -287,7 +289,7 @@ def visualizer(request):
     context = {
         "datasets":datasets, "countries":countries, "methods":methods,
         "energy_types":energy_types, "last_stages":last_stages, "ieamws":ieamws, "grossnets":grossnets,
-        "matnames":matnames, 
+        "matnames":matnames, "product_aggregations":product_aggregations, "industry_aggregations":industry_aggregations,
         "iea":request.user.is_authenticated and request.user.has_perm("eviz.get_iea")
         }
 
@@ -336,14 +338,14 @@ def user_signup(request):
             # handle the email construction and sending
             code = new_email_code(form)
             msg = EmailMultiAlternatives(
-                subject="New EVIZ Account",
+                subject="New Mexer Account",
                 body=f"Please visit the following link to verify your account:\neviz.cs.calvin.edu/verify?code={code}",
                 from_email="eviz.site@outlook.com",
                 to=[new_user_email]
             )
             # Email message
             msg.attach_alternative(
-                content = f"<p>Please <a href='https://eviz.cs.calvin.edu/verify?code={code}'>click here</a> to verify your new EVIZ account!</p>",
+                content = f"<p>Please <a href='https://eviz.cs.calvin.edu/verify?code={code}'>click here</a> to verify your new Mexer account!</p>",
                 mimetype = "text/html"
             )
             msg.send()
