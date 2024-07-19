@@ -24,9 +24,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = environ["django_secret_key"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "eviz.cs.calvin.edu", "mexer.site"]
+ALLOWED_HOSTS = ["localhost", "153.106.195.53", ".mexer.site"]
 
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
