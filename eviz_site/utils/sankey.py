@@ -2,20 +2,19 @@ import json
 from utils.translator import Translator
 from eviz.models import PSUT
 import plotly.graph_objects as pgo
-from utils.data import get_database
+from utils.data import query_database, DatabaseTarget
 from eviz_site.settings import SANKEY_COLORS_PATH
 
-from pathlib import Path
 with open(SANKEY_COLORS_PATH) as f:
     SANKEY_COLORS: dict[str, str] = json.loads(f.read())
 
-def _get_sankey_node_info(label_num: int, label_col: int, node_list: list[list], idx_dict: dict, label_info_dict: dict, db: str):
+def _get_sankey_node_info(label_num: int, label_col: int, node_list: list[list], idx_dict: dict, label_info_dict: dict, translator: Translator):
 
     # try to get saved information about the label
     label_info = label_info_dict.get(label_num, -1)
     if label_info == -1:
         # add it if it is a new label and get new node_idx
-        name = Translator.index_translate(label_num, db)
+        name = translator.index_translate(label_num)
         carrier_name = name.split()[0] # get first word of label for color
         node_list[label_col].append(dict(label=name,
                                             color=SANKEY_COLORS.get(carrier_name) or SANKEY_COLORS["Unspecified"]))
@@ -33,7 +32,7 @@ def _get_sankey_node_info(label_num: int, label_col: int, node_list: list[list],
 
     return node_idx, label_col
 
-def get_sankey(query: dict) -> pgo.Figure:
+def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str] | tuple[None, None, None]:
     ''' Gets a sankey diagram for a query
 
     Input:
@@ -51,18 +50,18 @@ def get_sankey(query: dict) -> pgo.Figure:
     if "matname" in query.keys():
         del query["matname"]
 
-    if (db := get_database(query)) is None:
-        return (None, None, None)
+    translator = Translator(target[0])
+    
+    # have the query get a full RUVY
+    query.update({"matname__in": [
+            translator.matname_translate("R"),
+            translator.matname_translate("U"),
+            translator.matname_translate("V"),
+            translator.matname_translate("Y")
+        ]})
 
     # get all four matrices to make the full RUVY matrix
-    data = PSUT.objects.using(db).values_list("matname", "i", "j", "x").filter(
-        **query, matname__in = [
-            Translator.matname_translate("R", db),
-            Translator.matname_translate("U", db),
-            Translator.matname_translate("V", db),
-            Translator.matname_translate("Y", db)
-        ]
-    )
+    data = query_database(target, query, ["matname", "i", "j", "x"])
 
     # if no cooresponding data, return as such
     if not data:
@@ -77,7 +76,9 @@ def get_sankey(query: dict) -> pgo.Figure:
     options = dict(
         plot_background_color = '#f4edf7',
         default_links_opacity = 0.8,
-        default_gradient_links_opacity = 0.8
+        default_gradient_links_opacity = 0.8,
+        show_column_lines = False,
+        show_column_names = False
     )
 
     # track which label is which index in the column lists
@@ -96,7 +97,7 @@ def get_sankey(query: dict) -> pgo.Figure:
 
     for matname, i, j, magnitude in data:
         # figure out which column the info should go in
-        match(Translator.matname_translate(matname, db)):
+        match(translator.matname_translate(matname)):
             case("R"):
                 from_node_col = 0
                 to_node_col = 1
@@ -118,8 +119,8 @@ def get_sankey(query: dict) -> pgo.Figure:
             raise ValueError("Unknown matrix name processed")
 
         # get the index and column the node truely belongs in
-        from_node_idx, from_node_col = _get_sankey_node_info(i, from_node_col, nodes, idx, label2info, db)
-        to_node_idx, to_node_col = _get_sankey_node_info(j, to_node_col, nodes, idx, label2info, db)
+        from_node_idx, from_node_col = _get_sankey_node_info(i, from_node_col, nodes, idx, label2info, translator)
+        to_node_idx, to_node_col = _get_sankey_node_info(j, to_node_col, nodes, idx, label2info, translator)
 
         # set up the flow from the two labels above
         links.append({"from": dict(column=from_node_col, node = from_node_idx),

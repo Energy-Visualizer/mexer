@@ -46,7 +46,7 @@ def get_data(request):
     if request.method == "POST":
         
         # set up query and get csv from it
-        query = shape_post_request(request.POST)
+        query, target = shape_post_request(request.POST, ret_database_target = True)
 
         if not iea_valid(request.user, query):
             LOGGER.warning(f"IEA data requested by unauthorized user {request.user.get_username() or "anonymous user"}")
@@ -54,10 +54,10 @@ def get_data(request):
                                 "You can also purchase WEB data at <a style='color: #00adb5':visited='{color: #87CEEB}' href='https://www.iea.org/data-and-statistics/data-product/world-energy-balances'> World Energy Balances</a>.", code=403)
 
         # Translate the query to match database field names
-        query = translate_query(query)
+        query = translate_query(target, query)
 
         # Generate CSV data based on the query
-        csv = get_csv_from_query(query)
+        csv = get_csv_from_query(target, query)
 
         # set up the response:
         # content is the csv made above
@@ -98,7 +98,7 @@ def get_plot(request):
     plot_div = None
     if request.method == "POST":
         # Extract plot type and query parameters from the POST request
-        query, plot_type, db = shape_post_request(request.POST, get_plot_type = True, get_database = True)
+        query, plot_type, target = shape_post_request(request.POST, ret_plot_type = True, ret_database_target = True)
 
         # Check if the user has access to IEA data
         # TODO: make this work with status = 403, problem is HTMX won't show anything
@@ -110,8 +110,8 @@ def get_plot(request):
         # Use match-case to handle different plot types
         match plot_type:
             case "sankey":
-                translated_query = translate_query(query)
-                nodes,links,options = get_sankey(translated_query)
+                translated_query = translate_query(target, query)
+                nodes,links,options = get_sankey(target, translated_query)
 
                 if nodes is None:
                     plot_div = "Error: No cooresponding data"
@@ -131,8 +131,8 @@ def get_plot(request):
                 if 'Energy' in energy_type and 'Exergy' in energy_type:
                     energy_type = 'Energy, Exergy'
                 
-                translated_query = translate_query(query)
-                xy = get_xy(efficiency_metric, translated_query, color_by, line_by, facet_col_by, facet_row_by, energy_type)
+                translated_query = translate_query(target, query)
+                xy = get_xy(efficiency_metric, target, translated_query, color_by, line_by, facet_col_by, facet_row_by, energy_type)
 
                 if xy is None:
                     plot_div = "Error: No corresponding data"
@@ -145,14 +145,14 @@ def get_plot(request):
                 matrix_name = query.get("matname")
                 color_scale = query.get('color_scale', "viridis")
                 # Retrieve the matrix
-                translated_query = translate_query(query)
-                matrix = get_matrix(translated_query)
+                translated_query = translate_query(target, query)
+                matrix = get_matrix(target, translated_query)
                 
                 if matrix is None:
                     plot_div = "Error: No corresponding data"
                 
                 else:
-                    heatmap= visualize_matrix(matrix, color_scale)
+                    heatmap = visualize_matrix(target, matrix, color_scale)
 
                     heatmap.update_layout(
                         title = matrix_name + " Matrix",

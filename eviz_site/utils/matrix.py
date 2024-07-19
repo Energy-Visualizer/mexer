@@ -1,10 +1,10 @@
 import plotly.graph_objects as pgo
 from scipy.sparse import coo_matrix
-from utils.data import get_database
+from utils.data import query_database, DatabaseTarget
 from eviz.models import PSUT, Index
 from utils.translator import Translator
 
-def get_matrix(query: dict) -> coo_matrix:
+def get_matrix(target: DatabaseTarget, query: dict) -> coo_matrix:
     '''Collects, constructs, and returns one of the RUVY matrices
 
     Inputs:
@@ -14,18 +14,11 @@ def get_matrix(query: dict) -> coo_matrix:
         A scipy coo_matrix containing all the values from the specified query
         or None if the given query related to no data 
     '''
-    if (db := get_database(query)) is None:
-        return None
 
     # Get the sparse matrix representation
     # i, j, x for row, column, value
     # in 3-tuples
-    sparse_matrix = (
-        PSUT.objects
-        .using(db)
-        .values_list("i", "j", "x")
-        .filter(**query)
-    )
+    sparse_matrix = query_database(target, query, ["i", "j", "x"])
 
     # if nothing was returned
     if not sparse_matrix:
@@ -47,7 +40,7 @@ def get_matrix(query: dict) -> coo_matrix:
     )
 
 
-def visualize_matrix(mat: coo_matrix, database: str, color_scale: str = 'viridis') -> pgo.Figure:
+def visualize_matrix(target: DatabaseTarget, mat: coo_matrix, color_scale: str = 'viridis') -> pgo.Figure:
     """Visualize a sparse matrix as a heatmap using Plotly.
 
     Inputs:
@@ -57,11 +50,14 @@ def visualize_matrix(mat: coo_matrix, database: str, color_scale: str = 'viridis
     Outputs:
         pgo.Figure: A Plotly graph object Figure containing the heatmap.
     """
+
     # Convert the matrix to a format suitable for Plotly's heatmap
     rows, cols, vals = mat.row, mat.col, mat.data
+
+    translator = Translator(target[0])
     # Translate row and column indices to human-readable labels
-    row_labels = [Translator.index_translate(i, database) for i in rows]
-    col_labels = [Translator.index_translate(i, database) for i in cols]
+    row_labels = [translator.index_translate(i) for i in rows]
+    col_labels = [translator.index_translate(i) for i in cols]
     
     # Create a Plotly Heatmap object
     heatmap = pgo.Heatmap(

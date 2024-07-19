@@ -1,47 +1,85 @@
-from eviz.models import models, PSUT
+from eviz.models import models, PSUT, IEAData, AggEtaPFU
 from pandas import DataFrame
 from utils.misc import Silent
 import pandas.io.sql as pd_sql  # for getting data into a pandas dataframe
 from django.db import connections
 from utils.translator import Translator
+from eviz_site.settings import DATABASES
 
-def get_dataframe(model: models.Model, query: dict, columns: list) -> DataFrame:
-    if (db := get_database(query)) is None:
+DatabaseTarget = tuple[str, models.Model]
+
+def get_database_target(query: dict) -> DatabaseTarget:
+    dataset = database = query.get("dataset")
+    if dataset == "IEAEWEB2022":
+        database = "default"
+
+    plot_type = query.get("plot_type")
+
+    if plot_type == "xy_plot":
+        model = AggEtaPFU
+    else:
+        model = IEAData if dataset == "IEAEWEB2022" else PSUT
+    
+    return database, model
+
+def query_database(target: DatabaseTarget, query: dict, values: list[str]):
+    db = target[0]
+    model = target[1]
+
+    if not _valid_database(db):
+        raise ValueError("Unknown database specified for query")
+
+    data = (
+        model.objects
+        .using(db)
+        .values_list(*values)
+        .filter(**query)
+    )
+
+    return data
+
+def _valid_database(database_name: str):
+    return database_name in DATABASES.keys()
+
+def get_dataframe(target: DatabaseTarget, query: dict, columns: list) -> DataFrame:
+    if not _valid_database(target[0]):
         return DataFrame() # empty data frame if database is wrong
     
     # get the data from database
-    db_query = model.objects.filter(**query).values(*columns).query
+    db_query = target[1].objects.filter(**query).values(*columns).query
     with Silent():
         df = pd_sql.read_sql_query(
             str(db_query),
-            con=connections[db].cursor().connection # get the connection associated with the requested database
+            con=connections[target[0]].cursor().connection # get the connection associated with the requested database
         )
     
     return df
 
 COLUMNS = ["Dataset", "Country", "Method", "EnergyType", "LastStage", "IEAMW", "IncludesNEU", "Year", "ChoppedMat", "ChoppedVar", "ProductAggregation", "IndustryAggregation", "matname", "i", "j", "x"]
-def get_translated_dataframe(model: models.Model, query: dict, columns: list) -> DataFrame:
-    df = get_dataframe(model, query, columns)
+def get_translated_dataframe(target: DatabaseTarget, query: dict, columns: list) -> DataFrame:
+    df = get_dataframe(target, query, columns)
 
     # no need to do work if dataframe is empty (no data was found for the query)
     if df.empty: return df
+
+    translator = Translator(target[0])
     
     # Translate the DataFrame's column names
     translate_columns = {
-        'Dataset': Translator.dataset_translate,
-        'Country': Translator.country_translate,
-        'Method': Translator.method_translate,
-        'EnergyType': Translator.energytype_translate,
-        'LastStage': Translator.laststage_translate,
-        'IEAMW': Translator.ieamw_translate,
-        'ChoppedMat': Translator.matname_translate,
-        'ChoppedVar': Translator.index_translate,
-        'ProductAggregation': Translator.agglevel_translate,
-        'IndustryAggregation': Translator.agglevel_translate,
-        'matname': Translator.matname_translate,
-        'grossnet': Translator.grossnet_translate,
-        'i': Translator.index_translate,
-        'j': Translator.index_translate
+        'Dataset': translator.dataset_translate,
+        'Country': translator.country_translate,
+        'Method': translator.method_translate,
+        'EnergyType': translator.energytype_translate,
+        'LastStage': translator.laststage_translate,
+        'IEAMW': translator.ieamw_translate,
+        'ChoppedMat': translator.matname_translate,
+        'ChoppedVar': translator.index_translate,
+        'ProductAggregation': translator.agglevel_translate,
+        'IndustryAggregation': translator.agglevel_translate,
+        'matname': translator.matname_translate,
+        'grossnet': translator.grossnet_translate,
+        'i': translator.index_translate,
+        'j': translator.index_translate
     }
 
     # Apply the translation functions to each column if it exists in the DataFrame
@@ -55,101 +93,19 @@ def get_translated_dataframe(model: models.Model, query: dict, columns: list) ->
     
     return df
 
-def get_csv_from_query(query: dict, columns: list = COLUMNS):
+def get_csv_from_query(target: DatabaseTarget, query: dict, columns: list = COLUMNS):
     
     # index false to not have column of row numbers
-    return get_translated_dataframe(PSUT, query, columns).to_csv(index=False)
+    return get_translated_dataframe(target, query, columns).to_csv(index=False)
 
-def get_excel_from_query(query: dict, columns = COLUMNS):
+def get_excel_from_query(target: DatabaseTarget, query: dict, columns = COLUMNS):
 
     # index false to not have column of row numbers
-    return get_translated_dataframe(PSUT, query, columns).to_excel(index=False)
-
-def translate_query(
-    query: dict
-) -> dict:
-    '''Turn a query of human readable values from a form into a query read to hit the dataset
-
-    Input:
-
-        query, a dict: the query that should be translated
-
-    Output:
-
-        a dictionary of a query ready to hit the database
-    '''
-
-    translated_query = dict()  # set up to build and return at the end
-
-    if (database := get_database(query)) is None:
-        raise ValueError("Unknown database specified for translating query")
-
-    # common query parts
-    if v := query.get("dataset"):
-        translated_query["Dataset"] = Translator.dataset_translate(v, database)
-    if v := query.get("country"):
-        if type(v) == list:
-            translated_query["Country__in"] = [
-                Translator.country_translate(country, database) for country in v]
-        else:
-            translated_query["Country"] = Translator.country_translate(v, database)
-    if v := query.get("method"):
-        if type(v) == list:
-            translated_query["Method__in"] = [
-                Translator.method_translate(method, database) for method in v]
-        else:
-            translated_query["Method"] = Translator.method_translate(v, database)
-    if v := query.get("energy_type"):
-        if type(v) == list:
-            translated_query["EnergyType__in"] = [
-                Translator.energytype_translate(energy_type, database) for energy_type in v]
-        else:
-            translated_query["EnergyType"] = Translator.energytype_translate(v, database)
-    if v := query.get("last_stage"):
-        translated_query["LastStage"] = Translator.laststage_translate(v, database)
-    if v := query.get("ieamw"):
-        if type(v) == list:
-            # both were selected, use the both option in the table
-            translated_query["IEAMW"] = Translator.ieamw_translate("Both", database)
-        else:
-            translated_query["IEAMW"] = Translator.ieamw_translate(v, database)
-    # includes neu either is in the query or not, it's value does need to be more than empty string, though
-    translated_query["IncludesNEU"] = Translator.includesNEU_translate(
-        bool(query.get("includes_neu")))
-    if v := query.get("chopped_mat"):
-        translated_query["ChoppedMat"] = Translator.matname_translate(v, database)
-    if v := query.get("chopped_var"):
-        translated_query["ChoppedVar"] = Translator.index_translate(v, database)
-    if v := query.get("product_aggregation"):
-        translated_query["ProductAggregation"] = Translator.agglevel_translate(
-            v, database)
-    if v := query.get("industry_aggregation"):
-        translated_query["IndustryAggregation"] = Translator.agglevel_translate(
-            v, database)
-    if v := query.get("grossnet"):
-        translated_query["GrossNet"] = Translator.grossnet_translate(
-            v, database)
-    # plot-specific query parts
-    if v := query.get("to_year"):
-        # if year part is a range of years, i.e. to_year present
-        # set up query as range
-        translated_query["Year__lte"] = int(v)
-        if v := query.get("year"):
-            translated_query["Year__gte"] = int(v)
-    elif v := query.get("year"):
-        # else just have year be one year
-        translated_query["Year"] = int(v)
-    if v := query.get("matname"):
-        if v == "RUVY":
-            translated_query["matname__in"] = [Translator.matname_translate("R", database), Translator.matname_translate("U", database), Translator.matname_translate("V", database), Translator.matname_translate("Y", database)]
-        else:
-            translated_query["matname"] = Translator.matname_translate(v, database)
-
-    return translated_query
+    return get_translated_dataframe(target, query, columns).to_excel(index=False)
 
 def shape_post_request(
-    payload, get_plot_type = False, get_database = False
-) -> tuple[str, dict]:
+    payload, ret_plot_type = False, ret_database_target = False
+) -> tuple[dict, str, DatabaseTarget]:
     '''Turn a POST request payload into a ready to use query in a dictionary
 
     Input:
@@ -174,17 +130,6 @@ def shape_post_request(
 
     shaped_query = dict(payload)
 
-    if get_plot_type:
-        try:
-            # to be returned at the end
-            plot_type = shaped_query.pop("plot_type")[0]
-        except KeyError:
-            plot_type = None
-
-    if get_database:
-        # to be returned at the end
-        db = shaped_query.get("dataset")[0]
-
     # get rid of security token, is not part of a query
     shaped_query.pop("csrfmiddlewaretoken", None)
 
@@ -193,36 +138,104 @@ def shape_post_request(
         # convert from list (if just one item in list)
         if len(v) == 1:
             shaped_query[k] = v[0]
+    
+    if ret_plot_type:
+        plot_type = shaped_query.get("plot_type")
+
+    if ret_database_target:
+        # to be returned at the end
+        db_target = get_database_target(shaped_query)
 
     return tuple(
         [shaped_query]
-        + ([plot_type] if get_plot_type else [])
-        + ([db] if get_database else [])
+        + ([plot_type] if ret_plot_type else [])
+        + ([db_target] if ret_database_target else [])
     )
 
-# TODO: is this all temp? do we want to keep all the data in seperate db's or will we actually use the dataset column?
-def get_database(query: dict) -> str:
-    """Determine the appropriate database to use based on the query parameters.
+# TODO: rewrite this to use a for loop instead
+def translate_query(
+    target: DatabaseTarget,
+    query: dict
+) -> dict:
+    '''Turn a query of human readable values from a form into a query read to hit the dataset
 
     Input:
-        query (dict): A dictionary containing query parameters, including a 'Dataset' key.
+
+        query, a dict: the query that should be translated
 
     Output:
-        str or None: The name of the database to use, or None if the database is invalid.
-    """
+
+        a dictionary of a query ready to hit the database
+    '''
+
+    translated_query = dict()  # set up to build and return at the end
+
+    if not _valid_database(target[0]):
+        raise ValueError("Unknown database specified for translating query")
     
-    # Translate the 'Dataset' value from the query to a database identifier
-    db = query.get("dataset")
-    if db is None:
-        return None
-    
-    if type(db) is int:
-        try:
-            db = Translator.dataset_translate(db, "default")
-        except:
-            raise Exception("Could not translate dataset")
-    
-    # TODO: this is missing IEA, we have to get where that is
-    if db not in ["CLPFUv2.0a1", "CLPFUv2.0a2", "CLPFUv2.0a3"]:
-        return None # database is invalid
-    return db
+    translator = Translator(target[0])
+
+    # common query parts
+    if v := query.get("dataset"):
+        translated_query["Dataset"] = translator.dataset_translate(v)
+    if v := query.get("country"):
+        if type(v) == list:
+            translated_query["Country__in"] = [
+                translator.country_translate(country) for country in v]
+        else:
+            translated_query["Country"] = translator.country_translate(v)
+    if v := query.get("method"):
+        if type(v) == list:
+            translated_query["Method__in"] = [
+                translator.method_translate(method) for method in v]
+        else:
+            translated_query["Method"] = translator.method_translate(v)
+    if v := query.get("energy_type"):
+        if type(v) == list:
+            translated_query["EnergyType__in"] = [
+                translator.energytype_translate(energy_type) for energy_type in v]
+        else:
+            translated_query["EnergyType"] = translator.energytype_translate(v)
+    if v := query.get("last_stage"):
+        translated_query["LastStage"] = translator.laststage_translate(v)
+    if v := query.get("ieamw"):
+        if type(v) == list:
+            # both were selected, use the both option in the table
+            translated_query["IEAMW"] = translator.ieamw_translate("Both")
+        else:
+            translated_query["IEAMW"] = translator.ieamw_translate(v)
+    # includes neu either is in the query or not, it's value does need to be more than empty string, though
+    translated_query["IncludesNEU"] = translator.includesNEU_translate(
+        bool(query.get("includes_neu")))
+    if v := query.get("chopped_mat"):
+        translated_query["ChoppedMat"] = translator.matname_translate(v)
+    if v := query.get("chopped_var"):
+        translated_query["ChoppedVar"] = translator.index_translate(v)
+    if v := query.get("product_aggregation"):
+        translated_query["ProductAggregation"] = translator.agglevel_translate(v)
+    if v := query.get("industry_aggregation"):
+        translated_query["IndustryAggregation"] = translator.agglevel_translate(v)
+    if v := query.get("grossnet"):
+        translated_query["GrossNet"] = translator.grossnet_translate(v)
+    # plot-specific query parts
+    if v := query.get("to_year"):
+        # if year part is a range of years, i.e. to_year present
+        # set up query as range
+        translated_query["Year__lte"] = int(v)
+        if v := query.get("year"):
+            translated_query["Year__gte"] = int(v)
+    elif v := query.get("year"):
+        # else just have year be one year
+        translated_query["Year"] = int(v)
+    if v := query.get("matname"):
+        if v == "RUVY":
+            translated_query["matname__in"] = [
+                translator.matname_translate("R"),
+                translator.matname_translate("U"),
+                translator.matname_translate("V"),
+                translator.matname_translate("Y")
+            ]
+        else:
+            translated_query["matname"] = translator.matname_translate(v)
+
+    return translated_query

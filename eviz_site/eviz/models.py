@@ -124,7 +124,7 @@ class Index(models.Model):
         
 
 class PSUT(models.Model):
-    """ Model representing a datatbase table named 'PSUT'."""
+    """ Model representing a datatbase table named 'PSUTReAllChopAllDsAllGrAll'."""
     # define meta attributes
     class Meta:
         db_table = "PSUTReAllChopAllDsAllGrAll"
@@ -146,6 +146,14 @@ class PSUT(models.Model):
     i = models.PositiveSmallIntegerField()
     j = models.PositiveSmallIntegerField()
     x = models.FloatField()
+
+class IEAData(models.Model):
+    """ Model representing a datatbase table named 'IEAData'."""
+    # define meta attributes
+    class Meta:
+        db_table = "IEAData"
+        managed = False
+
 
 class AggEtaPFU(models.Model):
     """ Model representing a database table named 'AggEtaPFU'."""

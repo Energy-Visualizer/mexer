@@ -1,9 +1,10 @@
 import plotly.express as px
 import plotly.graph_objects as go
-from utils.data import get_translated_dataframe, get_database
+from utils.data import get_translated_dataframe, DatabaseTarget
 from eviz.models import AggEtaPFU
 
-def get_xy(efficiency_metric, query: dict, color_by: str, line_by: str, facet_col_by: str = None, facet_row_by: str = None, energy_type: str = None) -> go.Figure:
+def get_xy(efficiency_metric: str, target: DatabaseTarget, query: dict,
+           color_by: str, line_by: str, facet_col_by: str = None, facet_row_by: str = None, energy_type: str = None) -> go.Figure:
     """ Generate a line plot based on the given efficiency metric and query parameters.
 
     Inputs:
@@ -18,10 +19,6 @@ def get_xy(efficiency_metric, query: dict, color_by: str, line_by: str, facet_co
     Outputs:
         go.Figure: A Plotly figure object containing the generated plot.
     """
-    
-    # Retrieve the database based on the query
-    db = get_database(query)
-    if db is None: return None
 
     # Create a list of fields to select, always including 'Year' and the efficiency metric
     fields_to_select = ["Year", efficiency_metric]
@@ -40,7 +37,7 @@ def get_xy(efficiency_metric, query: dict, color_by: str, line_by: str, facet_co
             fields_to_select.append(field_mapping[field])
 
     # get the respective data from the database
-    df = get_translated_dataframe(AggEtaPFU, query, fields_to_select)
+    df = get_translated_dataframe(target, query, fields_to_select)
         
     if df.empty: return None # if no data, return as such
 

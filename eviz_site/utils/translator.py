@@ -9,12 +9,24 @@ from bidict import bidict
 from django.apps import apps
 from eviz.models import PSUT
 
+from datetime import datetime, timedelta
+
+# how long to cache information from the database 
+# in *hours*
+TRANSLATOR_CACHE_TTL = 24
+
 class Translator:
-    # A dictionary where keys are model names and values are bidict objects
+    # A dictionary where keys are model names and values are tuples
+    # of date times and bidict objects
     __translations = {}
 
+    __cache_ttl = timedelta(hours=TRANSLATOR_CACHE_TTL)
+
+    def __init__(self, database: str):
+        self._db = database
+
     @staticmethod
-    def __load_bidict(model_name: str, id_field: str, name_field: str, db: str) -> bidict:
+    def __load_bidict(model_name: str, id_field: str, name_field: str, database: str) -> bidict:
         """
         Load translations for a specific model if not already loaded.
         
@@ -26,21 +38,42 @@ class Translator:
         Returns:
             bidict: A bidirectional dictionary of translations for the model.
         """
-        if (model_name + db) not in Translator.__translations:
-            # Get the model class dynamically
-            model = apps.get_model(app_label='eviz', model_name=model_name)
-            # Create a bidict with name:id pairs
-            Translator.__translations[model_name + db] = bidict(
-                {getattr(item, name_field): getattr(item, id_field) for item in model.objects.using(db).all()}
-            )
-        return Translator.__translations[model_name + db]
 
+        # check if we have the desired information
+        if (database + ":" + model_name) not in Translator.__translations:
+            Translator.__load_and_cache(model_name, id_field, name_field, database)
+        
+        model_translations = Translator.__translations[database + ":" + model_name]
+        
+        # if the data's cache ttl is expired,
+        # recache and reload
+        if (datetime.today().date() - model_translations[0]) > Translator.__cache_ttl:
+            Translator.__load_and_cache(model_name, id_field, name_field, database)
+            model_translations = Translator.__translations[database + ":" + model_name]
+            
+        return model_translations[1]
+    
     @staticmethod
-    def _translate(model_name, value, id_field, name_field, db):
+    def __load_and_cache(model_name: str, id_field: str, name_field: str, database: str):
+
+        # Get the model class dynamically
+        model = apps.get_model(app_label='eviz', model_name=model_name)
+
+        # Create a bidict with name:id pairs
+        Translator.__translations[database + ":" + model_name] = (
+            # a datetime to see how long this has been cached
+            datetime.today().date(),
+            # the bidict containing all the data information
+            bidict(
+                {getattr(item, name_field): getattr(item, id_field) for item in model.objects.using(database).all()}
+            )
+        )
+
+    def _translate(self, model_name, value, id_field, name_field):
         # Translate a value between its ID and name for a specific model.
         # value: The value to translate (can be either an ID or a name).
         # Returns: The translated value (either ID or name, depending on input).
-        translations = Translator.__load_bidict(model_name, id_field, name_field, db)
+        translations = self.__load_bidict(model_name, id_field, name_field, self._db)
         
         # try to get the translation
         if translation := translations.get(value) or translations.inverse.get(value):
@@ -51,51 +84,41 @@ class Translator:
 
     # The following methods are specific translation functions for different models
     # They all use the _translate method with appropriate parameters
-    @staticmethod
-    def index_translate(value, db_name: str):
-        return Translator._translate('Index', value, 'IndexID', 'Index', db_name)
+    def index_translate(self, value):
+        return self._translate('Index', value, 'IndexID', 'Index')
 
-    @staticmethod
-    def dataset_translate(value, db_name: str):
-        return Translator._translate('Dataset', value, 'DatasetID', 'Dataset', db_name)
+    def dataset_translate(self, value):
+        return self._translate('Dataset', value, 'DatasetID', 'Dataset')
 
-    @staticmethod
-    def country_translate(value, db_name: str):
-        return Translator._translate('Country', value, 'CountryID', 'FullName', db_name)
+    def country_translate(self, value):
+        return self._translate('Country', value, 'CountryID', 'FullName')
 
-    @staticmethod
-    def method_translate(value, db_name: str):
-        return Translator._translate('Method', value, 'MethodID', 'Method', db_name)
+    def method_translate(self, value):
+        return self._translate('Method', value, 'MethodID', 'Method')
 
-    @staticmethod
-    def energytype_translate(value, db_name: str):
-        return Translator._translate('EnergyType', value, 'EnergyTypeID', 'FullName', db_name)
+    def energytype_translate(self, value):
+        return self._translate('EnergyType', value, 'EnergyTypeID', 'FullName')
 
-    @staticmethod
-    def laststage_translate(value, db_name: str):
-        return Translator._translate('LastStage', value, 'ECCStageID', 'ECCStage', db_name)
+    def laststage_translate(self, value):
+        return self._translate('LastStage', value, 'ECCStageID', 'ECCStage')
 
-    @staticmethod
-    def ieamw_translate(value, db_name: str):
-        return Translator._translate('IEAMW', value, 'IEAMWID', 'IEAMW', db_name)
+    def ieamw_translate(self, value):
+        return self._translate('IEAMW', value, 'IEAMWID', 'IEAMW')
 
-    @staticmethod
-    def matname_translate(value, db_name: str):
-        return Translator._translate('matname', value, 'matnameID', 'matname', db_name)
-    @staticmethod
-    def grossnet_translate(value, db_name: str):
-        return Translator._translate('GrossNet', value, 'GrossNetID', 'GrossNet', db_name)
+    def matname_translate(self, value):
+        return self._translate('matname', value, 'matnameID', 'matname')
+    
+    def grossnet_translate(self, value):
+        return self._translate('GrossNet', value, 'GrossNetID', 'GrossNet')
 
-    @staticmethod
-    def agglevel_translate(value, db_name: str):
-        return Translator._translate('AggLevel', value, 'AggLevelID', 'AggLevel', db_name)
+    def agglevel_translate(self, value):
+        return self._translate('AggLevel', value, 'AggLevelID', 'AggLevel')
 
-    @staticmethod
-    def includesNEU_translate(value):
+    def includesNEU_translate(self, value):
         return int(value) if isinstance(value, bool) else int(bool(value))
 
     @staticmethod
-    def get_all(attribute):
+    def get_all(attribute, database = "default"):
         """
         Get all possible values for a given attribute.
         
@@ -123,8 +146,12 @@ class Translator:
         
         # Get model details and load translations
         model_name, id_field, name_field = model_mappings[attribute]
-        translations = Translator.__load_bidict(model_name, id_field, name_field, "default")
+        translations = Translator.__load_bidict(model_name, id_field, name_field, database)
         return list(translations.keys())
+    
+    @staticmethod
+    def get_includesNEUs(self):
+        return [True, False]
 
     # TODO: This needs to be finished...
     @staticmethod
@@ -158,7 +185,3 @@ class Translator:
 
         # Print distinct values for the attribute from the PSUT model
         print(PSUT.objects.order_by().values_list(model_name, flat=True).distinct())
-
-    @staticmethod
-    def get_includesNEUs():
-        return [True, False]
