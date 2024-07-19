@@ -132,6 +132,7 @@ const handleMatrices = () => {
     startMenuSwitch();
     for (let item of matrixMenuInputs)
         inputOn(item);
+    downloadButton.style.display = "block";
 }
 
 /** Add a new dropdown for a specified category */

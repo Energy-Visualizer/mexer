@@ -7,7 +7,14 @@ from django.core.mail import EmailMultiAlternatives # for email verification
 from django.views.decorators.csrf import csrf_exempt
 
 # Eviz imports
-from eviz.utils import *
+from utils.history import *
+from utils.misc import *
+from utils.translator import *
+from utils.data import *
+from utils.sankey import get_sankey
+from utils.xy_plot import get_xy
+from utils.matrix import get_matrix, visualize_matrix
+from eviz.models import Dataset
 from eviz.forms import SignupForm, LoginForm
 from eviz.logging import LOGGER
 
@@ -91,7 +98,7 @@ def get_plot(request):
     plot_div = None
     if request.method == "POST":
         # Extract plot type and query parameters from the POST request
-        plot_type, query = shape_post_request(request.POST, get_plot_type = True)
+        query, plot_type, db = shape_post_request(request.POST, get_plot_type = True, get_database = True)
 
         # Check if the user has access to IEA data
         # TODO: make this work with status = 403, problem is HTMX won't show anything
@@ -336,14 +343,14 @@ def user_signup(request):
             # handle the email construction and sending
             code = new_email_code(form)
             msg = EmailMultiAlternatives(
-                subject="New EVIZ Account",
-                body=f"Please visit the following link to verify your account:\neviz.cs.calvin.edu/verify?code={code}",
-                from_email="eviz.site@outlook.com",
+                subject="New Mexer Account",
+                body=f"Please visit the following link to verify your account:\nmexer.site/verify?code={code}",
+                from_email="signup@mexer.site",
                 to=[new_user_email]
             )
             # Email message
             msg.attach_alternative(
-                content = f"<p>Please <a href='https://eviz.cs.calvin.edu/verify?code={code}'>click here</a> to verify your new EVIZ account!</p>",
+                content = f"<p>Please <a href='https://mexer.site/verify?code={code}'>click here</a> to verify your new Mexer account!</p>",
                 mimetype = "text/html"
             )
             msg.send()
