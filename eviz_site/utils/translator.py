@@ -184,4 +184,4 @@ class Translator:
         translations = Translator.__load_bidict(model_name, id_field, name_field)
 
         # Print distinct values for the attribute from the PSUT model
-        print(PSUT.objects.order_by().values_list(model_name, flat=True).distinct())
+        # print(PSUT.objects.order_by().values_list(model_name, flat=True).distinct())

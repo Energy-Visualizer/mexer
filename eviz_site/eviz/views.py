@@ -41,7 +41,7 @@ def get_data(request):
 
     # if user is not logged in their username is empty string
     # mark them as anonymous in the logs
-    LOGGER.info(f"Data requested by {request.user.get_username() or "anonymous user"}")
+    LOGGER.info(f"Data requested by {request.user.get_username() or 'anonymous user'}")
 
     if request.method == "POST":
         
@@ -49,7 +49,7 @@ def get_data(request):
         query, target = shape_post_request(request.POST, ret_database_target = True)
 
         if not iea_valid(request.user, query):
-            LOGGER.warning(f"IEA data requested by unauthorized user {request.user.get_username() or "anonymous user"}")
+            LOGGER.warning(f"IEA data requested by unauthorized user {request.user.get_username() or 'anonymous user'}")
             return HttpResponse("You do not have access to IEA data. Please contact <a style='color: #00adb5' :visited='{color: #87CEEB}' href='mailto:matthew.heun@calvin.edu'>matthew.heun@calvin.edu</a> with questions."
                                 "You can also purchase WEB data at <a style='color: #00adb5':visited='{color: #87CEEB}' href='https://www.iea.org/data-and-statistics/data-product/world-energy-balances'> World Energy Balances</a>.", code=403)
 
@@ -93,8 +93,7 @@ def get_plot(request):
 
     # if user is not logged in their username is empty string
     # mark them as anonymous in the logs
-    LOGGER.info(f"Plot requested by {request.user.get_username() or "anonymous user"}")
-    print(request.POST)
+    LOGGER.info(f"Plot requested by {request.user.get_username() or 'anonymous user'}")
     plot_div = None
     if request.method == "POST":
         # Extract plot type and query parameters from the POST request
@@ -103,7 +102,7 @@ def get_plot(request):
         # Check if the user has access to IEA data
         # TODO: make this work with status = 403, problem is HTMX won't show anything
         if not iea_valid(request.user, query):
-            LOGGER.warning(f"IEA data requested by unauthorized user {request.user.get_username() or "anonymous user"}")
+            LOGGER.warning(f"IEA data requested by unauthorized user {request.user.get_username() or 'anonymous user'}")
             return HttpResponse("You do not have access to IEA data. Please contact <a style='color: #00adb5' :visited='{color: #87CEEB}' href='mailto:matthew.heun@calvin.edu'>matthew.heun@calvin.edu</a> with questions."
                                 "You can also purchase WEB data at <a style='color: #00adb5':visited='{color: #87CEEB}' href='https://www.iea.org/data-and-statistics/data-product/world-energy-balances'> World Energy Balances</a>.")
         
@@ -224,14 +223,11 @@ def delete_history_item(request):
     """
         
     # Get the index of the item to delete from the POST data
-    print("POST data:", request.POST)
     index = int(request.POST.get('index', -1))
-    print("Index to delete:", index)
     
     if index >= 0:
         # Retrieve the current user history
         user_history = get_user_history(request)
-        print("Current user history:", user_history)
         
         # Check if the index is valid
         if 0 <= index < len(user_history):
@@ -344,20 +340,21 @@ def user_signup(request):
 
             # handle the email construction and sending
             code = new_email_code(form)
+            url = f"https://mexer.site/verify?code={code}"
             msg = EmailMultiAlternatives(
                 subject="New Mexer Account",
-                body=f"Please visit the following link to verify your account:\nmexer.site/verify?code={code}",
+                body=f"Please visit the following link to verify your account:\n{url}",
                 from_email="signup@mexer.site",
                 to=[new_user_email]
             )
             # Email message
             msg.attach_alternative(
-                content = f"<p>Please <a href='https://mexer.site/verify?code={code}'>click here</a> to verify your new Mexer account!</p>",
+                content = f"<p>Please <a href='{url}'>click here</a> to verify your new Mexer account!</p>",
                 mimetype = "text/html"
             )
             msg.send()
 
-            LOGGER.info(f"{form.cleaned_data["username"]} signed up for account. Email sent to {new_user_email}. (Code: {code})")
+            LOGGER.info(f"{form.cleaned_data['username']} signed up for account. Email sent to {new_user_email}. (Code: {code})")
 
             # send the user to a page explaining what to do next (check email)
             return render(request, 'verify_explain.html')
@@ -382,7 +379,13 @@ def verify_email(request):
     if request.method == "GET":
         # Extract the verification code from the GET parameters
         code = request.GET.get("code")
-        new_user = EmailAuthCodes.objects.get(code = code) # try to get associated user from code
+
+        new_user = None
+        try: 
+            new_user = EmailAuthCodes.objects.get(code = code) # try to get associated user from code
+        except: 
+            return redirect("home") # if something breaks, go to home
+
         if new_user:
             # if there is an associated user, set up their account
             # load the serialized account info from the database and save it
@@ -390,7 +393,7 @@ def verify_email(request):
             SignupForm(account_info).save()
             new_user.delete() # get rid of row in database
             messages.add_message(request, messages.INFO, "Verification was successful!")
-            LOGGER.info(f"{account_info.get("username")} account created.")
+            LOGGER.info(f"{account_info.get('username')} account created.")
         else:
             messages.add_message(request, messages.INFO, "Bad verification code!")
 
@@ -456,8 +459,8 @@ def user_logout(request):
 
 
 # Static handling
-from django.conf import settings
-def handle_css_static(request, filepath):
+from eviz_site.settings import STATIC_BASE
+def handle_static(request, filepath):
     """Serve CSS static files directly from a specified directory.
 
     This function reads a CSS file from a static files directory
@@ -470,6 +473,20 @@ def handle_css_static(request, filepath):
     Outputs:
         HttpResponse containing the contents of the CSS file
     """
-    with open(f"{settings.STATICFILES_DIRS[1]}/{filepath}", "rb") as f:
-        return HttpResponse(f.read(), headers = {"Content-Type": "text/css"})
+    # example filepath: css/toolbar.css
+    match(filepath.split("/")[0]):
+        case "css":
+            with open(f"{STATIC_BASE}/{filepath}", "rb") as f:
+                return HttpResponse(f.read(), headers = {"Content-Type": "text/css"})
+            
+        case "images":
+            with open(f"{STATIC_BASE}/{filepath}", "rb") as f:
+                return HttpResponse(f.read(), headers = {"Content-Type": "image"})
+            
+        case "js":
+            with open(f"{STATIC_BASE}/{filepath}", "rb") as f:
+                return HttpResponse(f.read(), headers = {"Content-Type": "text/javascript"})
+        
+        case _:
+            return HttpResponse("", code = 404)
     
