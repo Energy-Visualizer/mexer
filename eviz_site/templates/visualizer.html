@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>EVIZ Visualizer</title>
+    <title>Mexer Visualizer</title>
     <!-- CSS stylesheets -->
     <link rel="stylesheet" href="../static/css/toolbar.css" type="text/css" />
     <link rel="stylesheet" href="../static/css/visualizer.css" type="text/css" />
@@ -24,7 +24,7 @@
     <div class="topbar">
         <!-- Left side of the toolbar -->
         <div class="left">
-            <a class="main" href="{% url 'home' %}">EVIZ</a>
+            <a class="main" href="{% url 'home' %}">Mexer</a>
         </div>
         <!-- Right side of the toolbar -->
         <div class="right">
@@ -46,8 +46,8 @@
         <path d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z" style="stroke: none; fill:#393E46;"></path>
     </svg>
     <!-- toolbar end -->
-
     <!-- Sidebar for displaying history -->
+    <button id="history-toggle" class="history-toggle-btn">=</button>
     <div  id="history-section" class="sidebar">
         <h2>History</h2>
         <div id="history-list"></div>
@@ -267,6 +267,49 @@
         </div>
         <!-- efficiency dropdown end -->
 
+
+        <div class="query-choice">
+            <div class="info-text">
+                <span class="popup-icon">&#9432;
+                    <span class="popup-text">
+                        Choose the deisired Product Aggregation
+                    </span>
+                </span>
+                Product Aggregation
+            </div>
+            <div class="input-column">
+                {% for product_aggregation in product_aggregations %}
+                {% if product_aggregation == 'Specified' %}
+                    <label><input type="checkbox" value="{{ product_aggregation }}" class="space-input" name="product_aggregation" checked>{{ product_aggregation }}</label><br>
+                {% else %}
+                    <label><input type="checkbox" value="{{ product_aggregation }}" class="space-input" name="product_aggregation">{{ product_aggregation }}</label><br>
+                {%endif%}
+                {% endfor %}
+            </div>
+            &#x2800
+        </div>
+
+        <div class="query-choice">
+            <div class="info-text">
+                <span class="popup-icon">&#9432;
+                    <span class="popup-text">
+                        Choose the deisired Industry Aggregation
+                    </span>
+                </span>
+                Industry Aggregation
+            </div>
+            <div class="input-column">
+                {% for industry_aggregation in industry_aggregations %}
+                {% if industry_aggregation == 'Specified' %}
+                    <label><input type="checkbox" value="{{ industry_aggregation }}" class="space-input" name="industry_aggregation" checked>{{ industry_aggregation }}</label><br>
+                {% else %}
+                    <label><input type="checkbox" value="{{ industry_aggregation }}" class="space-input" name="industry_aggregation">{{ industry_aggregation }}</label><br>
+                {%endif%}
+                {% endfor %}
+            </div>
+            &#x2800
+        </div>
+
         <!-- single year input -->
         <div class="query-choice">
             <div class="info-text">
@@ -433,3 +476,23 @@
 </body>
 
 </html>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleBtn = document.getElementById('history-toggle');
+        const sidebar = document.getElementById('history-section');
+    
+        toggleBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('open');
+            toggleBtn.classList.toggle('open');
+            
+            if (sidebar.classList.contains('open')) {
+                toggleBtn.textContent = 'x';
+            } else {
+                toggleBtn.textContent = '=';
+            }
+        });
+    });
+    
+    
+    </script>
+    

@@ -6,7 +6,7 @@ class SignupForm(UserCreationForm):
     """ Custom form for user registration
     
     This form extends Django's UserCreationForm to include addidtional fields
-    specific for the EVIZ application such as email, institution, and country.
+    specific for the Mexer application such as email, institution, and country.
     """
     username = forms.CharField(
         max_length=150,
