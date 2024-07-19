@@ -26,7 +26,7 @@ SECRET_KEY = environ["django_secret_key"]
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "153.106.195.53"]
+ALLOWED_HOSTS = ["localhost"]
 
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
