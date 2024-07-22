@@ -159,17 +159,18 @@ const showDropdown = (name) => {
     const delButton = document.createElement('button');
     delButton.onclick = () => { newDropdown.remove(); delButton.remove(); };
     delButton.type = "button";
-    delButton.textContent = "\u2717";
+    delButton.innerHTML = '<i class="fas fa-trash-alt"></i>';
     delButton.classList.add("remove-button");
 
     // put the dropdown and button together so they act as one block
     const wholeDropdown = document.createElement("div");
-    wholeDropdown.classList.add("space-info-text")
-    wholeDropdown.appendChild(newDropdown);
+    wholeDropdown.classList.add("new-country-dropdown");
     wholeDropdown.appendChild(delButton);
+    wholeDropdown.appendChild(newDropdown);
 
     // add the dropdown and button to the dom
-    desiredDropdown.after(wholeDropdown);
+    // in the collection of dropdowns for that query piece
+    desiredDropdown.parentNode.appendChild(wholeDropdown);
 };
 
 //Refreshes the history list using HTMX

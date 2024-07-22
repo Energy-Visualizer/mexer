@@ -56,37 +56,9 @@
 
     <!-- main form -->
     <form method="post" action="/data" id="query-form">
-        {% csrf_token %}
-        <!-- Various form elements for selecting visulaization toold-->
-        <!-- Each div with class "query-choice" represents a form field or group of related fields -->
-        <!-- ... (form fields for plot type, dataset, country, method, energy type, etc.) ... -->
-        <div class="query-choice">
-            <div class="column info-text">
-                <span class="popup-icon">&#9432;
-                    <span class="popup-text">
-                        Select the type of plot you want to display. <a href="{% url 'data-info'%}">Read more.</a>
-                    </span>
-                </span>
-                Visualization
-            </div>
-            <div class="input-column">
-                <label>
-                    <input name="plot_type" type="radio" value="sankey" class="space-input" id="plot-type-input" checked>
-                    Sankey
-                </label><br>
-                <label>
-                    <input name="plot_type" type="radio" value="xy_plot" class="space-input" id="plot-type-input">
-                    X-Y plot
-                </label><br>
-                <label>
-                    <input name="plot_type" type="radio" value="matrices" class="space-input" id="plot-type-input">
-                    PSUT matrices
-                </label><br>
-            </div>
-            &#x2800
-        </div>
-        
-
+    {% csrf_token %}
+    <div id="query-section" class="menu-pane bevel-left">
+        <h2>Query</h2>
         <div class="query-choice">
             <div class="info-text">
                 <span class="popup-icon">&#9432;
@@ -136,8 +108,9 @@
                     {% endif %}
                 {% endfor %}
                 </select>
-                <button class="add-dropdown-button" onclick="showDropdown('country')" type="button">Add Country</button>
             </div>
+            <button class="add-dropdown-button" onclick="showDropdown('country')" type="button">Add Country</button>
+
             &#x2800
         </div>
         <div class="query-choice">
@@ -240,7 +213,38 @@
             </div>
             &#x2800
         </div>
-        <!-- metadata specifics inputs -->
+    </div>
+
+    <div id="plot-setting-section" class="menu-pane bevel-right">
+        <h2>Plot</h2>
+        <!-- Various form elements for selecting visulaization toold-->
+        <!-- Each div with class "query-choice" represents a form field or group of related fields -->
+        <!-- ... (form fields for plot type, dataset, country, method, energy type, etc.) ... -->
+        <div class="query-choice">
+            <div class="column info-text">
+                <span class="popup-icon">&#9432;
+                    <span class="popup-text">
+                        Select the type of plot you want to display. <a href="{% url 'data-info'%}">Read more.</a>
+                    </span>
+                </span>
+                Visualization
+            </div>
+            <div class="input-column">
+                <label>
+                    <input name="plot_type" type="radio" value="sankey" class="space-input" id="plot-type-input" checked>
+                    Sankey
+                </label><br>
+                <label>
+                    <input name="plot_type" type="radio" value="xy_plot" class="space-input" id="plot-type-input">
+                    X-Y plot
+                </label><br>
+                <label>
+                    <input name="plot_type" type="radio" value="matrices" class="space-input" id="plot-type-input">
+                    PSUT matrices
+                </label><br>
+            </div>
+            &#x2800
+        </div>
 
         <!-- efficiency dropdown -->
         <div class="query-choice">
@@ -461,6 +465,7 @@
                 Download Data
             </button>
         </div>
+    </div>
     </form>
     <!-- main form end -->
 

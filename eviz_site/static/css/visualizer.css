@@ -8,16 +8,29 @@ html {
     scroll-behavior: smooth;
 }
 
-form {
+#query-form {
+    display: flex;
+    width: 50%;
+    position: relative;
+    margin: auto;
+}
+
+.menu-pane {
     text-align: center;
     color: whitesmoke;
     background-color: #191b1e;
-    width: 30%;
-    border-radius: 10%;
+    width: 100%;
     margin: 0 auto;
     padding: 15px 15px;
     box-shadow: #191b1e 0px 0px 20px;
-    position: relative;
+}
+
+.bevel-left {
+    border-radius: 5% 0% 0% 5%;
+}
+
+.bevel-right {
+    border-radius: 0% 5% 5% 0%;
 }
 
 #plot-section {
@@ -107,7 +120,7 @@ form {
 }
 
 .add-dropdown-button {
-    margin-left: 15px;
+    left: 50%;
 }
 
 .optional-dropdown {
@@ -117,12 +130,10 @@ form {
 .remove-button {
     background-color: transparent;
     color: rgb(200, 0, 0);
-    font-size: 20px;
+    font-size: 15px;
     border: 0;
-    border-radius: 50%;
-    width: 15px;
-    height: 15px;
-    margin-right: 0.5%;
+    position: absolute;
+    left: -5px;
 }
 
 .remove-button:hover {
@@ -372,3 +383,6 @@ form {
     margin-left: 10px;
 }
 
+.new-country-dropdown {
+    position: relative;
+}
