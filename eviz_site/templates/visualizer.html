@@ -69,23 +69,7 @@
                 From dataset
             </div>
             <div class="input-column">
-                {% for dataset in datasets %}
-                    {%if iea%}
-                        {%if dataset == 'CLPFUv2.0a2'%}
-                        <label><input type='radio' value="{{ dataset }}" name="dataset" class="space-input" checked>{{dataset}}</label><br>
-                        {%else%}
-                        <label><input type="radio" value="{{ dataset }}" name="dataset" class="space-input" required>{{ dataset }}</label><br>
-                        {% endif %}
-                    {%else%}
-                        {%if dataset != "IEAEWEB2022"%}
-                            {%if dataset == 'CLPFUv2.0a2'%}
-                            <label><input type='radio' value="{{ dataset }}" name="dataset" class="space-input" checked>{{dataset}}</label><br>
-                            {%else%}
-                            <label><input type="radio" value="{{ dataset }}" name="dataset" class="space-input" required>{{ dataset }}</label><br>
-                            {% endif %}
-                        {%endif%}
-                    {%endif%}
-                {% endfor %}
+                <label><input type="radio" value="CLPFUv2.0a3" name="dataset" class="space-input" required checked>CLPFUv2.0a3</label><br>
             </div>
             &#x2800
         </div>
