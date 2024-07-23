@@ -4,6 +4,8 @@ from utils.data import query_database, DatabaseTarget
 from eviz_site.settings import SANKEY_COLORS_PATH
 from eviz.logging import LOGGER
 
+INDUSTRY_COLOR = "midnightblue"
+
 with open(SANKEY_COLORS_PATH) as f:
     SANKEY_COLORS: dict[str, str] = json.loads(f.read())
 
@@ -28,7 +30,7 @@ def _get_sankey_node_info(
     label_info = label_info_dict.get(label_num, -1)
     if label_info == -1:
         # add it if it is a new label and get new node_idx
-        node_list[label_col].append(dict(label=name,color=_get_sankey_color(name) or "red" if carrier else "midnightblue"))
+        node_list[label_col].append(dict(label=name,color=_get_sankey_color(name) or "red" if carrier else INDUSTRY_COLOR))
         
         label_info = (idx_dict[label_col], label_col)
         idx_dict[label_col] += 1
@@ -91,7 +93,8 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str] | tu
         default_links_opacity = 0.8,
         default_gradient_links_opacity = 0.8,
         show_column_lines = False,
-        show_column_names = False
+        show_column_names = False,
+        linear_gradient_links = False
     )
 
     # track which label is which index in the column lists
@@ -144,7 +147,8 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str] | tu
         # set up the flow from the two labels above
         links.append({"from": dict(column=from_node_col, node = from_node_idx),
                       "to": dict(column=to_node_col, node = to_node_idx),
-                      "value": magnitude})
+                      "value": magnitude,
+                      "color": _get_sankey_color(translator.index_translate(i if carrier_row else j))})
 
     # convert everything to json to send it to the javascript renderer
     return json.dumps(nodes), json.dumps(links), json.dumps(options)
