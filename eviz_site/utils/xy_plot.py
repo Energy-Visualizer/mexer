@@ -32,7 +32,7 @@ def get_xy(efficiency_metric: str, target: DatabaseTarget, query: dict,
     }
     
     # Add color_by, line_by, facet_col_by, and facet_row_by fields to the selection list
-    for field in [color_by, line_by, facet_col_by, facet_row_by]:
+    for field in {color_by, line_by, facet_col_by, facet_row_by}:
         if field in field_mapping:
             fields_to_select.append(field_mapping[field])
 
