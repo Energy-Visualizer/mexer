@@ -1,23 +1,34 @@
 import json
 from utils.translator import Translator
-from eviz.models import PSUT
-import plotly.graph_objects as pgo
 from utils.data import query_database, DatabaseTarget
 from eviz_site.settings import SANKEY_COLORS_PATH
+from eviz.logging import LOGGER
 
 with open(SANKEY_COLORS_PATH) as f:
     SANKEY_COLORS: dict[str, str] = json.loads(f.read())
 
-def _get_sankey_node_info(label_num: int, label_col: int, node_list: list[list], idx_dict: dict, label_info_dict: dict, translator: Translator):
+def _get_sankey_color(node_name: str) -> str:
+    carrier_name = -1
 
+    for carrier_category in SANKEY_COLORS:
+        if carrier_category in node_name.lower():
+            carrier_name = carrier_category
+            break
+
+    return SANKEY_COLORS.get(carrier_name) or LOGGER.error("Couldn't find sankey color for " + node_name)
+
+def _get_sankey_node_info(
+        label_num: int, label_col: int,
+        node_list: list[list], idx_dict: dict, label_info_dict: dict,
+        translator: Translator,
+        carrier: bool
+):
+    name = translator.index_translate(label_num)
     # try to get saved information about the label
     label_info = label_info_dict.get(label_num, -1)
     if label_info == -1:
         # add it if it is a new label and get new node_idx
-        name = translator.index_translate(label_num)
-        carrier_name = name.split()[0] # get first word of label for color
-        node_list[label_col].append(dict(label=name,
-                                            color=SANKEY_COLORS.get(carrier_name) or SANKEY_COLORS["Unspecified"]))
+        node_list[label_col].append(dict(label=name,color=_get_sankey_color(name) or "red" if carrier else "midnightblue"))
         
         label_info = (idx_dict[label_col], label_col)
         idx_dict[label_col] += 1
@@ -25,10 +36,12 @@ def _get_sankey_node_info(label_num: int, label_col: int, node_list: list[list],
         # remember which index and column the label is in so future nodes can find this one
         label_info_dict[label_num] = label_info
         node_idx = label_info[0]
+
     else:
         # if node is not new, just get the recorded col and idx
         label_col = label_info[1]
         node_idx = label_info[0]
+    
 
     return node_idx, label_col
 
@@ -93,34 +106,40 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str] | tu
 
     # what columns we think the node should go in
     # filled in below
-    from_node_col = to_node_col = -1
 
     for matname, i, j, magnitude in data:
+        from_node_col = to_node_col = -1
+        carrier_row = False
+        carrier_col = False
         # figure out which column the info should go in
         match(translator.matname_translate(matname)):
             case("R"):
                 from_node_col = 0
                 to_node_col = 1
+                carrier_col = True
 
             case("U"):
                 from_node_col = 1
                 to_node_col = 2
+                carrier_row = True
 
             case("V"):
                 from_node_col = 2
                 to_node_col = 3
+                carrier_col = True
 
             case("Y"):
                 from_node_col = 3
                 to_node_col = 4
+                carrier_row = True
 
         # if the column values were not filled in above
         if from_node_col < 0 or to_node_col < 0:
             raise ValueError("Unknown matrix name processed")
 
         # get the index and column the node truely belongs in
-        from_node_idx, from_node_col = _get_sankey_node_info(i, from_node_col, nodes, idx, label2info, translator)
-        to_node_idx, to_node_col = _get_sankey_node_info(j, to_node_col, nodes, idx, label2info, translator)
+        from_node_idx, from_node_col = _get_sankey_node_info(i, from_node_col, nodes, idx, label2info, translator, carrier_row)
+        to_node_idx, to_node_col = _get_sankey_node_info(j, to_node_col, nodes, idx, label2info, translator, carrier_col)
 
         # set up the flow from the two labels above
         links.append({"from": dict(column=from_node_col, node = from_node_idx),

@@ -7,8 +7,7 @@
 
 from bidict import bidict
 from django.apps import apps
-from eviz.models import PSUT
-
+from eviz.logging import LOGGER
 from datetime import datetime, timedelta
 
 # how long to cache information from the database 
@@ -55,6 +54,7 @@ class Translator:
     
     @staticmethod
     def __load_and_cache(model_name: str, id_field: str, name_field: str, database: str):
+        LOGGER.info(f"Loading and caching {database}:{model_name} for {id_field} <-> {name_field}")
 
         # Get the model class dynamically
         model = apps.get_model(app_label='eviz', model_name=model_name)
