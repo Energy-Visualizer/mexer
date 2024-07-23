@@ -87,6 +87,12 @@ DATABASES = {
         }
     },
     # this is functionally a duplicate to default, but allows the database to be refered to manually
+    "CLPFUv2.0a4": {
+        "ENGINE": "django.db.backends.postgresql",
+        "OPTIONS": {
+            "service": "v2.0a4"
+        }
+    },
     "CLPFUv2.0a3": {
         "ENGINE": "django.db.backends.postgresql",
         "OPTIONS": {
