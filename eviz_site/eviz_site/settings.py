@@ -24,12 +24,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = environ["django_secret_key"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["localhost"]
 
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+
+CSRF_FAILURE_VIEW = "eviz.views.csrf_failure"
 
 # Application definition
 

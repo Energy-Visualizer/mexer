@@ -1,0 +1,35 @@
+<head>
+    <title>About Mexer</title>
+    <link rel="stylesheet" href="../static/css/toolbar.css" type="text/css" />
+    <link rel="stylesheet" href="../static/css/error-page.css" type="text/css" />
+  </head>
+  
+  <body>
+    <div class="topbar">
+      <div class="left">
+        <a class="main" href="{% url 'home' %}">Mexer</a>
+      </div>
+      <div class="right">
+        {% if request.user.is_authenticated %}
+        <p style="color: #33ebed">{{ request.user.username }}</p>
+        {% endif %}
+        <a class="links" href="{% url 'visualizer' %}">Visualizer</a>
+        <!-- <a class="links" href="{% url 'about' %}">About</a> -->
+        {% if request.user.is_authenticated %}
+        <a class="links" href="{% url 'logout' %}">Sign Out</a>
+        {% else %}
+        <a class="links" href="{% url 'login' %}">Sign In</a>
+        {% endif %}
+      </div>
+    </div>
+    <svg viewBox="0 0 500 10" preserveAspectRatio="xMinYMin meet">
+      <path
+        d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z"
+        style="stroke: none; fill: #393e46"
+      ></path>
+    </svg>
+  
+    <h1>CSRF Error</h1>
+    <p>Please return back to the <a class="links" href="{% url 'home' %}">home page</a></p>
+  </body>
+  

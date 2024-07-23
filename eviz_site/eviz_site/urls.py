@@ -17,7 +17,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+handler400 = 'eviz.views.error_400'
+handler403 = 'eviz.views.error_403'
+handler404 = 'eviz.views.error_404'
+handler500 = 'eviz.views.error_500'
+
 urlpatterns = [
     path('', include("eviz.urls")),
-    path('admin/', admin.site.urls),
+    path('admin/', admin.site.urls)
 ]

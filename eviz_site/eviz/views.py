@@ -496,4 +496,23 @@ def handle_static(request, filepath):
         
         case _:
             return HttpResponse("", code = 404)
-    
+
+####################################################################
+## Error pages
+#####################
+
+def error_400(request, exception):
+        return render(request, 'error_pages/400.html')
+
+def error_403(request, exception):
+        return render(request, 'error_pages/403.html')
+
+def error_404(request, exception):
+        return render(request, 'error_pages/404.html')
+
+def error_500(request):
+        return render(request, 'error_pages/500.html')
+
+from django.http import HttpResponseForbidden
+def csrf_failure(request, reason=""):
+        return HttpResponseForbidden("")
