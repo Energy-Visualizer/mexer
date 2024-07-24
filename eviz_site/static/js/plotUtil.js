@@ -16,7 +16,7 @@ const createSankey = (nodes, links, options) => {
         // combination of "options" param and options defined here
         Object.assign(options, {
             on_link_hover_function: (link_info,link_data_reference,link_element,event) => {
-                return `${link_info["from_label"]}<br>${Math.round(link_info["value"])}<br>${link_info["to_label"]}`
+                return `${link_info["from_label"]}<br>${Math.round(link_info["value"])} TJ<br>${link_info["to_label"]}`
             }
         })
     )
