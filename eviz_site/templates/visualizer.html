@@ -183,21 +183,6 @@
             </div>
             &#x2800
         </div>
-        <div class="query-choice">
-            <div class="info-text">
-                GrossNet
-            </div>
-            <div id="grossnet_radio" class="input-column">
-                {% for grossnet in grossnets %}
-                {%if grossnet == 'Gross'%}
-                <input type="radio" value="{{ grossnet }}" name="grossnet" checked>{{ grossnet }} <br>
-                {%else%}
-                <input type="radio" value="{{ grossnet }}" name="grossnet"  required>{{ grossnet }}<br>
-                {%endif%}
-                {% endfor %}
-            </div>
-            &#x2800
-        </div>
     </div>
 
     <div style="width: 3%;"></div>
@@ -229,6 +214,22 @@
                     <input name="plot_type" type="radio" value="matrices" class="space-input" id="plot-type-input">
                     PSUT matrices
                 </label><br>
+            </div>
+            &#x2800
+        </div>
+
+        <div class="query-choice">
+            <div class="info-text">
+                GrossNet
+            </div>
+            <div id="grossnet_radio" class="input-column">
+                {% for grossnet in grossnets %}
+                {%if grossnet == 'Gross'%}
+                <input type="radio" value="{{ grossnet }}" name="grossnet" checked>{{ grossnet }} <br>
+                {%else%}
+                <input type="radio" value="{{ grossnet }}" name="grossnet"  required>{{ grossnet }}<br>
+                {%endif%}
+                {% endfor %}
             </div>
             &#x2800
         </div>
