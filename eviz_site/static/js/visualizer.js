@@ -32,9 +32,6 @@ const initialize = () => {
 
     colorScale = document.getElementById("color-scale");
     menuInputs.push(colorScale);
-    
-    // download button (only for matrix menu)
-    downloadButton = document.getElementById("download")
 
     // menu setups
     sankeyMenuInputs = [singleYearInput];
@@ -109,7 +106,6 @@ const inputRadioOff = (element) => {
 const startMenuSwitch = () => {
     for (let item of menuInputs)
         inputOff(item);
-    downloadButton.style.display = "none";
     inputRadioOff(grossNet);
 }
 
@@ -132,7 +128,6 @@ const handleMatrices = () => {
     startMenuSwitch();
     for (let item of matrixMenuInputs)
         inputOn(item);
-    downloadButton.style.display = "block";
 }
 
 /** Add a new dropdown for a specified category */

@@ -55,7 +55,9 @@ def get_dataframe(target: DatabaseTarget, query: dict, columns: list) -> DataFra
     
     return df
 
-COLUMNS = ["Dataset", "Country", "Method", "EnergyType", "LastStage", "IEAMW", "IncludesNEU", "Year", "ChoppedMat", "ChoppedVar", "ProductAggregation", "IndustryAggregation", "matname", "i", "j", "x"]
+META_COLUMNS = ["Dataset", "Country", "Method", "EnergyType", "LastStage", "IEAMW", "IncludesNEU", "Year", "ChoppedMat", "ChoppedVar", "ProductAggregation", "IndustryAggregation"]
+PSUT_COLUMNS = ["matname", "i", "j", "x"]
+AGGETA_COLUMNS = ["GrossNet", "EXp", "EXf", "EXu", "etapf", "etafu", "etapu"]
 def get_translated_dataframe(target: DatabaseTarget, query: dict, columns: list) -> DataFrame:
     df = get_dataframe(target, query, columns)
 
@@ -93,12 +95,12 @@ def get_translated_dataframe(target: DatabaseTarget, query: dict, columns: list)
     
     return df
 
-def get_csv_from_query(target: DatabaseTarget, query: dict, columns: list = COLUMNS):
+def get_csv_from_query(target: DatabaseTarget, query: dict, columns: list):
     
     # index false to not have column of row numbers
     return get_translated_dataframe(target, query, columns).to_csv(index=False)
 
-def get_excel_from_query(target: DatabaseTarget, query: dict, columns = COLUMNS):
+def get_excel_from_query(target: DatabaseTarget, query: dict, columns = PSUT_COLUMNS):
 
     # index false to not have column of row numbers
     return get_translated_dataframe(target, query, columns).to_excel(index=False)

@@ -57,7 +57,12 @@ def get_data(request):
         query = translate_query(target, query)
 
         # Generate CSV data based on the query
-        csv = get_csv_from_query(target, query)
+        if target[1] is AggEtaPFU:
+            # get xy info
+            csv = get_csv_from_query(target, query, columns = META_COLUMNS + AGGETA_COLUMNS)
+        else:
+            # get psut (sankey and matrix) info
+            csv = get_csv_from_query(target, query, columns = META_COLUMNS + PSUT_COLUMNS)
 
         # set up the response:
         # content is the csv made above
@@ -164,7 +169,7 @@ def get_plot(request):
                     )
 
                     # Render the figure as an HTML div
-                    plot_div = plot(heatmap, output_type="div", include_plotlyjs="False")
+                    plot_div = plot(heatmap, output_type="div", include_plotlyjs=False)
                     LOGGER.info("Matrix visualization made")
         
 
