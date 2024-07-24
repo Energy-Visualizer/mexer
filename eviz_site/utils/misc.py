@@ -75,18 +75,17 @@ class Silent():
 from uuid import uuid4
 import pickle
 from eviz.models import EmailAuthCodes
-def new_email_code(form) -> str:
+def new_email_code(account_info) -> str:
     """Generate a new email verification code and save associated account information.
 
     Inputs:
-        form: A form object containing cleaned account setup information.
+        form: A form object containing account setup information.
 
     Outputs:
         str: A unique verification code.
     """
-    # Generate a unique code using UUID
-    code = str(uuid4())
-    account_info = pickle.dumps(form.clean()) # get the cleaned form (a map) serialized
+    code = str(uuid4()) # Generate a unique code using UUID
+    account_info = pickle.dumps(account_info) # serialize the account info for storing it in the database 
     EmailAuthCodes(code=code, account_info=account_info).save() # save account setup info to database
     return code
 

@@ -1,5 +1,6 @@
 # Django imports
 from django.shortcuts import render, redirect, HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -188,7 +189,6 @@ def get_plot(request):
 
     return response
 
-from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 import pickle  # Make sure this is imported
@@ -351,7 +351,7 @@ def user_signup(request):
             new_user_email = form.cleaned_data["email"]
 
             # handle the email construction and sending
-            code = new_email_code(form)
+            code = new_email_code(account_info = form.clean())
             url = f"https://mexer.site/verify?code={code}"
             msg = EmailMultiAlternatives(
                 subject="New Mexer Account",
@@ -359,7 +359,7 @@ def user_signup(request):
                 from_email="signup@mexer.site",
                 to=[new_user_email]
             )
-            # Email message
+            # HTML message
             msg.attach_alternative(
                 content = f"<p>Please <a href='{url}'>click here</a> to verify your new Mexer account!</p>",
                 mimetype = "text/html"
@@ -396,7 +396,7 @@ def verify_email(request):
         try: 
             new_user = EmailAuthCodes.objects.get(code = code) # try to get associated user from code
         except: 
-            return redirect("home") # if something breaks, go to home
+            return HttpResponseBadRequest() # bad request, no new user found
 
         if new_user:
             # if there is an associated user, set up their account
@@ -469,6 +469,68 @@ def user_logout(request):
     logout(request)
     return redirect('home')
 
+def forgot_password(request):
+
+    if request.method == "GET":
+        # if there is a code given in the url,
+        # the user is trying to finish resetting their password
+        if code := request.GET.get("code"):
+            request.session["reset-code"] = code
+            return render(request, "reset-submit.html")
+
+        # else the user is trying to start the reset process
+        return render(request, "reset.html") # page with form to get which user is requesting the reset
+
+    elif request.method == "POST":
+
+        # if user is submitting their new password
+        if request.POST.get("password1"):
+            ps1 = request.POST.get("password1")
+            ps2 = request.POST.get("password2")
+            if ps1 != ps2:
+                print("Error")
+                messages.add_message(request, messages.ERROR, "Passwords must match!")
+                return render(request, "reset-submit.html")
+            
+            # if passwords match
+            code = request.session.pop("reset-code", None)
+            try:
+                user: User = json.loads(EmailAuthCodes.objects.get(code = code).account_info)
+            except:
+                return HttpResponseBadRequest # bad request, no user found
+            
+            user.password = ps1
+            user.save()
+            return redirect("login")
+
+        # else, a user has submitted their username for a password reset
+        # get the username given and try to send an email to the
+        # account cooresponding inbox
+        username = request.POST.get("username")
+
+        try:
+            user = User.objects.get_by_natural_key(username)
+        except:
+            return HttpResponseBadRequest # bad request, no user found
+        
+        # construct and send the email
+        code = new_email_code(account_info = pickle.dumps(user))
+        url = f"https://mexer.site/forgot-password?code={code}"
+        msg = EmailMultiAlternatives(
+            subject="Mexer Password Reset",
+            body=f"Please visit the following link to reset your account:\n{url}",
+            from_email="reset@mexer.site",
+            to=[user.email]
+        )
+
+        # HTML message
+        msg.attach_alternative(
+            content = f"<p>Please <a href='{url}'>click here</a> to reset your Mexer password.</p>",
+            mimetype = "text/html"
+        )
+        msg.send()
+
+        return render(request, "reset_explain.html")
 
 # Static handling
 from eviz_site.settings import STATIC_BASE
@@ -500,7 +562,7 @@ def handle_static(request, filepath):
                 return HttpResponse(f.read(), headers = {"Content-Type": "text/javascript"})
         
         case _:
-            return HttpResponse("", code = 404)
+            return HttpResponseNotFound()
 
 ####################################################################
 ## Error pages

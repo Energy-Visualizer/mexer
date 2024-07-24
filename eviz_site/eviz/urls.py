@@ -13,6 +13,7 @@ urlpatterns = [
     path('login/', views.user_login, name='login'),
     path('signup/', views.user_signup, name='signup'),
     path('logout/', views.user_logout, name='logout'),
+    path("forgot-password", views.forgot_password, name="forgot_password"),
 
     # misc pages
     path('about/', views.about, name='about'),
