@@ -76,7 +76,7 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str] | tu
         ]})
 
     # get all four matrices to make the full RUVY matrix
-    data = query_database(target, query, ["matname", "i", "j", "x"])
+    data = query_database(target, query, ["matname", "i", "j", "value"])
 
     # if no cooresponding data, return as such
     if not data:

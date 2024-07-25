@@ -18,7 +18,7 @@ def get_matrix(target: DatabaseTarget, query: dict) -> coo_matrix:
     # Get the sparse matrix representation
     # i, j, x for row, column, value
     # in 3-tuples
-    sparse_matrix = query_database(target, query, ["i", "j", "x"])
+    sparse_matrix = query_database(target, query, ["i", "j", "value"])
 
     # if nothing was returned
     if not sparse_matrix:

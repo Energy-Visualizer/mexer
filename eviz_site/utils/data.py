@@ -56,7 +56,7 @@ def get_dataframe(target: DatabaseTarget, query: dict, columns: list) -> DataFra
     return df
 
 META_COLUMNS = ["Dataset", "Country", "Method", "EnergyType", "LastStage", "IEAMW", "IncludesNEU", "Year", "ChoppedMat", "ChoppedVar", "ProductAggregation", "IndustryAggregation"]
-PSUT_COLUMNS = ["matname", "i", "j", "x"]
+PSUT_COLUMNS = ["matname", "i", "j", "value"]
 AGGETA_COLUMNS = ["GrossNet", "EXp", "EXf", "EXu", "etapf", "etafu", "etapu"]
 def get_translated_dataframe(target: DatabaseTarget, query: dict, columns: list) -> DataFrame:
     df = get_dataframe(target, query, columns)

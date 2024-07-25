@@ -145,7 +145,7 @@ class PSUT(models.Model):
     matname = models.PositiveSmallIntegerField()
     i = models.PositiveSmallIntegerField()
     j = models.PositiveSmallIntegerField()
-    x = models.FloatField()
+    value = models.FloatField()
 
 class IEAData(models.Model):
     """ Model representing a datatbase table named 'IEAData'."""
