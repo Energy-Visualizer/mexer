@@ -27,7 +27,7 @@ def get_xy(efficiency_metric: str, target: DatabaseTarget, query: dict,
     field_mapping = {
         'country': 'Country',
         'energy_type': 'EnergyType',
-        'includes_neu': 'IncludesNEU',
+        'ieamw': 'IEAMW',
         'last_stage': 'LastStage'
     }
     
