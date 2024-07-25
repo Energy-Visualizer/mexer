@@ -1,8 +1,9 @@
 const plotSection = document.getElementById("plot-section");
 
-import {PlotCreator} from './sankey-js/SanKEY_script.js'
+import {PlotCreator} from './SanKEY_script.js'
 
 const createSankey = (nodes, links, options) => {
+    // plotSection.innerHTML = ""; // clear the plot section first
     new PlotCreator(
         plotSection, // container in the dom
         nodes,
