@@ -1,7 +1,7 @@
 class DatabaseRouter:
 
     AUTH_APPS = ["auth", "sessions", "contenttypes", "admin"]
-    USERS_DB_MODEL_NAMES = ["EvizUser", "EmailAuthCodes"]
+    USERS_DB_MODEL_NAMES = ["EvizUser", "EmailAuthCodes", "PassResetCodes"]
 
     def db_for_read(self, model, **hints):
 

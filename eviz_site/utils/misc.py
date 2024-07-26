@@ -74,21 +74,49 @@ class Silent():
 
 from uuid import uuid4
 import pickle
-from eviz.models import EmailAuthCodes
-def new_email_code(form) -> str:
+from eviz.models import EmailAuthCodes, PassResetCodes, EvizUser
+from eviz.forms import SignupForm
+def new_email_code(account_info: SignupForm) -> str:
     """Generate a new email verification code and save associated account information.
 
     Inputs:
-        form: A form object containing cleaned account setup information.
+        form: A form object containing account setup information.
 
     Outputs:
         str: A unique verification code.
     """
-    # Generate a unique code using UUID
-    code = str(uuid4())
-    account_info = pickle.dumps(form.clean()) # get the cleaned form (a map) serialized
+    code = str(uuid4()) # Generate a unique code using UUID
+    account_info = pickle.dumps(account_info) # serialize the account info for storing it in the database 
     EmailAuthCodes(code=code, account_info=account_info).save() # save account setup info to database
     return code
+
+def new_reset_code(user: EvizUser) -> str:
+    """Generate a new password reset code and save associated user.
+
+    Inputs:
+        user: A User object containing account setup information.
+
+    Outputs:
+        str: A unique verification code.
+    """
+    code = str(uuid4()) # Generate a unique code using UUID
+    PassResetCodes(code = code, user = user).save() # save code and user to database
+    return code
+
+def valid_passwords(password1: str, password2: str) -> bool:
+    
+    return (
+        type(password1) == str and type(password2) == str
+        and
+        password1 == password2 # passwords must be the same
+        and
+        len(password1) >= 8 # password must be at least 8 characters
+        and
+        sum([c.isnumeric() for c in password1]) > 0 # password must have at least one number
+        and
+        sum([c.isupper() for c in password1]) > 0 # password must have at least one capital letter
+    )
+
 
 from django.contrib.auth.models import User
 def iea_valid(user: User, query: dict) -> bool:

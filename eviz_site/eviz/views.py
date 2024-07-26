@@ -1,5 +1,6 @@
 # Django imports
 from django.shortcuts import render, redirect, HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -188,7 +189,6 @@ def get_plot(request):
 
     return response
 
-from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 import pickle  # Make sure this is imported
@@ -255,7 +255,7 @@ def delete_history_item(request):
             return response
     
     # Return an error response if the request is invalid
-    return HttpResponse("Invalid request", status=400)
+    return error_400(request, "")
 
 
 @login_required(login_url="/login")
@@ -351,7 +351,7 @@ def user_signup(request):
             new_user_email = form.cleaned_data["email"]
 
             # handle the email construction and sending
-            code = new_email_code(form)
+            code = new_email_code(account_info = form.clean())
             url = f"https://mexer.site/verify?code={code}"
             msg = EmailMultiAlternatives(
                 subject="New Mexer Account",
@@ -359,7 +359,7 @@ def user_signup(request):
                 from_email="signup@mexer.site",
                 to=[new_user_email]
             )
-            # Email message
+            # HTML message
             msg.attach_alternative(
                 content = f"<p>Please <a href='{url}'>click here</a> to verify your new Mexer account!</p>",
                 mimetype = "text/html"
@@ -375,7 +375,6 @@ def user_signup(request):
         form = SignupForm()
     return render(request, 'signup.html', {'form': form})
 
-from pickle import loads as pickle_loads
 def verify_email(request):
     """ Verify a user's email address using a verification code.
 
@@ -395,13 +394,13 @@ def verify_email(request):
         new_user = None
         try: 
             new_user = EmailAuthCodes.objects.get(code = code) # try to get associated user from code
-        except: 
-            return redirect("home") # if something breaks, go to home
+        except Exception as e: 
+            return error_400(request, e) # bad request, no new user found
 
         if new_user:
             # if there is an associated user, set up their account
             # load the serialized account info from the database and save it
-            account_info = pickle_loads(new_user.account_info)
+            account_info = pickle.loads(new_user.account_info)
             SignupForm(account_info).save()
             new_user.delete() # get rid of row in database
             messages.add_message(request, messages.INFO, "Verification was successful!")
@@ -469,6 +468,87 @@ def user_logout(request):
     logout(request)
     return redirect('home')
 
+def forgot_password(request):
+
+    if request.method == "GET":
+        # start the reset process
+        return render(request, "reset.html") # page with form to get which user is requesting the reset
+
+    elif request.method == "POST":
+        # a user has submitted their username for a password reset
+        # get the username given and try to send an email to the
+        # account cooresponding inbox
+        username: str = request.POST.get("username")
+
+        try:
+            user = EvizUser.objects.get_by_natural_key(username)
+        except Exception as e:
+            # bad request, no user found
+            # simply ignore the rest of the process
+            LOGGER.error(f"Reset requested for username {username}: {e}")
+        else:
+            # if a user was found for the given username
+            # construct and send the email
+            LOGGER.info(f"Sending password reset email for {username}")
+            code = new_reset_code(user)
+            url = f"https://mexer.site/reset-password?code={code}"
+            msg = EmailMultiAlternatives(
+                subject="Mexer Password Reset",
+                body=f"Please visit the following link to reset your account:\n{url}",
+                from_email="reset@mexer.site",
+                to=[user.email]
+            )
+
+            # HTML message
+            msg.attach_alternative(
+                content = f"<p>Please <a href='{url}'>click here</a> to reset your Mexer password.</p>",
+                mimetype = "text/html"
+            )
+            msg.send()
+            LOGGER.info(f"Successfully sent password reset email for {username}")
+        
+        # NOTE: this is not in a final block because
+        # django will not send any exceptions in the else
+        # section to the terminal if there is a final block
+
+        # send success and failure here
+        # because we don't want to give away
+        # whether accounts exist or not
+        return render(request, "reset_explain.html")
+        
+def reset_password(request):
+    
+    if request.method == "GET":
+        code = request.GET.get("code")
+        return render(request, "reset-submit.html", context = {"code": code})
+    
+    elif request.method == "POST":
+        ps1 = request.POST.get("password1")
+        ps2 = request.POST.get("password2")
+        code = request.POST.get("code")
+
+        if not valid_passwords(ps1, ps2):
+            # TODO: have more descriptive messages about why password(s) not valid
+            messages.add_message(request, messages.ERROR, "Passwords not valid!")
+            return render(request, "reset-submit.html", context = {"code": code})
+        
+        # try to get the user with the information provided
+        try:
+            pass_reset_row = PassResetCodes.objects.get(code = code)
+            user = pass_reset_row.user
+        except Exception as e:
+            # bad request, no user found
+            return error_400(request, e)
+        
+        user.set_password(ps1)
+        user.save()
+
+        # if no errors getting the user,
+        # delete the cooresponding row
+        pass_reset_row.delete()
+
+        return redirect("login")
+
 
 # Static handling
 from eviz_site.settings import STATIC_BASE
@@ -500,24 +580,27 @@ def handle_static(request, filepath):
                 return HttpResponse(f.read(), headers = {"Content-Type": "text/javascript"})
         
         case _:
-            return HttpResponse("", code = 404)
+            return error_404(request, "")
 
 ####################################################################
 ## Error pages
 #####################
 
+# TODO: log messages should be more descriptive
 def error_400(request, exception):
-        return render(request, 'error_pages/400.html')
+        LOGGER.error(str(exception))
+        return render(request, 'error_pages/400.html', status=400)
 
 def error_403(request, exception):
-        return render(request, 'error_pages/403.html')
+        LOGGER.error(str(exception))
+        return render(request, 'error_pages/403.html', status=403)
 
 def error_404(request, exception):
-        return render(request, 'error_pages/404.html')
+        LOGGER.error(str(exception))
+        return render(request, 'error_pages/404.html', status=404)
 
 def error_500(request):
-        return render(request, 'error_pages/500.html')
+        return render(request, 'error_pages/500.html', status=500)
 
-from django.http import HttpResponseForbidden
 def csrf_failure(request, reason=""):
-        return HttpResponseForbidden("")
+        return error_403(request, reason)
