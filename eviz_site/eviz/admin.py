@@ -4,6 +4,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.messages import success as success_message
 
 # fill this in later so that the database is not being accessed during the app's initialization
+# TODO: maybe this should not be global
 GET_IEA_PERMISSION = None
 
 @admin_action(description="Give access to IEA data")

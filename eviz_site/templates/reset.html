@@ -59,6 +59,7 @@
             cursor: pointer;
             "
             type="submit">Request Password Reset</button>
+            {% for error_message in messages %} <p>{{ error_message }}</p> {% endfor %}
         </div>
       </form>
     </div>

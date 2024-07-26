@@ -190,3 +190,8 @@ class EmailAuthCodes(models.Model):
     """ Model for storing email auhtentication codes and associated account information."""
     code = models.TextField(max_length=255)
     account_info = models.BinaryField()
+
+class PassResetCodes(models.Model):
+    """ Model for storing password reset codes and the associated user."""
+    code = models.TextField(max_length=255)
+    user = models.ForeignKey(EvizUser, on_delete=models.CASCADE)

@@ -26,7 +26,7 @@ SECRET_KEY = environ["django_secret_key"]
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost"]
+ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
@@ -83,7 +83,7 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "OPTIONS": {
-            "service": "v2.0a3"
+            "service": "v2.0a4"
             # All other information provided through environment variables
             # PGSERVICEFILE and PGPASSFILE
         }
