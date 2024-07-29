@@ -173,11 +173,8 @@ function refreshHistory() {
     htmx.ajax("GET", "/history", {target:"#history-list", swap:"innerHTML"});
 }
 
-const plotSection = document.getElementById("plot-section");
-console.log(plotSection);
-document.addEventListener("htmx:afterSettle", (event) => {
-    if (event.detail.successful) {
-        let win = window.open("", '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
-        win.innerHTML = plotSection.innerHTML;
-    }
+document.addEventListener("htmx:load", (detail) => {
+    // make a new window and add the plot (detail.elt) to the window
+    let win = window.open("", '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
+    win.document.write(`<!DOCTYPE html> <html><body>${detail.elt}</body></html>`);
 });
