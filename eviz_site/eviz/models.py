@@ -12,6 +12,17 @@ class Dataset(models.Model):
         db_table = "Dataset"
         managed = False # Django won't manage these tables
         
+class Version(models.Model):
+    """ Model representing a database table named 'Version'."""
+    VersionID = models.PositiveSmallIntegerField(primary_key=True)
+    Version = models.PositiveSmallIntegerField()
+    Dataset = models.TextField()
+    Public = models.BooleanField()
+    class Meta:
+        db_table = "Version"
+        managed = False
+
+        
 class Country(models.Model):
     """ Model representing a database table named 'Country'."""
     CountryID = models.PositiveSmallIntegerField(primary_key=True)
@@ -131,6 +142,8 @@ class PSUT(models.Model):
         managed = False
 
     Dataset = models.PositiveSmallIntegerField()
+    VersionTo = models.PositiveSmallIntegerField()
+    VersionFrom = models.PositiveSmallIntegerField()
     Country = models.PositiveSmallIntegerField()
     Method = models.PositiveSmallIntegerField()
     EnergyType = models.PositiveSmallIntegerField()
@@ -162,6 +175,8 @@ class AggEtaPFU(models.Model):
         managed = False
 
     Dataset = models.PositiveSmallIntegerField()
+    VersionTo = models.PositiveSmallIntegerField()
+    VersionFrom = models.PositiveSmallIntegerField()
     Country = models.PositiveSmallIntegerField()
     Method = models.PositiveSmallIntegerField()
     EnergyType = models.PositiveSmallIntegerField()
