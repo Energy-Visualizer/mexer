@@ -83,16 +83,16 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "OPTIONS": {
-            "service": "v2.0a4"
+            "service": "sandboxdb"
             # All other information provided through environment variables
             # PGSERVICEFILE and PGPASSFILE
         }
     },
     # this is functionally a duplicate to default, but allows the database to be refered to manually
-    "CLPFUv2.0a4": {
+    "sandboxdb": {
         "ENGINE": "django.db.backends.postgresql",
         "OPTIONS": {
-            "service": "v2.0a4"
+            "service": "sandboxdb"
         }
     },
     "CLPFUv2.0a3": {

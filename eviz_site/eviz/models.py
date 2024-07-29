@@ -4,6 +4,7 @@ from django.contrib.auth.models import User as DjangoUser
 class Dataset(models.Model):
     """ Model representing a database table named 'Dataset'."""
     DatasetID = models.PositiveSmallIntegerField(primary_key=True)
+    Public = models.BooleanField()
     Dataset = models.TextField()
     FullName = models.TextField()
     Description = models.TextField()
@@ -15,9 +16,8 @@ class Dataset(models.Model):
 class Version(models.Model):
     """ Model representing a database table named 'Version'."""
     VersionID = models.PositiveSmallIntegerField(primary_key=True)
-    Version = models.PositiveSmallIntegerField()
-    Dataset = models.TextField()
-    Public = models.BooleanField()
+    Version = models.TextField()
+    
     class Meta:
         db_table = "Version"
         managed = False
@@ -141,8 +141,8 @@ class PSUT(models.Model):
         managed = False
 
     Dataset = models.PositiveSmallIntegerField()
-    VersionTo = models.PositiveSmallIntegerField()
-    VersionFrom = models.PositiveSmallIntegerField()
+    ValidToVersion = models.PositiveSmallIntegerField()
+    ValidFromVersion = models.PositiveSmallIntegerField()
     Country = models.PositiveSmallIntegerField()
     Method = models.PositiveSmallIntegerField()
     EnergyType = models.PositiveSmallIntegerField()
@@ -174,8 +174,8 @@ class AggEtaPFU(models.Model):
         managed = False
 
     Dataset = models.PositiveSmallIntegerField()
-    VersionTo = models.PositiveSmallIntegerField()
-    VersionFrom = models.PositiveSmallIntegerField()
+    ValidFromVersion = models.PositiveSmallIntegerField()
+    ValidToVersion = models.PositiveSmallIntegerField()
     Country = models.PositiveSmallIntegerField()
     Method = models.PositiveSmallIntegerField()
     EnergyType = models.PositiveSmallIntegerField()

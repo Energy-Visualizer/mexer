@@ -55,7 +55,7 @@ def get_dataframe(target: DatabaseTarget, query: dict, columns: list) -> DataFra
     
     return df
 
-META_COLUMNS = ["Dataset", "VersionTo", "VersionFrom", "Country", "Method", "EnergyType", "LastStage", "IEAMW", "IncludesNEU", "Year", "ChoppedMat", "ChoppedVar", "ProductAggregation", "IndustryAggregation"]
+META_COLUMNS = ["Dataset", "ValidFromVersion", "ValidToVersion", "Country", "Method", "EnergyType", "LastStage", "IEAMW", "IncludesNEU", "Year", "ChoppedMat", "ChoppedVar", "ProductAggregation", "IndustryAggregation"]
 PSUT_COLUMNS = ["matname", "i", "j", "value"]
 AGGETA_COLUMNS = ["GrossNet", "EXp", "EXf", "EXu", "etapf", "etafu", "etapu"]
 def get_translated_dataframe(target: DatabaseTarget, query: dict, columns: list) -> DataFrame:
@@ -69,8 +69,8 @@ def get_translated_dataframe(target: DatabaseTarget, query: dict, columns: list)
     # Translate the DataFrame's column names
     translate_columns = {
         'Dataset': translator.dataset_translate,
-        'VersionTo': translator.version_translate,
-        'VersionFrom': translator.version_translate,
+        'ValidFromVersion': translator.version_translate,
+        'ValidToVersion': translator.version_translate,
         'Country': translator.country_translate,
         'Method': translator.method_translate,
         'EnergyType': translator.energytype_translate,
@@ -182,10 +182,10 @@ def translate_query(
     # common query parts
     if v := query.get("dataset"):
         translated_query["Dataset"] = translator.dataset_translate(v)
-    if v := query.get("version_to"):
-        translated_query["VersionTo"] = translator.version_translate(v)
-    if v := query.get("version_from"):
-        translated_query["VersionFrom"] = translator.version_translate(v)
+    if v := query.get("valid_from_version"):
+        translated_query["ValidFromVersion"] = translator.version_translate(v)
+    if v := query.get("valid_to_version"):
+        translated_query["ValidToVersion"] = translator.version_translate(v)
     if v := query.get("country"):
         if type(v) == list:
             translated_query["Country__in"] = [
