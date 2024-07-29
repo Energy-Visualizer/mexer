@@ -4,6 +4,7 @@ from django.contrib.auth.models import User as DjangoUser
 class Dataset(models.Model):
     """ Model representing a database table named 'Dataset'."""
     DatasetID = models.PositiveSmallIntegerField(primary_key=True)
+    Public = models.BooleanField()
     Dataset = models.TextField()
     FullName = models.TextField()
     Description = models.TextField()
@@ -11,6 +12,15 @@ class Dataset(models.Model):
     class Meta:
         db_table = "Dataset"
         managed = False # Django won't manage these tables
+        
+class Version(models.Model):
+    """ Model representing a database table named 'Version'."""
+    VersionID = models.PositiveSmallIntegerField(primary_key=True)
+    Version = models.TextField()
+    
+    class Meta:
+        db_table = "Version"
+        managed = False
         
 class Country(models.Model):
     """ Model representing a database table named 'Country'."""
@@ -131,6 +141,8 @@ class PSUT(models.Model):
         managed = False
 
     Dataset = models.PositiveSmallIntegerField()
+    ValidToVersion = models.PositiveSmallIntegerField()
+    ValidFromVersion = models.PositiveSmallIntegerField()
     Country = models.PositiveSmallIntegerField()
     Method = models.PositiveSmallIntegerField()
     EnergyType = models.PositiveSmallIntegerField()
@@ -162,6 +174,8 @@ class AggEtaPFU(models.Model):
         managed = False
 
     Dataset = models.PositiveSmallIntegerField()
+    ValidFromVersion = models.PositiveSmallIntegerField()
+    ValidToVersion = models.PositiveSmallIntegerField()
     Country = models.PositiveSmallIntegerField()
     Method = models.PositiveSmallIntegerField()
     EnergyType = models.PositiveSmallIntegerField()

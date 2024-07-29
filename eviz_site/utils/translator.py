@@ -89,6 +89,8 @@ class Translator:
 
     def dataset_translate(self, value):
         return self._translate('Dataset', value, 'DatasetID', 'Dataset')
+    def version_translate(self, value):
+        return self._translate('Version', value, 'VersionID', 'Version')
 
     def country_translate(self, value):
         return self._translate('Country', value, 'CountryID', 'FullName')
@@ -131,6 +133,7 @@ class Translator:
         # Dictionary mapping attribute names to model details
         model_mappings = {
             'dataset': ('Dataset', 'DatasetID', 'Dataset'),
+            'version': ('Version', 'VesionID', 'Version'),
             'country': ('Country', 'CountryID', 'FullName'),
             'method': ('Method', 'MethodID', 'Method'),
             'energytype': ('EnergyType', 'EnergyTypeID', 'FullName'),
@@ -167,6 +170,7 @@ class Translator:
         # Dictionary mapping attribute names to model details
         model_mappings = {
             'dataset': ('Dataset', 'DatasetID', 'Dataset'),
+            'version': ('Version', 'VesionID', 'Version'),
             'country': ('Country', 'CountryID', 'FullName'),
             'method': ('Method', 'MethodID', 'Method'),
             'energytype': ('EnergyType', 'EnergyTypeID', 'FullName'),
