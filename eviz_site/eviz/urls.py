@@ -20,6 +20,7 @@ urlpatterns = [
     path('about/', views.about, name='about'),
     path('terms_and_conditions/', views.terms_and_conditions, name='terms_and_conditions'),
     path('data-info/', views.data_info, name="data-info"),
+    path('matrix-info/', views.matrix_info, name="matrix-info"),
     re_path(r"static/(.*/[^(\.)]*\..*)", views.handle_static),
     path("favicon.ico", favicon_view),
     

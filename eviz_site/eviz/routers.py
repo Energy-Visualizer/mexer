@@ -7,7 +7,6 @@ class DatabaseRouter:
 
         # everything for user auth
         if model._meta.app_label in self.AUTH_APPS or model.__name__ in self.USERS_DB_MODEL_NAMES:
-            print(model.__name__)
             return "users"
         return None # None will go to default db
 

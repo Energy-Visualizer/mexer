@@ -32,36 +32,23 @@
     <div class="about-content">
         <h1>Data Information</h1>
         <p>
-            Mexer allows for the investigation of data from multiple sources. Currently, the following datasets are available.
-            <p class="alert">
-                Please note International Energy Agency (IEA) data is proprietary.
-                It cannot be accessed nor shared without proper authorization.
-                Non-IEA data is free to access and share.
-            </p>
-            <ul>
-                {% for dataset in datasets %}
-                    {% comment %}
-                    dataset.Dataset is the shortened name  
-                    {% endcomment %}
-                    <li>{{ dataset.Dataset }}</li>
-                {% endfor %}
-            </ul>
+            Mexer allows for the investigation of data using multiple different PSUT matricies. Information on these matricies can be found below.
         </p>
 
-        {% for dataset in datasets %}
+        {% for matrix in matricies %}
+        {% if matrix.Public %}
             {% comment %}
-            dataset.Dataset is the shortened name  
+            matrix.matname is the short name
             {% endcomment %}
-            <h2>{{ dataset.Dataset }}</h2>
-            <h3>{{ dataset.FullName }}</h3>
+            <h2>{{ matrix.matname }}</h2>
+            <h3>{{ matrix.FullName }}</h3>
             <p>
-                {{ dataset.Description }}
+                {{ matrix.Description }}
             </p>
+        {% endif %}
         {% endfor %}
 
-        
     </div>
-    
 </body>
 
 </html>

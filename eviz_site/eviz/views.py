@@ -1,6 +1,6 @@
 # Django imports
 from django.shortcuts import render, redirect, HttpResponse
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -15,7 +15,7 @@ from utils.data import *
 from utils.sankey import get_sankey
 from utils.xy_plot import get_xy
 from utils.matrix import get_matrix, visualize_matrix
-from eviz.models import Dataset
+from eviz.models import Dataset, matname
 from eviz.forms import SignupForm, LoginForm
 from eviz.logging import LOGGER
 
@@ -326,6 +326,13 @@ def data_info(request):
     # Retrieve all Dataset objects from the database
     datasets = Dataset.objects.all()
     return render(request, 'data_info.html', context = {"datasets":datasets})
+
+def matrix_info(request):
+    ''' Render the 'Matrix Information' page.'''
+    LOGGER.info("Matrix info page visted.")
+    # Retrieve all Dataset objects from the database
+    matricies = matname.objects.all()
+    return render(request, 'matrix_info.html', context = {"matricies":matricies})
 
 def user_signup(request):
     """ Handle user signup process.
