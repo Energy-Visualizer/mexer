@@ -74,7 +74,7 @@ class Silent():
 
 from uuid import uuid4
 import pickle
-from eviz.models import EmailAuthCodes, PassResetCodes, EvizUser
+from eviz.models import EmailAuthCode, PassResetCode, EvizUser
 from eviz.forms import SignupForm
 def new_email_code(account_info: SignupForm) -> str:
     """Generate a new email verification code and save associated account information.
@@ -87,7 +87,7 @@ def new_email_code(account_info: SignupForm) -> str:
     """
     code = str(uuid4()) # Generate a unique code using UUID
     account_info = pickle.dumps(account_info) # serialize the account info for storing it in the database 
-    EmailAuthCodes(code=code, account_info=account_info).save() # save account setup info to database
+    EmailAuthCode(code=code, account_info=account_info).save() # save account setup info to database
     return code
 
 def new_reset_code(user: EvizUser) -> str:
@@ -100,7 +100,7 @@ def new_reset_code(user: EvizUser) -> str:
         str: A unique verification code.
     """
     code = str(uuid4()) # Generate a unique code using UUID
-    PassResetCodes(code = code, user = user).save() # save code and user to database
+    PassResetCode(code = code, user = user).save() # save code and user to database
     return code
 
 def valid_passwords(password1: str, password2: str) -> bool:

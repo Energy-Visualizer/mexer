@@ -64,4 +64,5 @@ class IEAAdmin(UserAdmin):
 # has IEAAdmin permissions, if they are also staff
 admin_site.register(EvizUser, IEAAdmin)
 
-# admin_site.unregister(User) # hides the "User" (not EvizUser) section from the admin page
+from eviz.models import EmailAuthCode, PassResetCode
+admin_site.register((EmailAuthCode, PassResetCode))

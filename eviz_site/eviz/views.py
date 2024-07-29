@@ -402,7 +402,7 @@ def verify_email(request):
 
         new_user = None
         try: 
-            new_user = EmailAuthCodes.objects.get(code = code) # try to get associated user from code
+            new_user = EmailAuthCode.objects.get(code = code) # try to get associated user from code
         except Exception as e: 
             return error_400(request, e) # bad request, no new user found
 
@@ -543,7 +543,7 @@ def reset_password(request):
         
         # try to get the user with the information provided
         try:
-            pass_reset_row = PassResetCodes.objects.get(code = code)
+            pass_reset_row = PassResetCode.objects.get(code = code)
             user = pass_reset_row.user
         except Exception as e:
             # bad request, no user found
