@@ -1,4 +1,5 @@
 from django.contrib.admin import action as admin_action, site as admin_site
+from eviz.models import EvizUser
 from django.contrib.auth.models import User, Permission
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.messages import success as success_message
@@ -52,7 +53,15 @@ def remove_iea(modeladmin, request, queryset):
 class IEAAdmin(UserAdmin):
     """ Custom UserAdmin class that includes actions for managing IEA data access."""
     actions = [allow_iea, remove_iea] # this needs to be a list or there will be an error when Django looks for allow_iea()
+    list_display = ("username", "iea_approved", "email", "is_staff", "country", "institution",)
 
-# Change User model manager that with the IEA changing action
-admin_site.unregister(User)
-admin_site.register(User, IEAAdmin)
+    def iea_approved(self, obj: EvizUser) -> bool:
+        return obj.has_perm("eviz.get_iea")
+    iea_approved.boolean = True # to show it as a checkmark / x symbol
+
+# Register controls what shows up on the admin page
+# so any user who has permissions related to the EvizUser model
+# has IEAAdmin permissions, if they are also staff
+admin_site.register(EvizUser, IEAAdmin)
+
+# admin_site.unregister(User) # hides the "User" (not EvizUser) section from the admin page
