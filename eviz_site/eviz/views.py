@@ -52,7 +52,7 @@ def get_data(request):
         if not iea_valid(request.user, query):
             LOGGER.warning(f"IEA data requested by unauthorized user {request.user.get_username() or 'anonymous user'}")
             return HttpResponse("You do not have access to IEA data. Please contact <a style='color: #00adb5' :visited='{color: #87CEEB}' href='mailto:matthew.heun@calvin.edu'>matthew.heun@calvin.edu</a> with questions."
-                                "You can also purchase WEB data at <a style='color: #00adb5':visited='{color: #87CEEB}' href='https://www.iea.org/data-and-statistics/data-product/world-energy-balances'> World Energy Balances</a>.", code=403)
+                                "You can also purchase WEB data at <a style='color: #00adb5':visited='{color: #87CEEB}' href='https://www.iea.org/data-and-statistics/data-product/world-energy-balances'> World Energy Balances</a>.")
 
         # Translate the query to match database field names
         query = translate_query(target, query)
@@ -347,8 +347,13 @@ def user_signup(request):
         # Create a form instance with the submitted data
         form = SignupForm(request.POST)
         if form.is_valid():
+            
             # Extract the email from the cleaned form data
-            new_user_email = form.cleaned_data["email"]
+            new_user_email = form.cleaned_data.get("email")
+            if new_user_email == None:
+                return error_400(request, "No email in signup")
+
+            LOGGER.info(f"{form.cleaned_data['username']} signed up for account w/ email {new_user_email}.")
 
             # handle the email construction and sending
             code = new_email_code(account_info = form.clean())
@@ -364,9 +369,13 @@ def user_signup(request):
                 content = f"<p>Please <a href='{url}'>click here</a> to verify your new Mexer account!</p>",
                 mimetype = "text/html"
             )
-            msg.send()
-
-            LOGGER.info(f"{form.cleaned_data['username']} signed up for account. Email sent to {new_user_email}. (Code: {code})")
+            
+            # send the email and make sure it was successful
+            # 0 is failure
+            if msg.send() == 0:
+                LOGGER.error(f"Couldn't send signup email to {new_user_email}")      
+            else:
+                LOGGER.info(f"Signup email sent to {new_user_email}.")
 
             # send the user to a page explaining what to do next (check email)
             return render(request, 'verify_explain.html')
@@ -587,15 +596,15 @@ def handle_static(request, filepath):
 #####################
 
 # TODO: log messages should be more descriptive
-def error_400(request, exception):
+def error_400(request, exception: Exception | str):
         LOGGER.error(str(exception))
         return render(request, 'error_pages/400.html', status=400)
 
-def error_403(request, exception):
+def error_403(request, exception: Exception | str):
         LOGGER.error(str(exception))
         return render(request, 'error_pages/403.html', status=403)
 
-def error_404(request, exception):
+def error_404(request, exception: Exception | str):
         LOGGER.error(str(exception))
         return render(request, 'error_pages/404.html', status=404)
 
