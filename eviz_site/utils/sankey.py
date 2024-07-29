@@ -65,7 +65,7 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str] | tu
     if "matname" in query.keys():
         del query["matname"]
 
-    translator = Translator(target[0])
+    translator = Translator(target[0]) # get a translator for the correct database
     
     # have the query get a full RUVY
     query.update({"matname__in": [

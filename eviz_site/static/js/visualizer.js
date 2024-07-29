@@ -173,8 +173,9 @@ function refreshHistory() {
     htmx.ajax("GET", "/history", {target:"#history-list", swap:"innerHTML"});
 }
 
-document.addEventListener("htmx:load", (detail) => {
+//document.addEventListener("htmx:load", 
+const plotNewWindow = (detail) => {
     // make a new window and add the plot (detail.elt) to the window
     let win = window.open("", '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
     win.document.write(`<!DOCTYPE html> <html><body>${detail.elt}</body></html>`);
-});
+};

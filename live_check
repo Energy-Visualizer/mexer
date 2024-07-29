@@ -1,0 +1,11 @@
+#!/bin/bash
+
+RED="\033[31m"
+GREEN="\033[32m"
+
+if grep -q "DEBUG\s*=\s*True" ./eviz_site/eviz_site/settings.py; then
+    printf "${RED}Debug is set to True in settings.py. Please set it to False.\n";
+    exit;
+fi
+
+printf "${GREEN}All checks passed!\n"

@@ -54,7 +54,7 @@ def visualize_matrix(target: DatabaseTarget, mat: coo_matrix, color_scale: str =
     # Convert the matrix to a format suitable for Plotly's heatmap
     rows, cols, vals = mat.row, mat.col, mat.data
 
-    translator = Translator(target[0])
+    translator = Translator(target[0]) # get a translator for the correct database
     # Translate row and column indices to human-readable labels
     row_labels = [translator.index_translate(i) for i in rows]
     col_labels = [translator.index_translate(i) for i in cols]

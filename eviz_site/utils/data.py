@@ -64,7 +64,7 @@ def get_translated_dataframe(target: DatabaseTarget, query: dict, columns: list)
     # no need to do work if dataframe is empty (no data was found for the query)
     if df.empty: return df
 
-    translator = Translator(target[0])
+    translator = Translator(target[0]) # get a translator for the correct database
     
     # Translate the DataFrame's column names
     translate_columns = {
@@ -175,7 +175,7 @@ def translate_query(
     if not _valid_database(target[0]):
         raise ValueError("Unknown database specified for translating query")
     
-    translator = Translator(target[0])
+    translator = Translator(target[0]) # get a translator for the correct database
 
     # common query parts
     if v := query.get("dataset"):
