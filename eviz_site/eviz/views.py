@@ -285,6 +285,7 @@ def visualizer(request):
 
     countries = Translator.get_all('country')
     countries.sort()
+    versions = Translator.get_all('version')
     methods = Translator.get_all('method')
     energy_types = Translator.get_all('energytype')
     last_stages = Translator.get_all('laststage')
@@ -302,7 +303,7 @@ def visualizer(request):
     
     # Prepare the context dictionary for the template
     context = {
-        "datasets":datasets, "countries":countries, "methods":methods,
+        "datasets":datasets, "versions":versions, "countries":countries, "methods":methods,
         "energy_types":energy_types, "last_stages":last_stages, "ieamws":ieamws, "grossnets":grossnets,
         "matnames":matnames, "product_aggregations":product_aggregations, "industry_aggregations":industry_aggregations,
         "iea":request.user.is_authenticated and request.user.has_perm("eviz.get_iea")

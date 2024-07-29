@@ -21,7 +21,6 @@ class Version(models.Model):
     class Meta:
         db_table = "Version"
         managed = False
-
         
 class Country(models.Model):
     """ Model representing a database table named 'Country'."""

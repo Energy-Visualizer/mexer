@@ -73,6 +73,55 @@
             </div>
             &#x2800
         </div>
+
+        <div class="query-choice">
+            <div class="info-text">
+                <span class="popup-icon">&#9432;
+                    <span class="popup-text">
+                        Choose the VersionFrom of interest.
+                    </span>
+                </span>
+                VersionFrom
+            </div>
+            <div class="input-column">
+                <select name= "versionfrom" id= "versionfrom-dropdown" class="styled-dropdown space-input" required>
+                    {% for versionfrom in versionfroms %}
+                        {% if versionfrom == '1.1' %}
+                            <option value="{{ versionfrom }}" selected>{{ versionfrom }}</option>
+                        {% else %}
+                            <option value="{{ versionfrom }}">{{ versionfrom }}</option>
+                        {% endif %}
+                    {% endfor %}
+                    </select>
+            </div>
+            &#x2800
+        </div>
+
+
+        <div class="query-choice">
+            <div class="info-text">
+                <span class="popup-icon">&#9432;
+                    <span class="popup-text">
+                        Choose the VersionFrom of interest.
+                    </span>
+                </span>
+             VersionTo
+            </div>
+            <div class="input-column">
+                <select name= "versionto" id= "versionto-dropdown" class="styled-dropdown space-input" required>
+                    {% for versionto in versiontos %}
+                        {% if versionto == '1.4' %}
+                            <option value="{{ versionto }}" selected>{{ versionto }}</option>
+                        {% else %}
+                            <option value="{{ versionto }}">{{ versionto }}</option>
+                        {% endif %}
+                    {% endfor %}
+                    </select>
+            </div>
+            &#x2800
+        </div>
+
+
         <div class="query-choice">
             <div class="info-text">
                 <span class="popup-icon">&#9432;
@@ -454,6 +503,14 @@
         </div>
     </div>
     </form>
+    <div class="arrow-section">
+        <p> Plotting Area Below.</p>
+    </div>
+    <div class="arrow">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
     <!-- main form end -->
 
     <!-- Area for displaying the generated plot -->
