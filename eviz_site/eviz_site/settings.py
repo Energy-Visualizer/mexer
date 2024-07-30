@@ -83,7 +83,7 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "OPTIONS": {
-            "service": "MexerDB"
+            "service": "SandboxDB"
             # All other information provided through environment variables
             # PGSERVICEFILE and PGPASSFILE
         }

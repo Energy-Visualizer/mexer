@@ -38,9 +38,22 @@ def get_matrix(target: DatabaseTarget, query: dict) -> coo_matrix:
         (val, (row, col)),
         shape=(matrix_nrow, matrix_nrow),
     )
+def get_ruvy_matrix(target: DatabaseTarget, query: dict) -> tuple:
+    sparse_matrix = query_database(target, query, ["i", "j", "value", "matname"])
+    if not sparse_matrix:
+        return None, None
+    matrix_nrow = Index.objects.all().count()
+    row, col, val, matname = zip(*sparse_matrix)
+    mat = coo_matrix(
+        (val, (row, col)),
+        shape=(matrix_nrow, matrix_nrow),
+    )
 
+    return mat, matname
 
-def visualize_matrix(target: DatabaseTarget, mat: coo_matrix, color_scale: str = 'viridis') -> pgo.Figure:
+import altair as alt
+import pandas as pd
+def visualize_matrix(target: DatabaseTarget, mat: coo_matrix, matnames: list = None ,color_scale: str = 'viridis') -> pgo.Figure:
     """Visualize a sparse matrix as a heatmap using Plotly.
 
     Inputs:
@@ -58,17 +71,42 @@ def visualize_matrix(target: DatabaseTarget, mat: coo_matrix, color_scale: str =
     # Translate row and column indices to human-readable labels
     row_labels = [translator.index_translate(i) for i in rows]
     col_labels = [translator.index_translate(i) for i in cols]
-    
+    # print(len(row_labels))
+    # if coloring_method == 'ruvy' and matnames:
     # Create a Plotly Heatmap object
-    heatmap = pgo.Heatmap(
-        z=vals,
-        x=col_labels,
-        y=row_labels,
-        text=vals,
-        texttemplate="%{text:.2f}",
-        showscale=False,
-        colorscale=color_scale,
-    )
+    df = pd.DataFrame({
+        'x': col_labels,
+        'y': row_labels,
+        'value': vals,
+        'matname': matnames
+    })
 
-    # convert to a more general figure
-    return pgo.Figure(data=heatmap)
+    # print(df)
+
+    heatmap = alt.Chart(df).mark_rect(stroke='black', strokeWidth=1).encode(
+        x='x',
+        y='y',
+        text=alt.Text('value:Q'),
+        color=alt.Color('matname:N', 
+        scale=alt.Scale(scheme=color_scale)),
+        tooltip=['x', 'y', 'value', 'matname']
+    )
+    heatmap = heatmap.configure_text(
+        baseline='middle',
+        align='center'
+    )
+    # else:
+        # df = pd.DataFrame({
+        #     'x': col_labels,
+        #     'y': row_labels,
+        #     'value': vals,
+        # })
+        # heatmap = alt.Chart(df).mark_rect().encode(
+        #     x='x',
+        #     y='y',
+        #     text=alt.Text('value:Q'),
+        #     color=alt.Color('Value:N', 
+        #     scale=alt.Scale(scheme=color_scale)),
+        #     # tooltip=['value']
+        # )
+    return heatmap
