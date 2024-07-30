@@ -173,9 +173,14 @@ function refreshHistory() {
     htmx.ajax("GET", "/history", {target:"#history-list", swap:"innerHTML"});
 }
 
-//document.addEventListener("htmx:load", 
-const plotNewWindow = (detail) => {
-    // make a new window and add the plot (detail.elt) to the window
-    let win = window.open("", '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
-    win.document.write(`<!DOCTYPE html> <html><body>${detail.elt}</body></html>`);
+let plotWindow = null;
+const plotInNewWindow = () => {
+    // get the plot html to insert into the plot window
+    const plotHTML = document.getElementById("plot-section").innerHTML;
+    // make a new plot window if need be and give it the plotHtml content
+    plotWindow ??= window.open("", '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
+    // if (plotWindow.closed) {
+    //     plotWindow.open("");
+    // }
+    plotWindow.document.body.innerHTML = plotHTML;
 };

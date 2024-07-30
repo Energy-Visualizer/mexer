@@ -100,10 +100,14 @@ def get_plot(request):
     # if user is not logged in their username is empty string
     # mark them as anonymous in the logs
     LOGGER.info(f"Plot requested by {request.user.get_username() or 'anonymous user'}")
-    plot_div = None
+    
     if request.method == "POST":
         # Extract plot type and query parameters from the POST request
         query, plot_type, target = shape_post_request(request.POST, ret_plot_type = True, ret_database_target = True)
+        
+        # get boolean of if the plot should be
+        # in a separate window
+        separate_window = query.get("separate_window") == "on"
 
         # Check if the user has access to IEA data
         # TODO: make this work with status = 403, problem is HTMX won't show anything
@@ -112,6 +116,8 @@ def get_plot(request):
             return HttpResponse("You do not have access to IEA data. Please contact <a style='color: #00adb5' :visited='{color: #87CEEB}' href='mailto:matthew.heun@calvin.edu'>matthew.heun@calvin.edu</a> with questions."
                                 "You can also purchase WEB data at <a style='color: #00adb5':visited='{color: #87CEEB}' href='https://www.iea.org/data-and-statistics/data-product/world-energy-balances'> World Energy Balances</a>.")
         
+        plot_div = None # where to store what html will be sent to the user
+
         # Use match-case to handle different plot types
         match plot_type:
             case "sankey":
@@ -177,13 +183,15 @@ def get_plot(request):
             case _: # default
                 plot_div = "Error: Plot type not specified or supported"
                 LOGGER.warning("Unrecognized plot type requested")
-                
-        response = HttpResponse(plot_div)
         
-        # Update user history
+        response = HttpResponse(plot_div) # the final response to be returned
+        
+        # Update user history only if there was no error
         if not plot_div.startswith("Error"):
             serialized_data = update_user_history(request, plot_type, query)
             response.content += b"<script>refreshHistory();</script>"
+            if separate_window:
+                response.content += b"<script>plotInNewWindow();</script>"
             # Set cookie to expire in 30 days
             response.set_cookie('user_history', serialized_data.hex(), max_age=30 * 24 * 60 * 60)
 

@@ -471,6 +471,21 @@
         <!-- matrix dropdown end -->
         <!-- metadata specifics inputs end -->
 
+        <div class="query-choice">
+            <div class="info-text">
+                <span class="popup-icon">&#9432;
+                    <span class="popup-text">
+                        If you want the plot to show up in a different window, select this.
+                    </span>
+                </span>
+                Plot in Separate Window
+            </div>
+            <div class="input-column">
+                <input type="checkbox" name="separate_window">
+            </div>
+            &#x2800
+        </div>
+
         <!-- Buttons for plot generation and data download -->
         <div class="button-container">
             <button hx-post="/plot" hx-swap="innerHTML" hx-target="#plot-section" hx-indicator="#plot-spinner" type="button"
