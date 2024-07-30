@@ -9,12 +9,10 @@ from eviz_site.settings import DATABASES
 DatabaseTarget = tuple[str, models.Model]
 
 def get_database_target(query: dict) -> DatabaseTarget:
-    dataset = database = query.get("dataset")
-    if dataset == "IEAEWEB2022":
-        database = "default"
+    database = "default"
+    dataset = query.get("dataset")
 
     plot_type = query.get("plot_type")
-
     if plot_type == "xy_plot":
         model = AggEtaPFU
     else:
