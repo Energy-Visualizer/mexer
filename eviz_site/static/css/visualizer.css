@@ -390,16 +390,16 @@ html {
 
 .arrow-section{
     position: absolute;
-    top: 37%;
-    left: 83%;
+    top: 20%;
+    left: 80%;
+    text-align: center;
+    cursor: pointer;
 }
 
 .arrow {
-    position: absolute;
-    top: 50%;
-    left: 88%;
-    transform: translate(-50%, -50%);
-    cursor: pointer;
+    position: relative;
+    left: 50%;
+    transform: translate(-50%, 0%);
 }
 
 .arrow span {
@@ -409,8 +409,8 @@ html {
     border-bottom: 5px solid #191b1e;
     border-right: 5px solid #191b1e;
     transform: rotate(45deg);
-    margin: -10px;
-    animation: animate 2s infinite;
+    margin: auto;
+    animation: arrows-anim 5s infinite;
 }
 
 .arrow span:nth-child(2) {
@@ -421,16 +421,19 @@ html {
     animation-delay: -0.4s;
 }
 
-@keyframes animate {
+@keyframes arrows-anim {
     0% {
         opacity: 0;
         transform: rotate(45deg) translate(-20px, -20px);
     }
-    50% {
+    30% {
         opacity: 1;
+    }
+    60% {
+        opacity: 0;
+        transform: rotate(45deg) translate(20px, 20px);
     }
     100% {
         opacity: 0;
-        transform: rotate(45deg) translate(20px, 20px);
     }
 }

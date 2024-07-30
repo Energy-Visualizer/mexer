@@ -9,16 +9,24 @@ from bidict import bidict
 from django.apps import apps
 from eviz.logging import LOGGER
 from datetime import datetime, timedelta
+from eviz.models import Dataset
 
 # how long to cache information from the database 
 # in *hours*
 TRANSLATOR_CACHE_TTL = 24
 
 class Translator:
-    # A dictionary where keys are model names and values are tuples
-    # of date times and bidict objects
-    __translations = {}
+    # A dictionary where keys are model names and
+    # values are tuples of date times and bidict objects
+    # the date times mark when the entry was cached
+    # the bidict has the translation information
+    __translations: dict[str: tuple[datetime, bidict]] = {}
 
+    # A tuple of a datetime of when this entry was cached
+    # and a list of strings for all the public datasets
+    __public_datasets: tuple[datetime, list[str]] = (None, [])
+
+    # how long entries are allowed to exist before getting refreshed
     __cache_ttl = timedelta(hours=TRANSLATOR_CACHE_TTL)
 
     def __init__(self, database: str):
@@ -49,7 +57,8 @@ class Translator:
         if (datetime.today().date() - model_translations[0]) > Translator.__cache_ttl:
             Translator.__load_and_cache(model_name, id_field, name_field, database)
             model_translations = Translator.__translations[database + ":" + model_name]
-            
+        
+        # return the bidict of model translations
         return model_translations[1]
     
     @staticmethod
@@ -130,10 +139,15 @@ class Translator:
         Outputs:
             list: A list of all possible values (names) for the attribute.
         """
+
+        # special case
+        if attribute == "public datasets":
+            return Translator.__fetch_public_datasets()
+
         # Dictionary mapping attribute names to model details
         model_mappings = {
             'dataset': ('Dataset', 'DatasetID', 'Dataset'),
-            'version': ('Version', 'VesionID', 'Version'),
+            'version': ('Version', 'VersionID', 'Version'),
             'country': ('Country', 'CountryID', 'FullName'),
             'method': ('Method', 'MethodID', 'Method'),
             'energytype': ('EnergyType', 'EnergyTypeID', 'FullName'),
@@ -153,6 +167,19 @@ class Translator:
         return list(translations.keys())
     
     @staticmethod
+    def __fetch_public_datasets():
+        if (
+            # the list is empty and needs to be filled
+            len(Translator.__public_datasets[1]) == 0
+            # the entry needs to be recached
+            or (datetime.today().date() - Translator.__public_datasets[0]) > Translator.__cache_ttl
+        ):
+            # reload and recache
+            Translator.__public_datasets = datetime.today().date(), list(Dataset.objects.filter(Public = True).values_list("Dataset", flat = True))
+
+        return Translator.__public_datasets[1]
+
+    @staticmethod
     def get_includesNEUs(self):
         return [True, False]
 
@@ -170,7 +197,7 @@ class Translator:
         # Dictionary mapping attribute names to model details
         model_mappings = {
             'dataset': ('Dataset', 'DatasetID', 'Dataset'),
-            'version': ('Version', 'VesionID', 'Version'),
+            'version': ('Version', 'VersionID', 'Version'),
             'country': ('Country', 'CountryID', 'FullName'),
             'method': ('Method', 'MethodID', 'Method'),
             'energytype': ('EnergyType', 'EnergyTypeID', 'FullName'),

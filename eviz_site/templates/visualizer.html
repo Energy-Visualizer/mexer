@@ -67,7 +67,11 @@
                 From dataset
             </div>
             <div class="input-column">
-                <label><input type="radio" value="CLPFUv2.0a4" name="dataset" class="space-input" required checked>sandboxdb</label><br>
+                {% for dataset in datasets %}
+                {% comment %} {% if dataset.Public %} {% endcomment %}
+                <label><input type="radio" value="{{ dataset }}" name="dataset" class="space-input" required>{{ dataset }}</label><br>
+                {% comment %} {% endif %} {% endcomment %}
+                {% endfor %}
             </div>
             &#x2800
         </div>
@@ -83,11 +87,11 @@
             </div>
             <div class="input-column">
                 <select name= "versionfrom" id= "versionfrom-dropdown" class="styled-dropdown space-input" required>
-                    {% for versionfrom in versionfroms %}
-                        {% if versionfrom == '1.1' %}
-                            <option value="{{ versionfrom }}" selected>{{ versionfrom }}</option>
+                    {% for version in versions %}
+                        {% if version == '1.1' %}
+                            <option value="{{ version }}" selected>{{ version }}</option>
                         {% else %}
-                            <option value="{{ versionfrom }}">{{ versionfrom }}</option>
+                            <option value="{{ version }}">{{ version }}</option>
                         {% endif %}
                     {% endfor %}
                     </select>
@@ -107,11 +111,11 @@
             </div>
             <div class="input-column">
                 <select name= "versionto" id= "versionto-dropdown" class="styled-dropdown space-input" required>
-                    {% for versionto in versiontos %}
-                        {% if versionto == '1.4' %}
-                            <option value="{{ versionto }}" selected>{{ versionto }}</option>
+                    {% for version in versions %}
+                        {% if version == '1.4' %}
+                            <option value="{{ version }}" selected>{{ version }}</option>
                         {% else %}
-                            <option value="{{ versionto }}">{{ versionto }}</option>
+                            <option value="{{ version }}">{{ version }}</option>
                         {% endif %}
                     {% endfor %}
                     </select>
@@ -195,26 +199,7 @@
             </div>
             &#x2800
         </div>
-        <div class="query-choice">
-            <div class="info-text">
-                <span class="popup-icon">&#9432;
-                    <span class="popup-text">
-                        Choose IEA data only, muscle work data only (MW) or both.
-                    </span>
-                </span>
-                IEA and/or MW
-            </div>
-            <div class="input-column">
-                {% for ieamw in ieamws %}
-                    {%if ieamw == 'IEA'%}
-                        <label><input type="checkbox" value="{{ ieamw }}" name="ieamw" checked class="space-input">{{ ieamw }}</label><br>
-                    {%else%}
-                        <label><input type="checkbox" value="{{ ieamw }}" name="ieamw" class="space-input">{{ ieamw }}</label><br>
-                    {%endif%}
-                {% endfor %}
-            </div>
-            &#x2800
-        </div>
+        
         <div class="query-choice">
             <div class="info-text">
                 <span class="popup-icon">&#9432;
@@ -501,14 +486,15 @@
         </div>
     </div>
     </form>
-    <div class="arrow-section">
-        <p> Plotting Area Below.</p>
+    <div class="arrow-section" onclick='document.getElementById("plot-section").scrollIntoView();'>
+        <h3> Plotting Area Below </h3>
+        <div class="arrow">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
     </div>
-    <div class="arrow">
-        <span></span>
-        <span></span>
-        <span></span>
-    </div>
+    
     <!-- main form end -->
 
     <!-- Area for displaying the generated plot -->

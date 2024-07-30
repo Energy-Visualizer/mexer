@@ -4,8 +4,8 @@ from django.contrib.auth.models import User as DjangoUser
 class Dataset(models.Model):
     """ Model representing a database table named 'Dataset'."""
     DatasetID = models.PositiveSmallIntegerField(primary_key=True)
-    Public = models.BooleanField()
     Dataset = models.TextField()
+    Public = models.BooleanField()
     FullName = models.TextField()
     Description = models.TextField()
 

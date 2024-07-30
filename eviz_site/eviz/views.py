@@ -275,36 +275,23 @@ def visualizer(request):
     LOGGER.info("Visualizer page visted.")
     
     # Fetch all available options for various parameters from the Translator
-    datasets = Translator.get_all('dataset')
-
-    # get rid of broken dataset
-    try:
-        datasets.remove("IEAEWEB2022")
-    except:
-        pass
-
+    datasets = Translator.get_all('public datasets')
     countries = Translator.get_all('country')
     countries.sort()
     versions = Translator.get_all('version')
     methods = Translator.get_all('method')
     energy_types = Translator.get_all('energytype')
     last_stages = Translator.get_all('laststage')
-    ieamws = Translator.get_all('ieamw')
     grossnets = Translator.get_all('grossnet')
     product_aggregations = Translator.get_all('agglevel')
     industry_aggregations = Translator.get_all('agglevel')
-    # Remove 'Both' from ieamws if present
-    try:
-        ieamws.remove("Both")
-    except ValueError:
-        pass # don't care if it's not there, we're trying to remove it anyways
     matnames = Translator.get_all('matname')
     matnames.sort(key=len)  # sort matrix names by how long they are... seems reasonable
     
     # Prepare the context dictionary for the template
     context = {
         "datasets":datasets, "versions":versions, "countries":countries, "methods":methods,
-        "energy_types":energy_types, "last_stages":last_stages, "ieamws":ieamws, "grossnets":grossnets,
+        "energy_types":energy_types, "last_stages":last_stages, "grossnets":grossnets,
         "matnames":matnames, "product_aggregations":product_aggregations, "industry_aggregations":industry_aggregations,
         "iea":request.user.is_authenticated and request.user.has_perm("eviz.get_iea")
         }
