@@ -151,9 +151,9 @@ def get_plot(request):
                 color_scale = query.get('color_scale', "viridis")
                 # Retrieve the matrix
                 translated_query = translate_query(target, query)
-                # matrix = get_matrix(target, translated_query)
-                # if matrix_name == 'ruvy':
-                matrix, matname = get_ruvy_matrix(target, translated_query)
+                matrix = get_matrix(target, translated_query)
+                if matrix_name == 'ruvy':
+                    matrix, matname = get_ruvy_matrix(target, translated_query)
                 # print(f"Matrix shape: {matrix.shape}, Matname: {matname}")
                 
                 if matrix is None:

@@ -74,39 +74,36 @@ def visualize_matrix(target: DatabaseTarget, mat: coo_matrix, matnames: list = N
     # print(len(row_labels))
     # if coloring_method == 'ruvy' and matnames:
     # Create a Plotly Heatmap object
-    df = pd.DataFrame({
-        'x': col_labels,
-        'y': row_labels,
-        'value': vals,
-        'matname': matnames
-    })
+    if coloring_method == 'ruvy' and matnames: 
+        df = pd.DataFrame({
+            'x': col_labels,
+            'y': row_labels,
+            'value': vals,
+            'matname': matnames
+        })
 
-    # print(df)
+        # print(df)
 
-    heatmap = alt.Chart(df).mark_rect(stroke='black', strokeWidth=1).encode(
-        x='x',
-        y='y',
-        text=alt.Text('value:Q'),
-        color=alt.Color('matname:N', 
-        scale=alt.Scale(scheme=color_scale)),
-        tooltip=['x', 'y', 'value', 'matname']
-    )
-    heatmap = heatmap.configure_text(
-        baseline='middle',
-        align='center'
-    )
-    # else:
-        # df = pd.DataFrame({
-        #     'x': col_labels,
-        #     'y': row_labels,
-        #     'value': vals,
-        # })
-        # heatmap = alt.Chart(df).mark_rect().encode(
-        #     x='x',
-        #     y='y',
-        #     text=alt.Text('value:Q'),
-        #     color=alt.Color('Value:N', 
-        #     scale=alt.Scale(scheme=color_scale)),
-        #     # tooltip=['value']
-        # )
+        heatmap = alt.Chart(df).mark_rect(stroke='black', strokeWidth=1).encode(
+            x='x',
+            y='y',
+            text=alt.Text('value:Q'),
+            color=alt.Color('matname:N', 
+            scale=alt.Scale(scheme=color_scale)),
+            tooltip=['x', 'y', 'value', 'matname']
+        )
+    else:
+        df = pd.DataFrame({
+            'x': col_labels,
+            'y': row_labels,
+            'value': vals,
+        })
+        heatmap = alt.Chart(df).mark_rect().encode(
+            x='x',
+            y='y',
+            text=alt.Text('value:Q'),
+            color=alt.Color('Value:N', 
+            scale=alt.Scale(scheme=color_scale)),
+            tooltip=['x', 'y', 'value']
+        )
     return heatmap
