@@ -197,7 +197,14 @@ class AggEtaPFU(models.Model):
     
 class EvizUser(DjangoUser):
     """ Model representing a database table named 'EvizUser'."""
-    institution = models.CharField(max_length=255)
+    institution_type = models.CharField(max_length=10, default="Other", choices={
+        "Academic": "Academic",
+        "Government": "Government",
+        "Industry": "Industry",
+        "Non-Profit": "Non-Profit",
+        "Other": "Other"
+    })
+    institution_name = models.CharField(max_length=255)
     country = models.CharField(max_length=255)
 
 class EmailAuthCode(models.Model):

@@ -17,8 +17,19 @@ class SignupForm(UserCreationForm):
         required=True,
         widget=forms.EmailInput(attrs={'placeholder': 'joe@gmail.com'})
     )
-    institution = forms.CharField(
+    institution_type = forms.ChoiceField(
         required=True,
+        choices={
+            "Academic": "Academic",
+            "Government": "Government",
+            "Industry": "Industry",
+            "Non-Profit": "Non-Profit",
+            "Other": "Other"
+        }
+    )
+    institution_name = forms.CharField(
+        required=False,
+        label="Institution Name (Optional)", # specifed expicitly to add optional tag
         widget=forms.TextInput(attrs={'placeholder': "e.g. Calvin University"})
     )
     country = forms.CharField(
@@ -39,7 +50,7 @@ class SignupForm(UserCreationForm):
     class Meta:
         # Use the custom custom user model
         model = EvizUser 
-        fields = ['username', 'email', 'password1', 'password2', 'institution', 'country']
+        fields = ['username', 'email', 'password1', 'password2', 'institution_type', 'institution_name', 'country']
 
 class LoginForm(forms.Form):
     """Custom form foruser login.

@@ -53,7 +53,7 @@ def remove_iea(modeladmin, request, queryset):
 class IEAAdmin(UserAdmin):
     """ Custom UserAdmin class that includes actions for managing IEA data access."""
     actions = [allow_iea, remove_iea] # this needs to be a list or there will be an error when Django looks for allow_iea()
-    list_display = ("username", "iea_approved", "email", "is_staff", "country", "institution",)
+    list_display = ("username", "iea_approved", "email", "is_staff", "country", "institution_name",)
 
     def iea_approved(self, obj: EvizUser) -> bool:
         return obj.has_perm("eviz.get_iea")
