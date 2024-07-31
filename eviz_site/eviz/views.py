@@ -150,28 +150,41 @@ def get_plot(request):
                 matrix_name = query.get("matname")
                 color_scale = query.get('color_scale', "viridis")
                 # Retrieve the matrix
+                coloring_method = query.get('coloring_method', 'weight')
                 translated_query = translate_query(target, query)
-                matrix = get_matrix(target, translated_query)
-                if matrix_name == 'ruvy':
+                
+                if matrix_name == "RUVY" and coloring_method == "ruvy":
                     matrix, matname = get_ruvy_matrix(target, translated_query)
+                    if matrix is None:
+                        plot_div = "Error: No corresponding data"
+                    else:
+                        heatmap = visualize_matrix(target, matrix, matname, color_scale, coloring_method)
+                        heatmap = heatmap.properties(
+                            title=matrix_name + " Matrix",
+                            width=1040,
+                            height=490
+                        )
+                        plot_div = heatmap.to_html()
+                else:
+                    matrix = get_matrix(target, translated_query)
+                    if matrix is None:
+                        plot_div = "Error: No corresponding data"
+                    else:
+                        heatmap = visualize_matrix(target, matrix, None, color_scale, coloring_method)
+                        heatmap = heatmap.properties(
+                            title=matrix_name + " Matrix",
+                            width=1040,
+                            height=490
+                        )
+                        plot_div = heatmap.to_html()
                 # print(f"Matrix shape: {matrix.shape}, Matname: {matname}")
                 
-                if matrix is None:
-                    plot_div = "Error: No corresponding data"
                 
-                else:
-                    heatmap = visualize_matrix(target, matrix, matname, color_scale)
-                    # print(f"Heatmap object: {heatmap}")
-                    heatmap = heatmap.properties(
-                        title=matrix_name + " Matrix",
-                        width=1000,
-                        height=500
-                    )
 
-                    # Render the figure as an HTML div
-                    plot_div = heatmap.to_html()
-                    # print(f"Plot div length: {len(plot_div)}")
-                    LOGGER.info("Matrix visualization made")
+                # Render the figure as an HTML div
+                
+                # print(f"Plot div length: {len(plot_div)}")
+                LOGGER.info("Matrix visualization made")
         
 
             case _: # default

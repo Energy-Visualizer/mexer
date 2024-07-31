@@ -53,7 +53,7 @@ def get_ruvy_matrix(target: DatabaseTarget, query: dict) -> tuple:
 
 import altair as alt
 import pandas as pd
-def visualize_matrix(target: DatabaseTarget, mat: coo_matrix, matnames: list = None ,color_scale: str = 'viridis') -> pgo.Figure:
+def visualize_matrix(target: DatabaseTarget, mat: coo_matrix, matnames: list = None ,color_scale: str = 'viridis', coloring_method: str = 'weight') -> pgo.Figure:
     """Visualize a sparse matrix as a heatmap using Plotly.
 
     Inputs:
@@ -85,9 +85,8 @@ def visualize_matrix(target: DatabaseTarget, mat: coo_matrix, matnames: list = N
         # print(df)
 
         heatmap = alt.Chart(df).mark_rect(stroke='black', strokeWidth=1).encode(
-            x='x',
-            y='y',
-            text=alt.Text('value:Q'),
+            x=alt.X('x', axis=alt.Axis(orient='top', labelAngle=-45, title="")),
+            y=alt.Y('y', axis=alt.Axis(title="")),
             color=alt.Color('matname:N', 
             scale=alt.Scale(scheme=color_scale)),
             tooltip=['x', 'y', 'value', 'matname']
@@ -98,11 +97,11 @@ def visualize_matrix(target: DatabaseTarget, mat: coo_matrix, matnames: list = N
             'y': row_labels,
             'value': vals,
         })
-        heatmap = alt.Chart(df).mark_rect().encode(
-            x='x',
-            y='y',
-            text=alt.Text('value:Q'),
-            color=alt.Color('Value:N', 
+        
+        heatmap = alt.Chart(df).mark_rect(stroke='black', strokeWidth=1).encode(
+            x=alt.X('x', axis=alt.Axis(orient='top', labelAngle=-45,title="")),
+            y=alt.Y('y', axis=alt.Axis(title="")),
+            color=alt.Color('value:Q', 
             scale=alt.Scale(scheme=color_scale)),
             tooltip=['x', 'y', 'value']
         )

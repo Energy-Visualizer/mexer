@@ -474,6 +474,24 @@
             </div>
             &#x2800
         </div>
+
+
+        <div class="query-choice" id="coloring-options">
+            <div class="info-text">
+                <span class="popup-icon">&#9432;
+                    <span class="popup-text">
+                        Choose the coloring method.
+                    </span>
+                </span>
+                Coloring Method
+            </div>
+            <div class="input-column">
+                <input type="radio" id="weight" name="coloring_method" value="weight" checked> Weight
+                <input type="radio" id="ruvy" name="coloring_method" value="ruvy"> RUVY
+            </div>
+            &#x2800
+        </div>
+
         <!-- matrix dropdown end -->
         <!-- metadata specifics inputs end -->
 
@@ -532,6 +550,14 @@
         });
     });
     
+    document.getElementById('matname-dropdown').addEventListener('change', function() {
+        var coloringOptions = document.getElementById('coloring-options');
+        if (this.value === 'RUVY') {
+            coloringOptions.style.display = 'block';
+        } else {
+            coloringOptions.style.display = 'none';
+        }
+    });
     
     </script>
     
