@@ -118,6 +118,13 @@ def get_plot(request):
         
         plot_div = None # where to store what html will be sent to the user
 
+        # title for the plots
+        title_country = query.get("country")
+        title_from_year = query.get("year")
+        title_to_year = query.get("to_year")
+        if title_to_year == title_from_year: title_to_year = False
+        plot_title = f"{title_country or ""} in {title_from_year or ""}{'-' + title_to_year if title_to_year else ""}"
+
         # Use match-case to handle different plot types
         match plot_type:
             case "sankey":
@@ -144,7 +151,9 @@ def get_plot(request):
                 
                 translated_query = translate_query(target, query)
                 xy = get_xy(efficiency_metric, target, translated_query, color_by, line_by, facet_col_by, facet_row_by, energy_type)
-
+                xy.update_layout(
+                    title=plot_title
+                )
                 if xy is None:
                     plot_div = "Error: No corresponding data"
                 else:
@@ -154,42 +163,28 @@ def get_plot(request):
             case "matrices":
                 # Extract specific parameters for matrices
                 matrix_name = query.get("matname")
-                color_scale = query.get('color_scale', "viridis")
+                color_scale = query.get('color_scale', "inferno")
+
                 # Retrieve the matrix
                 coloring_method = query.get('coloring_method', 'weight')
                 translated_query = translate_query(target, query)
                 
+                matname = None
                 if matrix_name == "RUVY" and coloring_method == "ruvy":
                     matrix, matname = get_ruvy_matrix(target, translated_query)
-                    if matrix is None:
-                        plot_div = "Error: No corresponding data"
-                    else:
-                        heatmap = visualize_matrix(target, matrix, matname, color_scale, coloring_method)
-                        heatmap = heatmap.properties(
-                            title=matrix_name + " Matrix",
-                            width=1040,
-                            height=490
-                        )
-                        plot_div = heatmap.to_html()
                 else:
                     matrix = get_matrix(target, translated_query)
-                    if matrix is None:
-                        plot_div = "Error: No corresponding data"
-                    else:
-                        heatmap = visualize_matrix(target, matrix, None, color_scale, coloring_method)
-                        heatmap = heatmap.properties(
-                            title=matrix_name + " Matrix",
-                            width=1040,
-                            height=490
-                        )
-                        plot_div = heatmap.to_html()
-                # print(f"Matrix shape: {matrix.shape}, Matname: {matname}")
-                
-                
 
-                # Render the figure as an HTML div
+                if matrix is None:
+                    plot_div = "Error: No corresponding data"
+                else:
+                    heatmap = visualize_matrix(target, matrix, matname, color_scale, coloring_method)
+                    heatmap = heatmap.properties(
+                        title=matrix_name + " Matrix: " + plot_title,
+                        autosize = {"type": "fit", "contains": "padding"}
+                    )
+                    plot_div = heatmap.to_html() # Render the figure as an HTML div
                 
-                # print(f"Plot div length: {len(plot_div)}")
                 LOGGER.info("Matrix visualization made")
         
 
@@ -317,7 +312,7 @@ def visualizer(request):
         "default_dataset": datasets[0],
 
         "versions":versions,
-        "default_version":versions[0],
+        "default_version": "v2.0a6",
 
         "countries":countries,
         "default_country": "United States",

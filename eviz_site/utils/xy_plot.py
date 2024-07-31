@@ -26,9 +26,7 @@ def get_xy(efficiency_metric: str, target: DatabaseTarget, query: dict,
     # Map the names to the actual database field names
     field_mapping = {
         'country': 'Country',
-        'energy_type': 'EnergyType',
-        'ieamw': 'IEAMW',
-        'last_stage': 'LastStage'
+        'energy_type': 'EnergyType'
     }
     
     # Add color_by, line_by, facet_col_by, and facet_row_by fields to the selection list
@@ -45,10 +43,10 @@ def get_xy(efficiency_metric: str, target: DatabaseTarget, query: dict,
         # Create the line plot using Plotly Express
         fig = px.line(
             df, x="Year", y=efficiency_metric, 
-            color=field_mapping.get(color_by, color_by),
-            line_dash=field_mapping.get(line_by, line_by),
-            facet_col=field_mapping.get(facet_col_by,facet_col_by),
-            facet_row=field_mapping.get(facet_row_by,facet_row_by),
+            color=field_mapping.get(color_by),
+            line_dash=field_mapping.get(line_by),
+            facet_col=field_mapping.get(facet_col_by),
+            facet_row=field_mapping.get(facet_row_by),
             facet_col_spacing=0.05,
         )
         
