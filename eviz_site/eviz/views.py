@@ -192,8 +192,8 @@ def get_plot(request):
             response.content += b"<script>refreshHistory();</script>"
             if separate_window:
                 response.content += b"<script>plotInNewWindow();</script>"
-            # Set cookie to expire in 30 days
-            response.set_cookie('user_history', serialized_data.hex(), max_age=30 * 24 * 60 * 60)
+            # Set cookie to expire in 7 days
+            response.set_cookie('user_history', serialized_data.hex(), max_age=7 * 24 * 60 * 60)
 
     return response
 
@@ -287,9 +287,11 @@ def visualizer(request):
     countries = Translator.get_all('country')
     countries.sort()
     versions = Translator.get_all('version')
-    methods = Translator.get_all('method')
+    # methods = Translator.get_all('method')
+    methods = ["PCM"] # override, we don't show all the options
     energy_types = Translator.get_all('energytype')
-    last_stages = Translator.get_all('laststage')
+    # last_stages = Translator.get_all('laststage')
+    last_stages = ["Final", "Useful"] # override, we don't show all the options
     grossnets = Translator.get_all('grossnet')
     product_aggregations = Translator.get_all('agglevel')
     industry_aggregations = Translator.get_all('agglevel')
@@ -298,9 +300,36 @@ def visualizer(request):
     
     # Prepare the context dictionary for the template
     context = {
-        "datasets":datasets, "versions":versions, "countries":countries, "methods":methods,
-        "energy_types":energy_types, "last_stages":last_stages, "grossnets":grossnets,
-        "matnames":matnames, "product_aggregations":product_aggregations, "industry_aggregations":industry_aggregations,
+        "datasets":datasets,
+        "default_dataset": datasets[0],
+
+        "versions":versions,
+        "default_version":versions[0],
+
+        "countries":countries,
+        "default_country": "United States",
+
+        "methods":methods,
+        "default_method":methods[0],
+
+        "energy_types":energy_types,
+        "default_energy_type":energy_types[0],
+
+        "last_stages":last_stages,
+        "default_last_stage":last_stages[0],
+
+        "grossnets":grossnets,
+        "default_grossnet":grossnets[0],
+
+        "matnames":matnames,
+        "default_matname":matnames[0],
+        
+        "product_aggregations":product_aggregations,
+        "default_product_aggregation":product_aggregations[0],
+
+        "industry_aggregations":industry_aggregations,
+        "default_industry_aggregation":industry_aggregations[0],
+
         "iea":request.user.is_authenticated and request.user.has_perm("eviz.get_iea")
         }
 
@@ -310,6 +339,10 @@ def about(request):
     ''' Render the 'About' page.'''
     LOGGER.info("About page visted.")
     return render(request, 'about.html')
+
+def plot_stage(request):
+    ''' Give the plot stage, for plotting in a separate window '''
+    return render(request, 'plot_stage.html')
 
 def terms_and_conditions(request):
     ''' Render the 'Terms and Conditions' page.'''
