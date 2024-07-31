@@ -14,7 +14,7 @@ from utils.translator import *
 from utils.data import *
 from utils.sankey import get_sankey
 from utils.xy_plot import get_xy
-from utils.matrix import get_matrix, visualize_matrix
+from utils.matrix import get_matrix, visualize_matrix, get_ruvy_matrix
 from eviz.models import Dataset, matname
 from eviz.forms import SignupForm, LoginForm
 from eviz.logging import LOGGER
@@ -156,28 +156,41 @@ def get_plot(request):
                 matrix_name = query.get("matname")
                 color_scale = query.get('color_scale', "viridis")
                 # Retrieve the matrix
+                coloring_method = query.get('coloring_method', 'weight')
                 translated_query = translate_query(target, query)
-                matrix = get_matrix(target, translated_query)
                 
-                if matrix is None:
-                    plot_div = "Error: No corresponding data"
-                
+                if matrix_name == "RUVY" and coloring_method == "ruvy":
+                    matrix, matname = get_ruvy_matrix(target, translated_query)
+                    if matrix is None:
+                        plot_div = "Error: No corresponding data"
+                    else:
+                        heatmap = visualize_matrix(target, matrix, matname, color_scale, coloring_method)
+                        heatmap = heatmap.properties(
+                            title=matrix_name + " Matrix",
+                            width=1040,
+                            height=490
+                        )
+                        plot_div = heatmap.to_html()
                 else:
-                    heatmap = visualize_matrix(target, matrix, color_scale)
+                    matrix = get_matrix(target, translated_query)
+                    if matrix is None:
+                        plot_div = "Error: No corresponding data"
+                    else:
+                        heatmap = visualize_matrix(target, matrix, None, color_scale, coloring_method)
+                        heatmap = heatmap.properties(
+                            title=matrix_name + " Matrix",
+                            width=1040,
+                            height=490
+                        )
+                        plot_div = heatmap.to_html()
+                # print(f"Matrix shape: {matrix.shape}, Matname: {matname}")
+                
+                
 
-                    heatmap.update_layout(
-                        title = matrix_name + " Matrix",
-                        yaxis = dict(title=''),
-                        xaxis = dict(title=''),
-                        xaxis_side = "top",
-                        xaxis_tickangle = -45, 
-                        scattermode = "overlay",
-                        # plot_bgcolor = "rgba(0, 0, 0, 0)",
-                    )
-
-                    # Render the figure as an HTML div
-                    plot_div = plot(heatmap, output_type="div", include_plotlyjs=False)
-                    LOGGER.info("Matrix visualization made")
+                # Render the figure as an HTML div
+                
+                # print(f"Plot div length: {len(plot_div)}")
+                LOGGER.info("Matrix visualization made")
         
 
             case _: # default

@@ -29,6 +29,7 @@ const initialize = () => {
     facetRowBy = document.getElementById("facet-row-by");
     menuInputs.push(facetRowBy);
     grossNet = document.getElementById("grossnet_radio");
+    coloringMethod = document.getElementById("coloring-options");
 
     colorScale = document.getElementById("color-scale");
     menuInputs.push(colorScale);
@@ -107,6 +108,7 @@ const startMenuSwitch = () => {
     for (let item of menuInputs)
         inputOff(item);
     inputRadioOff(grossNet);
+    inputRadioOff(coloringMethod)
 }
 
 const handleXYPlot = () => {
@@ -114,6 +116,7 @@ const handleXYPlot = () => {
     for (let item of xyMenuInputs)
         inputOn(item);
     inputRadioOn(grossNet);
+    inputRadioOff(coloringMethod)
 }
 
 // Configure UI for Sankey Diagram
@@ -121,6 +124,7 @@ const handleSankey = () => {
     startMenuSwitch();
     for (let item of sankeyMenuInputs)
         inputOn(item);
+    inputRadioOff(coloringMethod)
 }
 
 // Configure UI for matrices
@@ -128,6 +132,7 @@ const handleMatrices = () => {
     startMenuSwitch();
     for (let item of matrixMenuInputs)
         inputOn(item);
+    inputRadioOn(coloringMethod)
 }
 
 /** Add a new dropdown for a specified category */

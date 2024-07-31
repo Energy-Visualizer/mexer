@@ -19,3 +19,5 @@ pandas>=2.2.2
 # Bidirectional dictionary implementation
 # Useful for creating two-way mappings between keys and values (used for translating queries)
 bidict>=0.1.5
+
+altair>=5.3.0
