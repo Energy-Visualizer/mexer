@@ -1,8 +1,9 @@
 from django.contrib.admin import action as admin_action, site as admin_site
 from eviz.models import EvizUser
-from django.contrib.auth.models import User, Permission
+from django.contrib.auth.models import Permission
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.messages import success as success_message
+from eviz.logging import LOGGER
 
 # fill this in later so that the database is not being accessed during the app's initialization
 # TODO: maybe this should not be global
@@ -26,6 +27,7 @@ def allow_iea(modeladmin, request, queryset):
     # Add the permission to each user in the queryset
     for u in queryset:
         u.user_permissions.add(GET_IEA_PERMISSION)
+        LOGGER.info(f"User {u.username} granted IEA permissions")
 
     success_message(request, "User(s) access to IEA data successfully added")
 
@@ -47,6 +49,7 @@ def remove_iea(modeladmin, request, queryset):
     # Remove the permission to each selected user
     for u in queryset:
         u.user_permissions.remove(GET_IEA_PERMISSION)
+        LOGGER.info(f"User {u.username} IEA permissions revoked")
 
     success_message(request, "User(s) access to IEA data successfully removed")
 
