@@ -176,11 +176,13 @@ function refreshHistory() {
 let plotWindow = null;
 const plotInNewWindow = () => {
     // get the plot html to insert into the plot window
-    const plotHTML = document.getElementById("plot-section").innerHTML;
+    const plotHTML = document.getElementById("plot-section").outerHTML;
+
+    // if the plot was closed, set it to null to reopen
+    if (plotWindow?.closed)
+        plotWindow = null;
+
     // make a new plot window if need be and give it the plotHtml content
     plotWindow ??= window.open("", '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
-    // if (plotWindow.closed) {
-    //     plotWindow.open("");
-    // }
     plotWindow.document.body.innerHTML = plotHTML;
 };
