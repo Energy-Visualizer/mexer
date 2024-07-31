@@ -100,10 +100,14 @@ def get_plot(request):
     # if user is not logged in their username is empty string
     # mark them as anonymous in the logs
     LOGGER.info(f"Plot requested by {request.user.get_username() or 'anonymous user'}")
-    plot_div = None
+    
     if request.method == "POST":
         # Extract plot type and query parameters from the POST request
         query, plot_type, target = shape_post_request(request.POST, ret_plot_type = True, ret_database_target = True)
+        
+        # get boolean of if the plot should be
+        # in a separate window
+        separate_window = query.get("separate_window") == "on"
 
         # Check if the user has access to IEA data
         # TODO: make this work with status = 403, problem is HTMX won't show anything
@@ -112,6 +116,8 @@ def get_plot(request):
             return HttpResponse("You do not have access to IEA data. Please contact <a style='color: #00adb5' :visited='{color: #87CEEB}' href='mailto:matthew.heun@calvin.edu'>matthew.heun@calvin.edu</a> with questions."
                                 "You can also purchase WEB data at <a style='color: #00adb5':visited='{color: #87CEEB}' href='https://www.iea.org/data-and-statistics/data-product/world-energy-balances'> World Energy Balances</a>.")
         
+        plot_div = None # where to store what html will be sent to the user
+
         # Use match-case to handle different plot types
         match plot_type:
             case "sankey":
@@ -177,15 +183,17 @@ def get_plot(request):
             case _: # default
                 plot_div = "Error: Plot type not specified or supported"
                 LOGGER.warning("Unrecognized plot type requested")
-                
-        response = HttpResponse(plot_div)
         
-        # Update user history
+        response = HttpResponse(plot_div) # the final response to be returned
+        
+        # Update user history only if there was no error
         if not plot_div.startswith("Error"):
             serialized_data = update_user_history(request, plot_type, query)
             response.content += b"<script>refreshHistory();</script>"
-            # Set cookie to expire in 30 days
-            response.set_cookie('user_history', serialized_data.hex(), max_age=30 * 24 * 60 * 60)
+            if separate_window:
+                response.content += b"<script>plotInNewWindow();</script>"
+            # Set cookie to expire in 7 days
+            response.set_cookie('user_history', serialized_data.hex(), max_age=7 * 24 * 60 * 60)
 
     return response
 
@@ -279,9 +287,11 @@ def visualizer(request):
     countries = Translator.get_all('country')
     countries.sort()
     versions = Translator.get_all('version')
-    methods = Translator.get_all('method')
+    # methods = Translator.get_all('method')
+    methods = ["PCM"] # override, we don't show all the options
     energy_types = Translator.get_all('energytype')
-    last_stages = Translator.get_all('laststage')
+    # last_stages = Translator.get_all('laststage')
+    last_stages = ["Final", "Useful"] # override, we don't show all the options
     grossnets = Translator.get_all('grossnet')
     product_aggregations = Translator.get_all('agglevel')
     industry_aggregations = Translator.get_all('agglevel')
@@ -290,9 +300,36 @@ def visualizer(request):
     
     # Prepare the context dictionary for the template
     context = {
-        "datasets":datasets, "versions":versions, "countries":countries, "methods":methods,
-        "energy_types":energy_types, "last_stages":last_stages, "grossnets":grossnets,
-        "matnames":matnames, "product_aggregations":product_aggregations, "industry_aggregations":industry_aggregations,
+        "datasets":datasets,
+        "default_dataset": datasets[0],
+
+        "versions":versions,
+        "default_version":versions[0],
+
+        "countries":countries,
+        "default_country": "United States",
+
+        "methods":methods,
+        "default_method":methods[0],
+
+        "energy_types":energy_types,
+        "default_energy_type":energy_types[0],
+
+        "last_stages":last_stages,
+        "default_last_stage":last_stages[0],
+
+        "grossnets":grossnets,
+        "default_grossnet":grossnets[0],
+
+        "matnames":matnames,
+        "default_matname":matnames[0],
+        
+        "product_aggregations":product_aggregations,
+        "default_product_aggregation":product_aggregations[0],
+
+        "industry_aggregations":industry_aggregations,
+        "default_industry_aggregation":industry_aggregations[0],
+
         "iea":request.user.is_authenticated and request.user.has_perm("eviz.get_iea")
         }
 
@@ -302,6 +339,10 @@ def about(request):
     ''' Render the 'About' page.'''
     LOGGER.info("About page visted.")
     return render(request, 'about.html')
+
+def plot_stage(request):
+    ''' Give the plot stage, for plotting in a separate window '''
+    return render(request, 'plot_stage.html')
 
 def terms_and_conditions(request):
     ''' Render the 'Terms and Conditions' page.'''

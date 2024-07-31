@@ -68,9 +68,11 @@
             </div>
             <div class="input-column">
                 {% for dataset in datasets %}
-                {% comment %} {% if dataset.Public %} {% endcomment %}
-                <label><input type="radio" value="{{ dataset }}" name="dataset" class="space-input" required>{{ dataset }}</label><br>
-                {% comment %} {% endif %} {% endcomment %}
+                    {% if dataset == default_dataset %}
+                    <label><input type="radio" value="{{ dataset }}" name="dataset" class="space-input" required checked>{{ dataset }}</label><br>
+                    {% else %}
+                    <label><input type="radio" value="{{ dataset }}" name="dataset" class="space-input" required>{{ dataset }}</label><br>
+                    {% endif %}
                 {% endfor %}
             </div>
             &#x2800
@@ -80,15 +82,15 @@
             <div class="info-text">
                 <span class="popup-icon">&#9432;
                     <span class="popup-text">
-                        Choose the VersionFrom of interest.
+                        Choose the version of interest.
                     </span>
                 </span>
-                VersionFrom
+                Version
             </div>
             <div class="input-column">
-                <select name= "versionfrom" id= "versionfrom-dropdown" class="styled-dropdown space-input" required>
+                <select name= "version" id="version-dropdown" class="styled-dropdown space-input" required>
                     {% for version in versions %}
-                        {% if version == '1.1' %}
+                        {% if version == default_version %}
                             <option value="{{ version }}" selected>{{ version }}</option>
                         {% else %}
                             <option value="{{ version }}">{{ version }}</option>
@@ -98,31 +100,6 @@
             </div>
             &#x2800
         </div>
-
-
-        <div class="query-choice">
-            <div class="info-text">
-                <span class="popup-icon">&#9432;
-                    <span class="popup-text">
-                        Choose the VersionFrom of interest.
-                    </span>
-                </span>
-             VersionTo
-            </div>
-            <div class="input-column">
-                <select name= "versionto" id= "versionto-dropdown" class="styled-dropdown space-input" required>
-                    {% for version in versions %}
-                        {% if version == '1.4' %}
-                            <option value="{{ version }}" selected>{{ version }}</option>
-                        {% else %}
-                            <option value="{{ version }}">{{ version }}</option>
-                        {% endif %}
-                    {% endfor %}
-                    </select>
-            </div>
-            &#x2800
-        </div>
-
 
         <div class="query-choice">
             <div class="info-text">
@@ -136,7 +113,7 @@
             <div class="input-column">
                 <select name="country" id="country-dropdown" class="styled-dropdown space-input" required>
                 {% for country in countries %}
-                    {% if country == 'New Zealand' %}
+                    {% if country == default_country %}
                         <option value="{{ country }}" selected>{{ country }}</option>
                     {% else %}
                         <option value="{{ country }}">{{ country }}</option>
@@ -158,7 +135,13 @@
                 Method
             </div>
             <div class="input-column">
-                <label><input type="checkbox" value="PCM" class="space-input" name="method" checked>PCM</label><br>
+                {% for method in methods %}
+                {% if method == default_method %}
+                    <label><input type="checkbox" value="{{ method }}" class="space-input" name="method" checked>{{ method }}</label><br>
+                {% else %}
+                    <label><input type="checkbox" value="{{ method }}" class="space-input" name="method">{{ method }}</label><br>
+                {%endif%}
+                {% endfor %}
             </div>
             &#x2800
         </div>
@@ -173,7 +156,7 @@
             </div>
             <div class="input-column">
                 {% for energy_type in energy_types %}
-                {% if energy_type == 'Energy' %}
+                {% if energy_type == default_energy_type %}
                     <label><input type="checkbox" value="{{ energy_type }}" class="space-input" name="energy_type" checked>{{ energy_type }}</label><br>
                 {% else %}
                     <label><input type="checkbox" value="{{ energy_type }}" class="space-input" name="energy_type">{{ energy_type }}</label><br>
@@ -193,8 +176,13 @@
             </div>
             <div class="input-column">
                 <div name="last_stage">
-                    <label><input type="radio" value="Final" name="last_stage" checked class="space-input">Final</label><br>
-                    <label><input type="radio" value="Useful" name="last_stage" class="space-input">Useful</label><br>
+                    {% for last_stage in last_stages %}
+                    {% if last_stage == default_last_stage %}
+                    <label><input type="radio" value="{{ last_stage }}" name="last_stage" class="space-input" required checked>{{ last_stage }}</label><br>
+                    {% else %}
+                    <label><input type="radio" value="{{ last_stage }}" name="last_stage" class="space-input" required>{{ last_stage }}</label><br>
+                    {% endif %}
+                {% endfor %}
                 </div>
             </div>
             &#x2800
@@ -255,7 +243,7 @@
             </div>
             <div id="grossnet_radio" class="input-column">
                 {% for grossnet in grossnets %}
-                {%if grossnet == 'Gross'%}
+                {%if grossnet == default_grossnet%}
                 <input type="radio" value="{{ grossnet }}" name="grossnet" checked>{{ grossnet }} <br>
                 {%else%}
                 <input type="radio" value="{{ grossnet }}" name="grossnet"  required>{{ grossnet }}<br>
@@ -302,7 +290,7 @@
             </div>
             <div class="input-column">
                 {% for product_aggregation in product_aggregations %}
-                {% if product_aggregation == 'Specified' %}
+                {% if product_aggregation == default_product_aggregation %}
                     <label><input type="checkbox" value="{{ product_aggregation }}" class="space-input" name="product_aggregation" checked>{{ product_aggregation }}</label><br>
                 {% else %}
                     <label><input type="checkbox" value="{{ product_aggregation }}" class="space-input" name="product_aggregation">{{ product_aggregation }}</label><br>
@@ -323,7 +311,7 @@
             </div>
             <div class="input-column">
                 {% for industry_aggregation in industry_aggregations %}
-                {% if industry_aggregation == 'Specified' %}
+                {% if industry_aggregation == default_industry_aggregation %}
                     <label><input type="checkbox" value="{{ industry_aggregation }}" class="space-input" name="industry_aggregation" checked>{{ industry_aggregation }}</label><br>
                 {% else %}
                     <label><input type="checkbox" value="{{ industry_aggregation }}" class="space-input" name="industry_aggregation">{{ industry_aggregation }}</label><br>
@@ -357,7 +345,7 @@
                 to year
             </div>
             <div class="input-column">
-                <input name="to_year" class="styled-dropdown space-input" id="to-year-input"value="2020">
+                <input name="to_year" class="styled-dropdown space-input" id="to-year-input" value="2020">
             </div>
             &#x2800
         </div>
@@ -470,6 +458,21 @@
         </div>
         <!-- matrix dropdown end -->
         <!-- metadata specifics inputs end -->
+
+        <div class="query-choice">
+            <div class="info-text">
+                <span class="popup-icon">&#9432;
+                    <span class="popup-text">
+                        If you want the plot to show up in a different window, select this.
+                    </span>
+                </span>
+                Plot in Separate Window
+            </div>
+            <div class="input-column">
+                <input type="checkbox" name="separate_window">
+            </div>
+            &#x2800
+        </div>
 
         <!-- Buttons for plot generation and data download -->
         <div class="button-container">

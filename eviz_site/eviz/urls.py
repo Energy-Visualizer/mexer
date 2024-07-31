@@ -23,6 +23,7 @@ urlpatterns = [
     path('matrix-info/', views.matrix_info, name="matrix-info"),
     re_path(r"static/(.*/[^(\.)]*\..*)", views.handle_static),
     path("favicon.ico", favicon_view),
+    path("plot-stage/", views.plot_stage),
     
 
     # api services
