@@ -73,13 +73,15 @@
                 From dataset
             </div>
             <div class="input-column">
+                <select name="dataset" id="dataset-dropdown" class="styled-dropdown space-input" required>
                 {% for dataset in datasets %}
                     {% if dataset == default_dataset %}
-                    <label><input type="radio" value="{{ dataset }}" name="dataset" class="space-input" required checked>{{ dataset }}</label><br>
+                    <option value="{{ dataset }}" selected>{{ dataset }}</option>
                     {% else %}
-                    <label><input type="radio" value="{{ dataset }}" name="dataset" class="space-input" required>{{ dataset }}</label><br>
+                    <option value="{{ dataset }}">{{ dataset }}</option>
                     {% endif %}
                 {% endfor %}
+                </select>
             </div>
             &#x2800
         </div>
@@ -364,8 +366,7 @@
                 <select name="color_by" id="color-by" class="styled-dropdown space-input">
                     <option value="country" selected>Country</option>
                     <option value="energy_type">Energy Type</option>
-                    <option value="ieamw">IEA and/or MW</option>
-                    <option value="last_stage">Last Stage</option>
+                    <option>None</option>
                 </select>
         </div> 
         &#x2800
@@ -379,9 +380,8 @@
         <div class="input-column">
                 <select name="line_by" id="line-by" class="styled-dropdown space-input">
                     <option value="country">Country</option>
-                    <option value="energy_type">Energy Type</option>
-                    <option value="ieamw" selected>IEA and/or MW</option>
-                    <option value="last_stage">Last Stage</option>
+                    <option value="energy_type" selected>Energy Type</option>
+                    <option>None</option>
                 </select>
             </div>
             &#x2800
@@ -395,9 +395,8 @@
             <div class="input-column">
                 <select name="facet-col-by" id="facet-col-by" class="styled-dropdown space-input">
                     <option value="country">Country</option>
-                    <option value="energy_type" selected>Energy Type</option>
-                    <option value="ieamw">IEA and/or MW</option>
-                    <option value="last_stage">Last Stage</option>
+                    <option value="energy_type">Energy Type</option>
+                    <option selected>None</option>
                 </select>
             </div>
             &#x2800 
@@ -412,8 +411,7 @@
             <select name="facet-row-by" id="facet-row-by" class="styled-dropdown space-input">
                 <option value="country">Country</option>
                 <option value="energy_type">Energy Type</option>
-                <option value="ieamw">IEA and/or MW</option>
-                <option value="last_stage" selected>Last Stage</option>
+                <option selected>None</option>
             </select>
         </div>
         &#x2800 
@@ -432,7 +430,7 @@
             <div class="input-column">
                 <select name="color_scale" id="color-scale" class="styled-dropdown space-input">
                     <option value="viridis">Viridis</option>
-                    <option value="inferno">Inferno</option>
+                    <option value="inferno" selected>Inferno</option>
                     <option value="plasma">Plasma</option>
                     <option value="magma">Magma</option>
                     <option value="cividis">Cividis</option>
@@ -526,7 +524,7 @@
 
     <!-- Area for displaying the generated plot -->
     <div id="plot-with-extra">
-        <div id="plot-section">
+        <div id="plot-section" style="overflow: scroll;">
             <!-- This will be replaced with the plot from HTMX -->
         </div>
         <div id="spinner-container"><span id="plot-spinner" class="loader htmx-indicator"></span></div>

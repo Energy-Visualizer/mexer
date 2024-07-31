@@ -180,10 +180,9 @@ def translate_query(
     # common query parts
     if v := query.get("dataset"):
         translated_query["Dataset"] = translator.dataset_translate(v)
-    if v := query.get("valid_from_version"):
-        translated_query["ValidFromVersion"] = translator.version_translate(v)
-    if v := query.get("valid_to_version"):
-        translated_query["ValidToVersion"] = translator.version_translate(v)
+    if v := query.get("version"):
+        translated_query["ValidFromVersion__gte"] = translator.version_translate(v)
+        translated_query["ValidToVersion__lte"] = translator.version_translate(v)
     if v := query.get("country"):
         if type(v) == list:
             translated_query["Country__in"] = [

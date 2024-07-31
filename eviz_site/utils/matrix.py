@@ -53,7 +53,7 @@ def get_ruvy_matrix(target: DatabaseTarget, query: dict) -> tuple:
 
 import altair as alt
 import pandas as pd
-def visualize_matrix(target: DatabaseTarget, mat: coo_matrix, matnames: list = None ,color_scale: str = 'viridis', coloring_method: str = 'weight') -> pgo.Figure:
+def visualize_matrix(target: DatabaseTarget, mat: coo_matrix, matnames: list = None ,color_scale: str = 'inferno', coloring_method: str = 'weight') -> pgo.Figure:
     """Visualize a sparse matrix as a heatmap using Plotly.
 
     Inputs:
@@ -71,38 +71,33 @@ def visualize_matrix(target: DatabaseTarget, mat: coo_matrix, matnames: list = N
     # Translate row and column indices to human-readable labels
     row_labels = [translator.index_translate(i) for i in rows]
     col_labels = [translator.index_translate(i) for i in cols]
-    # print(len(row_labels))
-    # if coloring_method == 'ruvy' and matnames:
+    
     # Create a Plotly Heatmap object
-    if coloring_method == 'ruvy' and matnames: 
+    if coloring_method == 'ruvy' and matnames:
         df = pd.DataFrame({
             'x': col_labels,
             'y': row_labels,
             'value': vals,
-            'matname': matnames
+            'matname': [translator.matname_translate(i) for i in matnames]
         })
-
-        # print(df)
-
-        heatmap = alt.Chart(df).mark_rect(stroke='black', strokeWidth=1).encode(
-            x=alt.X('x', axis=alt.Axis(orient='top', labelAngle=-45, title="")),
-            y=alt.Y('y', axis=alt.Axis(title="")),
-            color=alt.Color('matname:N', 
-            scale=alt.Scale(scheme=color_scale)),
-            tooltip=['x', 'y', 'value', 'matname']
-        )
+        tooltip = ['x', 'y', 'value', 'matname']
+        colors = 'matname:N'
     else:
         df = pd.DataFrame({
             'x': col_labels,
             'y': row_labels,
             'value': vals,
         })
+        tooltip = ['x', 'y', 'value']
+        colors = 'value:Q'
         
-        heatmap = alt.Chart(df).mark_rect(stroke='black', strokeWidth=1).encode(
-            x=alt.X('x', axis=alt.Axis(orient='top', labelAngle=-45,title="")),
+    heatmap = alt.Chart(df).mark_rect(stroke='blue', strokeWidth=1).encode(
+            x=alt.X('x', axis=alt.Axis(orient='top', labelAngle=-45, title="")),
             y=alt.Y('y', axis=alt.Axis(title="")),
-            color=alt.Color('value:Q', 
-            scale=alt.Scale(scheme=color_scale)),
-            tooltip=['x', 'y', 'value']
+            color=alt.Color(
+                colors, 
+                scale=alt.Scale(scheme=color_scale)
+            ),
+            tooltip=tooltip
         )
     return heatmap
