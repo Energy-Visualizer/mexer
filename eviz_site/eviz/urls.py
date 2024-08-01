@@ -1,35 +1,39 @@
 from django.urls import path, re_path
 from django.views.generic.base import RedirectView
-from . import views
+import eviz.views.history as history_views
+import eviz.views.misc as misc_views
+import eviz.views.user_accounts as accounts_views
+import eviz.views.visualizer as visualizer_views
 
 favicon_view = RedirectView.as_view(url='/static/images/favicon.png', permanent=True)
 
 urlpatterns = [
     # main pages
-    path('', views.index, name='home'),
-    path("visualizer/", views.visualizer, name="visualizer"),
+    path('', misc_views.index, name='home'),
+    path("visualizer/", visualizer_views.visualizer, name="visualizer"),
 
-    # auth related pages
-    path('login/', views.user_login, name='login'),
-    path('signup/', views.user_signup, name='signup'),
-    path('logout/', views.user_logout, name='logout'),
-    path("forgot-password", views.forgot_password, name="forgot_password"),
-    path("reset-password", views.reset_password, name="reset_password"),
+    # user accounts management pages
+    path('login/', accounts_views.user_login, name='login'),
+    path('signup/', accounts_views.user_signup, name='signup'),
+    path('logout/', accounts_views.user_logout, name='logout'),
+    path("forgot-password", accounts_views.forgot_password, name="forgot_password"),
+    path("reset-password", accounts_views.reset_password, name="reset_password"),
+    path("verify", accounts_views.verify_email),
+    
+    # visualizer tool pages
+    path("plot", visualizer_views.get_plot),
+    path("data", visualizer_views.get_data),
+
+    # history tool pages
+    path("history", history_views.render_history),
+    path('delete-history-item/', history_views.delete_history_item, name='delete_history_item'),
 
     # misc pages
-    path('about/', views.about, name='about'),
-    path('terms_and_conditions/', views.terms_and_conditions, name='terms_and_conditions'),
-    path('data-info/', views.data_info, name="data-info"),
-    path('matrix-info/', views.matrix_info, name="matrix-info"),
-    re_path(r"static/(.*/[^(\.)]*\..*)", views.handle_static),
+    path('about/', misc_views.about, name='about'),
+    path('terms_and_conditions/', misc_views.terms_and_conditions, name='terms_and_conditions'),
+    path('data-info/', misc_views.data_info, name="data-info"),
+    path('matrix-info/', misc_views.matrix_info, name="matrix-info"),
+    re_path(r"static/(.*/[^(\.)]*\..*)", misc_views.handle_static),
     path("favicon.ico", favicon_view),
-    path("plot-stage/", views.plot_stage),
-    
-
-    # api services
-    path("plot", views.get_plot),
-    path("data", views.get_data),
-    path("verify", views.verify_email),
-    path("history", views.render_history),
-    path('delete-history-item/', views.delete_history_item, name='delete_history_item'),
+    path("plot-stage/", misc_views.plot_stage),
 ]

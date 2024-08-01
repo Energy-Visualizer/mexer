@@ -7,7 +7,7 @@
 
 from bidict import bidict
 from django.apps import apps
-from eviz.logging import LOGGER
+from utils.logging import LOGGER
 from datetime import datetime, timedelta
 from eviz.models import Dataset
 from eviz_site.settings import SANDBOX_PREFIX

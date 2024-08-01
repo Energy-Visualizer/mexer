@@ -2,7 +2,7 @@ import json
 from utils.translator import Translator
 from utils.data import query_database, DatabaseTarget
 from eviz_site.settings import SANKEY_COLORS_PATH
-from eviz.logging import LOGGER
+from utils.logging import LOGGER
 
 INDUSTRY_COLOR = "midnightblue"
 

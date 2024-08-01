@@ -31,7 +31,7 @@ ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
-CSRF_FAILURE_VIEW = "eviz.views.csrf_failure"
+CSRF_FAILURE_VIEW = "eviz.views.error_pages.csrf_failure"
 
 # Application definition
 
@@ -138,8 +138,6 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
-
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",

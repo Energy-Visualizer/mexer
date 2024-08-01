@@ -3,7 +3,7 @@ from eviz.models import EvizUser
 from django.contrib.auth.models import Permission
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.messages import success as success_message
-from eviz.logging import LOGGER
+from utils.logging import LOGGER
 
 # fill this in later so that the database is not being accessed during the app's initialization
 # TODO: maybe this should not be global
