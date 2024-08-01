@@ -1,4 +1,16 @@
-
+####################################################################
+# misc.py includes all miscellaneous views for Mexer
+# 
+# Most pages are simply delivering static HTML
+# Some make short queries to the database to display
+# information like the Databases available
+#
+# The static handling view is also included in this file
+# 
+# Authors:
+#       Kenny Howes - kmh67@calvin.edu
+#       Edom Maru - eam43@calvin.edu 
+#####################
 from utils.misc import time_view
 from utils.logging import LOGGER
 from django.shortcuts import render

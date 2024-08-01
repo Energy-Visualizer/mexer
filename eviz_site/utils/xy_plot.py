@@ -1,7 +1,17 @@
+####################################################################
+# xy_plot.py contains the functions to create... xy plots
+#
+# Given the query and some plotting information, it will put 
+# together a plotly Figure object, which can then be turned 
+# into HTML or further modified.
+#
+# Authors:
+#       Kenny Howes - kmh67@calvin.edu
+#       Edom Maru - eam43@calvin.edu 
+#####################
 import plotly.express as px
 import plotly.graph_objects as go
 from utils.data import get_translated_dataframe, DatabaseTarget
-from eviz.models import AggEtaPFU
 
 def get_xy(efficiency_metric: str, target: DatabaseTarget, query: dict,
            color_by: str, line_by: str, facet_col_by: str = None, facet_row_by: str = None, energy_type: str = None) -> go.Figure:

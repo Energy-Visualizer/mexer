@@ -1,7 +1,13 @@
 ####################################################################
-## Error pages
+# error_pages.py includes all the views for various HTTP error codes
+# 
+# Error codes included are 400, 403, 404, 500
+# And the error page for if Django has a CSRF issue
+# 
+# Authors:
+#       Kenny Howes - kmh67@calvin.edu
+#       Edom Maru - eam43@calvin.edu 
 #####################
-
 from django.shortcuts import render
 from utils.logging import LOGGER
 

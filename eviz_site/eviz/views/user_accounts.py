@@ -1,4 +1,16 @@
-
+####################################################################
+# user_accounts.py includes all views related to user accounts
+# 
+# Signup, signin, and signout are included
+# Along with pages for user's to manage their account
+# such as password resets
+#
+# The email verification of the signup process is also here
+# 
+# Authors:
+#       Kenny Howes - kmh67@calvin.edu
+#       Edom Maru - eam43@calvin.edu 
+#####################
 from utils.logging import LOGGER
 from eviz.forms import SignupForm, LoginForm
 from eviz.views.error_pages import *

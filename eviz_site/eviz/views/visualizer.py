@@ -1,4 +1,15 @@
-
+####################################################################
+# visualizer.py includes all views that the visualization page utilizes
+# 
+# The three main views are
+# The visualizer page itself - where users make queries and see plots
+# The plotting page - the page where, given a post request, plot html will be returned
+# The data page - the page where, given a post request, data in csv or excel (wip) will be returned
+# 
+# Authors:
+#       Kenny Howes - kmh67@calvin.edu
+#       Edom Maru - eam43@calvin.edu 
+#####################
 from django.contrib.auth.decorators import login_required
 from utils.misc import time_view, iea_valid
 from utils.logging import LOGGER

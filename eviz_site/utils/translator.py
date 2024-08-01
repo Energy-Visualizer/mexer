@@ -1,10 +1,19 @@
+####################################################################
 # translator.py contains the functionality to quickly translate PSUT values
 # to and from human readable form and numerical database form
 #
-# Authors: Kenny Howes - kmh67@calvin.edu
-#          Edom Maru
-##################################################
-
+# Since the "translation" tables in the database are fairly small,
+# it's quicker to load them as dictionaries in memory and use them
+# instead of doing foreign key translation database-side.
+# 
+# Any results from the database are globally cached for 
+# TRANSLATOR_CACHE_TTL number of hours. All users use the same dictionaries
+# for translations, so little memory is used for this as possible.
+#
+# Authors:
+#       Kenny Howes - kmh67@calvin.edu
+#       Edom Maru - eam43@calvin.edu 
+#####################
 from bidict import bidict
 from django.apps import apps
 from utils.logging import LOGGER

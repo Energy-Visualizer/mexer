@@ -1,3 +1,4 @@
+####################################################################
 # misc.py contains miscellaneous utility functions for the Mexer project
 #
 # Function included don't neccessarily have a better place to go
@@ -9,7 +10,7 @@
 #
 # Authors: Kenny Howes - kmh67@calvin.edu
 #          Edom Maru
-################################################
+#####################
 
 from time import time
 def time_view(v):

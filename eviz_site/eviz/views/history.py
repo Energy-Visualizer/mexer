@@ -1,4 +1,16 @@
-
+####################################################################
+# history.py includes all the views for managin a user's plot history
+# 
+# Includes views to
+# Render a user's history cookie as HTML
+# Delete a history entry
+#
+# For more history functionality, see utils/history.py
+# 
+# Authors:
+#       Kenny Howes - kmh67@calvin.edu
+#       Edom Maru - eam43@calvin.edu 
+#####################
 from utils.history import get_user_history, get_history_html
 from django.http import HttpResponse
 from django.views.decorators.http import require_POST

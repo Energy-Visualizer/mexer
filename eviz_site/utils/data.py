@@ -1,3 +1,29 @@
+####################################################################
+# data.py includes all functions related to getting data from the databases
+# 
+# The general flow of getting data from a query is
+#   shape_post_request(raw post request) -> cleaned_query
+#   translate_query(cleaned_query) -> translated_query
+# Then the "get" functions can be used:
+#   get_sankey(translated_query)
+#   OR get_translated_dataframe(translated_query)
+#   OR get_xy(translated_query)
+#   ETC.
+# 
+# One of the main parts abstracted by that flow is
+# the database target. A database target is the combination
+# of the database name and which model on the database for
+# which a user is looking. This file includes all the logic
+# to figure out the database target.
+#
+# The database target can be recieved from
+#   shape_post_request(ret_database_target = True)
+# And is passed to the "get" functions
+#
+# Authors:
+#       Kenny Howes - kmh67@calvin.edu
+#       Edom Maru - eam43@calvin.edu 
+#####################
 from eviz.models import models, PSUT, IEAData, AggEtaPFU
 from pandas import DataFrame
 from utils.misc import Silent
@@ -8,7 +34,7 @@ from eviz_site.settings import DATABASES, SANDBOX_PREFIX
 
 DatabaseTarget = tuple[str, models.Model]
 
-def get_database_target(query: dict) -> DatabaseTarget:
+def _get_database_target(query: dict) -> DatabaseTarget:
     dataset = query.get("dataset")
 
     plot_type = query.get("plot_type")
@@ -19,7 +45,7 @@ def get_database_target(query: dict) -> DatabaseTarget:
     
     return "sandbox" if dataset.startswith(SANDBOX_PREFIX) else "default", model
 
-def query_database(target: DatabaseTarget, query: dict, values: list[str]):
+def _query_database(target: DatabaseTarget, query: dict, values: list[str]):
     db = target[0]
     model = target[1]
 
@@ -144,7 +170,7 @@ def shape_post_request(
 
     if ret_database_target:
         # to be returned at the end
-        db_target = get_database_target(shaped_query)
+        db_target = _get_database_target(shaped_query)
 
     return tuple(
         [shaped_query]

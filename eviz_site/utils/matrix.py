@@ -1,6 +1,18 @@
+####################################################################
+# matrix.py includes all the functions related to matrices
+# 
+# The functions can get a matrix, get special Mexer matix (RUVY)
+# and turn those matricies into HTML to display
+#
+# The matricies are represented by scipy's sparse coo_matrix
+# 
+# Authors:
+#       Kenny Howes - kmh67@calvin.edu
+#       Edom Maru - eam43@calvin.edu 
+#####################
 import plotly.graph_objects as pgo
 from scipy.sparse import coo_matrix
-from utils.data import query_database, DatabaseTarget
+from utils.data import _query_database, DatabaseTarget
 from eviz.models import PSUT, Index
 from utils.translator import Translator
 
@@ -18,7 +30,7 @@ def get_matrix(target: DatabaseTarget, query: dict) -> coo_matrix:
     # Get the sparse matrix representation
     # i, j, x for row, column, value
     # in 3-tuples
-    sparse_matrix = query_database(target, query, ["i", "j", "value"])
+    sparse_matrix = _query_database(target, query, ["i", "j", "value"])
 
     # if nothing was returned
     if not sparse_matrix:
@@ -38,8 +50,9 @@ def get_matrix(target: DatabaseTarget, query: dict) -> coo_matrix:
         (val, (row, col)),
         shape=(matrix_nrow, matrix_nrow),
     )
+
 def get_ruvy_matrix(target: DatabaseTarget, query: dict) -> tuple:
-    sparse_matrix = query_database(target, query, ["i", "j", "value", "matname"])
+    sparse_matrix = _query_database(target, query, ["i", "j", "value", "matname"])
     if not sparse_matrix:
         return None, None
     matrix_nrow = Index.objects.all().count()
