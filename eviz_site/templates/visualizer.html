@@ -3,20 +3,23 @@
 
 <head>
     <title>Mexer Visualizer</title>
+
     <!-- CSS stylesheets -->
     <link rel="stylesheet" href="../static/css/toolbar.css" type="text/css" />
     <link rel="stylesheet" href="../static/css/visualizer.css" type="text/css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
     <!-- External libraries -->
     <script src="https://unpkg.com/htmx.org@1.9.12"></script> <!-- HTMX -->
     <script src="https://cdn.plot.ly/plotly-latest.min.js" charset="utf-8"></script> <!-- Plotly -->
     <link rel="stylesheet" href='../static/css/SanKEY_styles.css'> <!-- SanKEY css -->
 
-
-
+    <!-- External libraries: Vega -->
     <script src="https://cdn.jsdelivr.net/npm/vega@5.21.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-lite@4.17.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.17.0"></script>
+    <!-- End Vega-->
+
     <!-- Internal JS -->
     <script src="../static/js/visualizer.js"></script>
     <script type="module" src="../static/js/plotUtil.js"></script> <!-- type is module because we import SanKEY code -->
@@ -63,6 +66,7 @@
     {% csrf_token %}
     <div id="query-section" class="menu-pane bevel-left">
         <h2>Query</h2>
+
         <div class="query-choice">
             <div class="info-text">
                 <span class="popup-icon">&#9432;
@@ -96,7 +100,7 @@
                 Version
             </div>
             <div class="input-column">
-                <select name= "version" id="version-dropdown" class="styled-dropdown space-input" required>
+                <select name = "version" id="version-dropdown" class="styled-dropdown space-input" required>
                     {% for version in versions %}
                         {% if version == default_version %}
                             <option value="{{ version }}" selected>{{ version }}</option>
@@ -104,7 +108,16 @@
                             <option value="{{ version }}">{{ version }}</option>
                         {% endif %}
                     {% endfor %}
-                    </select>
+                </select>
+                <select name = "version" id="sandbox-version-dropdown" class="styled-dropdown space-input" disabled hidden required>
+                    {% for version in sandbox_versions %}
+                        {% if version == default_sandbox_version %}
+                            <option value="{{ version }}" selected>{{ version }}</option>
+                        {% else %}
+                            <option value="{{ version }}">{{ version }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
             </div>
             &#x2800
         </div>

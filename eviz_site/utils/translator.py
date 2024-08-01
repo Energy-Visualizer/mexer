@@ -10,6 +10,7 @@ from django.apps import apps
 from eviz.logging import LOGGER
 from datetime import datetime, timedelta
 from eviz.models import Dataset
+from eviz_site.settings import SANDBOX_PREFIX
 
 # how long to cache information from the database 
 # in *hours*
@@ -141,10 +142,12 @@ class Translator:
             list: A list of all possible values (names) for the attribute.
         """
 
-        # special case
-        if attribute == "public datasets":
+        # special cases
+        if attribute == "datasets:public":
             return Translator.__fetch_public_datasets()
-
+        if attribute == "datasets:admin":
+            return Translator.__fetch_admin_datasets()
+        
         # Dictionary mapping attribute names to model details
         model_mappings = {
             'dataset': ('Dataset', 'DatasetID', 'Dataset'),
@@ -179,6 +182,16 @@ class Translator:
             Translator.__public_datasets = datetime.today().date(), list(Dataset.objects.filter(Public = True).values_list("Dataset", flat = True))
 
         return Translator.__public_datasets[1]
+    
+    @staticmethod
+    def __fetch_admin_datasets():
+        # get all datasets from both MexerDB and SandboxDB
+        mexerdb_datasets = Translator.__load_bidict("Dataset", 'DatasetID', 'Dataset', "default")
+        sandboxdb_datasets = Translator.__load_bidict("Dataset", 'DatasetID', 'Dataset', "sandbox")
+
+        # combine them and add the sandbox prefix
+        # onto the sandbox datasets to differentitate
+        return list(mexerdb_datasets.keys()) + [SANDBOX_PREFIX + ds for ds in sandboxdb_datasets.keys()]
 
     @staticmethod
     def get_includesNEUs(self):

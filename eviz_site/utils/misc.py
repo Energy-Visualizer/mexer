@@ -138,10 +138,12 @@ def iea_valid(user: User, query: dict) -> bool:
     return (
         # free data
         (
-            query.get("dataset", None) != "IEAEWEB2022"
-            and query.get("ieamw", None) == "MW"
+            query.get("dataset", None) not in ["CL-PFU IEA", "CL-PFU IEA+MW"]
         )
         or
         # authorized to get proprietary data
-        (user.is_authenticated and user.has_perm("eviz.get_iea"))
+        (
+            user.is_authenticated
+            and user.has_perm("eviz.get_iea")
+        )
     )

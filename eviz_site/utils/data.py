@@ -4,12 +4,11 @@ from utils.misc import Silent
 import pandas.io.sql as pd_sql  # for getting data into a pandas dataframe
 from django.db import connections
 from utils.translator import Translator
-from eviz_site.settings import DATABASES
+from eviz_site.settings import DATABASES, SANDBOX_PREFIX
 
 DatabaseTarget = tuple[str, models.Model]
 
 def get_database_target(query: dict) -> DatabaseTarget:
-    database = "default"
     dataset = query.get("dataset")
 
     plot_type = query.get("plot_type")
@@ -18,7 +17,7 @@ def get_database_target(query: dict) -> DatabaseTarget:
     else:
         model = IEAData if dataset == "IEAEWEB2022" else PSUT
     
-    return database, model
+    return "sandbox" if dataset.startswith(SANDBOX_PREFIX) else "default", model
 
 def query_database(target: DatabaseTarget, query: dict, values: list[str]):
     db = target[0]
@@ -136,7 +135,6 @@ def shape_post_request(
     shaped_query.pop("csrfmiddlewaretoken", None)
 
     for k, v in shaped_query.items():
-
         # convert from list (if just one item in list)
         if len(v) == 1:
             shaped_query[k] = v[0]
@@ -176,6 +174,11 @@ def translate_query(
         raise ValueError("Unknown database specified for translating query")
     
     translator = Translator(target[0]) # get a translator for the correct database
+
+    # get rid of sandbox prefix on the query parameter
+    # or else it won't be recognized for translation
+    for k in query.keys():
+        query[k] = query[k].removeprefix(SANDBOX_PREFIX)
 
     # common query parts
     if v := query.get("dataset"):

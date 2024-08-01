@@ -3,9 +3,23 @@
  * This function is called when the page loads.
  */
 const initialize = () => {
+    document.getElementById("dataset-dropdown").addEventListener("change", (event) => {
+        if (document.getElementById("dataset-dropdown").value.startsWith("sDB:")) {
+            document.getElementById("sandbox-version-dropdown").hidden = false;
+            document.getElementById("sandbox-version-dropdown").disabled = false;
+            document.getElementById("version-dropdown").hidden = true;
+            document.getElementById("version-dropdown").disabled = true;
+        } else {
+            document.getElementById("sandbox-version-dropdown").hidden = true;
+            document.getElementById("sandbox-version-dropdown").disabled = true;
+            document.getElementById("version-dropdown").hidden = false;
+            document.getElementById("version-dropdown").disabled = false;
+        }
+    });
+
     // main metadata
     countryDropdown = document.getElementById("country-dropdown");
-
+    
     menuInputs = []; // collection to keep track of all the items that can be toggled in the menus
 
     // specific metadata

@@ -15,9 +15,10 @@ from utils.data import *
 from utils.sankey import get_sankey
 from utils.xy_plot import get_xy
 from utils.matrix import get_matrix, visualize_matrix, get_ruvy_matrix
-from eviz.models import Dataset, matname
+from eviz.models import Dataset, matname, Version
 from eviz.forms import SignupForm, LoginForm
 from eviz.logging import LOGGER
+from eviz_site.settings import SANDBOX_PREFIX
 
 # Visualization imports
 from plotly.offline import plot
@@ -104,6 +105,12 @@ def get_plot(request):
     if request.method == "POST":
         # Extract plot type and query parameters from the POST request
         query, plot_type, target = shape_post_request(request.POST, ret_plot_type = True, ret_database_target = True)
+
+        try:
+            if query["dataset"].startswith(SANDBOX_PREFIX) != query["version"].startswith(SANDBOX_PREFIX):
+                return HttpResponse("Error: Dataset and version must both be from sandbox or both not be from sandbox!")
+        except:
+            pass
         
         # get boolean of if the plot should be
         # in a separate window
@@ -290,11 +297,24 @@ def visualizer(request):
     
     LOGGER.info("Visualizer page visted.")
     
+    # see if the user is an admin to get access to SandboxDB table
+    try:
+        admin_user = EvizUser.objects.get_by_natural_key(request.user.username).is_staff
+    except:
+        admin_user = False
+
     # Fetch all available options for various parameters from the Translator
-    datasets = Translator.get_all('public datasets')
+    if admin_user:
+        datasets = Translator.get_all('datasets:admin')
+    else:
+        datasets = Translator.get_all('datasets:public')
     countries = Translator.get_all('country')
     countries.sort()
     versions = Translator.get_all('version')
+    if admin_user:
+        sandbox_versions = [SANDBOX_PREFIX + ver for ver in Version.objects.using("sandbox").values_list("Version", flat=True)]
+    else:
+        sandbox_versions = []
     # methods = Translator.get_all('method')
     methods = ["PCM"] # override, we don't show all the options
     energy_types = Translator.get_all('energytype')
@@ -313,6 +333,9 @@ def visualizer(request):
 
         "versions":versions,
         "default_version": "v2.0a6",
+
+        "sandbox_versions":sandbox_versions,
+        "default_sandbox_version": SANDBOX_PREFIX + "v2.0a7",
 
         "countries":countries,
         "default_country": "United States",
@@ -338,7 +361,7 @@ def visualizer(request):
         "industry_aggregations":industry_aggregations,
         "default_industry_aggregation":industry_aggregations[0],
 
-        "iea":request.user.is_authenticated and request.user.has_perm("eviz.get_iea")
+        "iea_user":request.user.is_authenticated and request.user.has_perm("eviz.get_iea")
         }
 
     return render(request, "visualizer.html", context)
