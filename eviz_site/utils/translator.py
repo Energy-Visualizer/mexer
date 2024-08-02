@@ -89,7 +89,7 @@ class Translator:
             return translation
         
         # if no translation found
-        raise KeyError("Unrecognized key '" + value + "' for " + model_name)
+        raise KeyError("Unrecognized key '" + str(value) + "' for " + model_name)
 
     # The following methods are specific translation functions for different models
     # They all use the _translate method with appropriate parameters
@@ -181,7 +181,7 @@ class Translator:
         return Translator.__public_datasets[1]
 
     @staticmethod
-    def get_includesNEUs(self):
+    def get_includesNEUs():
         return [True, False]
 
     # TODO: This needs to be finished...
