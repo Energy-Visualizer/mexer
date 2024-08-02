@@ -128,6 +128,7 @@ class Index(models.Model):
     """ Model representing a database table named 'Index'."""
     IndexID = models.PositiveSmallIntegerField(primary_key=True)
     Index = models.TextField()
+    Order = models.PositiveSmallIntegerField()
     class Meta:
         db_table = "Index"
         managed = False

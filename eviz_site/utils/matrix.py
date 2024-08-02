@@ -66,34 +66,58 @@ def visualize_matrix(target: DatabaseTarget, mat: coo_matrix, matnames: list = N
 
     # Convert the matrix to a format suitable for Plotly's heatmap
     rows, cols, vals = mat.row, mat.col, mat.data
-
+    print("1")
+    print(rows)
     translator = Translator(target[0]) # get a translator for the correct database
-    # Translate row and column indices to human-readable labels
-    row_labels = [translator.index_translate(i) for i in rows]
-    col_labels = [translator.index_translate(i) for i in cols]
+    
+    # Create a dictionary mapping index IDs to their orders.
+    index_orders = {index.IndexID: index.Order for index in Index.objects.all()}
+    
+    # Create a tuple of the indexID, order and  translated index label for each column and row.
+    row_info = [(i, index_orders[i], translator.index_translate(i)) for i in rows]
+    print("2")
+    print(row_info)
+    col_info = [(i, index_orders[i], translator.index_translate(i)) for i in cols]
+    
+    # Sort the row and column of the database based on the index order.
+    # Extracts the second element of the each tuple in row_info (which is the index order) and sorts it by
+    row_info.sort(key=lambda x: x[1])
+    print(row_info)
+    col_info.sort(key=lambda x: x[1])
+
+    # Create a dictionary mapping index IDs to their positions in the sorted lists.
+    row_position = {info[0]: idx for idx, info in enumerate(row_info)}
+    print(row_position)
+    col_position = {info[0]: idx for idx, info in enumerate(col_info)}
     
     # Create a Plotly Heatmap object
     if coloring_method == 'ruvy' and matnames:
         df = pd.DataFrame({
-            'x': col_labels,
-            'y': row_labels,
+            'x': [col_info[col_position[col]][2] for col in cols],
+            'y': [row_info[row_position[row]][2] for row in rows],
             'value': vals,
-            'matname': [translator.matname_translate(i) for i in matnames]
+            'matname': [translator.matname_translate(i) for i in matnames],
+            'x_order': [col_position[col] for col in cols],
+            'y_order': [row_position[row] for row in rows]
         })
+        print(df)
         tooltip = ['x', 'y', 'value', 'matname']
         colors = 'matname:N'
     else:
         df = pd.DataFrame({
-            'x': col_labels,
-            'y': row_labels,
+            'x': [col_info[col_position[col]][2] for col in cols],
+            'y': [row_info[row_position[row]][2] for row in rows],
             'value': vals,
+            'x_order': [col_position[col] for col in cols],
+            'y_order': [row_position[row] for row in rows]
         })
+        print(df)
         tooltip = ['x', 'y', 'value']
         colors = 'value:Q'
         
     heatmap = alt.Chart(df).mark_rect(stroke='blue', strokeWidth=1).encode(
-            x=alt.X('x', axis=alt.Axis(orient='top', labelAngle=-45, title="")),
-            y=alt.Y('y', axis=alt.Axis(title="")),
+            x=alt.X('x', axis=alt.Axis(orient='top', labelAngle=-45, title=""), sort=alt.EncodingSortField(field='x_order', order='ascending')),
+            y=alt.Y('y', axis=alt.Axis(title=""), sort=alt.EncodingSortField(field='y_order', order='ascending')),
             color=alt.Color(
                 colors, 
                 scale=alt.Scale(scheme=color_scale)
