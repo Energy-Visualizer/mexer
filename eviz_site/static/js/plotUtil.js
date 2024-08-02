@@ -2,9 +2,9 @@ const plotSection = document.getElementById("plot-section");
 
 import {PlotCreator} from './SanKEY_script.js'
 
-const createSankey = (nodes, links, options) => {
+const createSankey = (nodes, links, options, title) => {
     // plotSection.innerHTML = ""; // clear the plot section first
-    new PlotCreator(
+    let sankeyPlot = new PlotCreator(
         plotSection, // container in the dom
         nodes,
         links,
@@ -18,9 +18,37 @@ const createSankey = (nodes, links, options) => {
         Object.assign(options, {
             on_link_hover_function: (link_info,link_data_reference,link_element,event) => {
                 return `${link_info["from_label"]}<br>${Math.round(link_info["value"])} TJ<br>${link_info["to_label"]}`
+            },
+            on_node_hover_function: (node_info,node_data_reference,node_element,event) => {
+                return `${node_info["label"]}<br>${Math.round(node_info["value"])} TJ`
             }
         })
     )
+
+    /* Generating the labels and title for the sankey diagram
+    The above code will generate an svg in the dom to 
+    represent the sankey diagram. It is always given the ID
+    "sankey_field". Getting into that svg allows for the addition
+    of various HTML elements that will be our nodes labels and plot title */
+    const sankeySvg = document.getElementById("sankey_field");
+    
+    // text elements must be created under the svg namespace to work
+    const plotTitle = document.createElementNS("http://www.w3.org/2000/svg","text");
+    plotTitle.setAttribute("y", 16);
+    plotTitle.setAttribute("x", 4);
+    plotTitle.textContent = title;
+    sankeySvg.appendChild(plotTitle);
+
+    // get all the nodes ('g' tags)
+    // and all the proper labels
+    for (const node of sankeySvg.getElementsByTagNameNS("http://www.w3.org/2000/svg", "g")) {
+        let node_info = node.children[0];
+        let label = document.createElementNS("http://www.w3.org/2000/svg","text");
+        label.textContent = nodes[node_info.getAttribute("column")][node_info.getAttribute("position")]["label"];
+        if (node_info.getAttribute("height") > plotSection.clientHeight * 0.05) {
+            node.appendChild(label)
+        }
+    }
 }
 
 // to let us use the function outside of this module

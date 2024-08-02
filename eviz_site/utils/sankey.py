@@ -43,7 +43,8 @@ def _get_sankey_node_info(
     label_info = label_info_dict.get(label_num, -1)
     if label_info == -1:
         # add it if it is a new label and get new node_idx
-        node_list[label_col].append(dict(label=name,color=_get_sankey_color(name) or "red" if carrier else INDUSTRY_COLOR))
+        node_list[label_col].append(dict(label=name,
+                                         color=_get_sankey_color(name) or "red" if carrier else INDUSTRY_COLOR))
         
         label_info = (idx_dict[label_col], label_col)
         idx_dict[label_col] += 1
