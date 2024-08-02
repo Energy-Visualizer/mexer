@@ -11,7 +11,7 @@
 #       Edom Maru - eam43@calvin.edu 
 #####################
 from django.contrib.auth.decorators import login_required
-from utils.misc import time_view, iea_valid
+from utils.misc import time_view, iea_valid, get_plot_title
 from utils.logging import LOGGER
 from eviz.models import EvizUser, Version, AggEtaPFU
 from utils.translator import Translator
@@ -152,13 +152,6 @@ def get_plot(request):
         
         plot_div = None # where to store what html will be sent to the user
 
-        # title for the plots
-        title_country = query.get("country")
-        title_from_year = query.get("year")
-        title_to_year = query.get("to_year")
-        if title_to_year == title_from_year: title_to_year = False
-        plot_title = f"{title_country or ""} in {title_from_year or ""}{'-' + title_to_year if title_to_year else ""}"
-
         # Use match-case to handle different plot types
         match plot_type:
             case "sankey":
@@ -185,12 +178,12 @@ def get_plot(request):
                 
                 translated_query = translate_query(target, query)
                 xy = get_xy(efficiency_metric, target, translated_query, color_by, line_by, facet_col_by, facet_row_by, energy_type)
-                xy.update_layout(
-                    title=plot_title
-                )
                 if xy is None:
                     plot_div = "Error: No corresponding data"
                 else:
+                    xy.update_layout(
+                        title=get_plot_title(query, exclude=[color_by, line_by, facet_col_by, facet_row_by, energy_type])
+                    )
                     plot_div = plot(xy, output_type="div", include_plotlyjs=False)
                     LOGGER.info("XY plot made")
 
@@ -214,7 +207,7 @@ def get_plot(request):
                 else:
                     heatmap = visualize_matrix(target, matrix, matname, color_scale, coloring_method)
                     heatmap = heatmap.properties(
-                        title=matrix_name + " Matrix: " + plot_title,
+                        title=matrix_name + " Matrix: " + get_plot_title(query),
                         autosize = {"type": "fit", "contains": "padding"}
                     )
                     plot_div = heatmap.to_html() # Render the figure as an HTML div

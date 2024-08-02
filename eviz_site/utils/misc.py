@@ -107,7 +107,7 @@ def new_reset_code(user: EvizUser) -> str:
 def valid_passwords(password1: str, password2: str) -> bool:
     
     return (
-        type(password1) == str and type(password2) == str
+        isinstance(password1, str) and isinstance(password2, str)
         and
         password1 == password2 # passwords must be the same
         and
@@ -124,13 +124,10 @@ def iea_valid(user: User, query: dict) -> bool:
     '''Ensure that a give user's query does not give out IEA data if not authorized
 
     Inputs:
-
-        user, user info from the HTTP request (for Django requsests: request.user): the user whose authorizations need to be checked
-
-        query, a dict: the query to investigate
+        user: user info from the HTTP request (for Django requsests: request.user): the user whose authorizations need to be checked
+        query: a dict that is the query to investigate
 
     Output:
-
         the boolean value of if a user's query is valid (True) or not (False)
     '''
 
@@ -147,4 +144,55 @@ def iea_valid(user: User, query: dict) -> bool:
             user.is_authenticated
             and user.has_perm("eviz.get_iea")
         )
+    )
+
+def get_plot_title(query: dict, exclude: list[str] = []) -> str:
+    '''Get an information title for a plot from a given query
+    
+    Inputs:
+        query: a dict that is the query
+        exclude: a list of all the query parameters to leave out of the title
+    
+    Outputs:
+        a string that is the plot title
+    '''
+
+    # get all the information in the query that wasn't excluded
+    information = {key: val for key, val in query.items() if key not in exclude}
+
+    # get year(s) information
+    title_from_year = information.get("year")
+    title_to_year = information.get("to_year")
+
+    # if to-from years are the same,
+    # set up to only use from year by
+    # turning to year off
+    if title_to_year == title_from_year: title_to_year = False
+
+    # join every query parameter string with a space
+    # if the query parameter is not present in information
+    # just put an empty string
+    return " ".join(
+    [
+        # dataset
+        (information.get("dataset") or ""),
+        # version
+        (information.get("version") or ""),
+        # country
+        (information.get("country") or ""),
+        # year(s)
+        ("in " + title_from_year if title_from_year else "") + ('-' + title_to_year if title_to_year else ""),
+        # collection method
+        ("collected by " + information.get("method") if information.get("method") else ""),
+        # energy type
+        ("for " + information.get("energy_type") if information.get("energy_type") else ""),
+        # last stage
+        ("to stage " + information.get("last_stage") if information.get("last_stage") else ""),
+        # including neu
+        ("including NEU" if information.get("includes_neu") else ""),
+        # industry aggregation
+        ("where industry aggregated by " + information.get("industry_aggregation") if information.get("industry_aggregation") else ""),
+        # product aggregation
+        ("and product aggregated by " + information.get("product_aggregation") if information.get("product_aggregation") else ""),
+    ]
     )

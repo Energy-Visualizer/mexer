@@ -83,21 +83,24 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "OPTIONS": {
-            "service": "MexerDB"
+            "service": "MexerDB",
             # All other information provided through environment variables
             # PGSERVICEFILE and PGPASSFILE
+            "application_name": "Mexer Site"
         }
     },
     "sandbox": {
         "ENGINE": "django.db.backends.postgresql",
         "OPTIONS": {
-            "service": "SandboxDB"
+            "service": "SandboxDB",
+            "application_name": "Mexer Site"
         }
     },
     'users': {
         'ENGINE': 'django.db.backends.postgresql',
         "OPTIONS":{
-            "service": "users"
+            "service": "users",
+            "application_name": "Mexer Site"
         }
     }
 

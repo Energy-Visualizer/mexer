@@ -223,9 +223,51 @@
             </div>
             &#x2800
         </div>
+
+        <div class="query-choice">
+            <div class="info-text">
+                <span class="popup-icon">&#9432;
+                    <span class="popup-text">
+                        Choose the deisired Product Aggregation
+                    </span>
+                </span>
+                Product Aggregation
+            </div>
+            <div class="input-column">
+                {% for product_aggregation in product_aggregations %}
+                {% if product_aggregation == default_product_aggregation %}
+                    <label><input type="checkbox" value="{{ product_aggregation }}" class="space-input" name="product_aggregation" checked>{{ product_aggregation }}</label><br>
+                {% else %}
+                    <label><input type="checkbox" value="{{ product_aggregation }}" class="space-input" name="product_aggregation">{{ product_aggregation }}</label><br>
+                {%endif%}
+                {% endfor %}
+            </div>
+            &#x2800
+        </div>
+
+        <div class="query-choice">
+            <div class="info-text">
+                <span class="popup-icon">&#9432;
+                    <span class="popup-text">
+                        Choose the deisired Industry Aggregation
+                    </span>
+                </span>
+                Industry Aggregation
+            </div>
+            <div class="input-column">
+                {% for industry_aggregation in industry_aggregations %}
+                {% if industry_aggregation == default_industry_aggregation %}
+                    <label><input type="checkbox" value="{{ industry_aggregation }}" class="space-input" name="industry_aggregation" checked>{{ industry_aggregation }}</label><br>
+                {% else %}
+                    <label><input type="checkbox" value="{{ industry_aggregation }}" class="space-input" name="industry_aggregation">{{ industry_aggregation }}</label><br>
+                {%endif%}
+                {% endfor %}
+            </div>
+            &#x2800
+        </div>
     </div>
 
-    <div style="width: 3%;"></div>
+    <div style="width: 3%;"></div> <!-- Small break in between menus -->
 
     <div id="plot-setting-section" class="menu-pane bevel-right">
         <h2>Plot</h2>
@@ -298,49 +340,6 @@
             &#x2800
         </div>
         <!-- efficiency dropdown end -->
-
-
-        <div class="query-choice">
-            <div class="info-text">
-                <span class="popup-icon">&#9432;
-                    <span class="popup-text">
-                        Choose the deisired Product Aggregation
-                    </span>
-                </span>
-                Product Aggregation
-            </div>
-            <div class="input-column">
-                {% for product_aggregation in product_aggregations %}
-                {% if product_aggregation == default_product_aggregation %}
-                    <label><input type="checkbox" value="{{ product_aggregation }}" class="space-input" name="product_aggregation" checked>{{ product_aggregation }}</label><br>
-                {% else %}
-                    <label><input type="checkbox" value="{{ product_aggregation }}" class="space-input" name="product_aggregation">{{ product_aggregation }}</label><br>
-                {%endif%}
-                {% endfor %}
-            </div>
-            &#x2800
-        </div>
-
-        <div class="query-choice">
-            <div class="info-text">
-                <span class="popup-icon">&#9432;
-                    <span class="popup-text">
-                        Choose the deisired Industry Aggregation
-                    </span>
-                </span>
-                Industry Aggregation
-            </div>
-            <div class="input-column">
-                {% for industry_aggregation in industry_aggregations %}
-                {% if industry_aggregation == default_industry_aggregation %}
-                    <label><input type="checkbox" value="{{ industry_aggregation }}" class="space-input" name="industry_aggregation" checked>{{ industry_aggregation }}</label><br>
-                {% else %}
-                    <label><input type="checkbox" value="{{ industry_aggregation }}" class="space-input" name="industry_aggregation">{{ industry_aggregation }}</label><br>
-                {%endif%}
-                {% endfor %}
-            </div>
-            &#x2800
-        </div>
 
         <!-- single year input -->
         <div class="query-choice">

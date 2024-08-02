@@ -204,7 +204,13 @@ def translate_query(
     # get rid of sandbox prefix on the query parameter
     # or else it won't be recognized for translation
     for k in query.keys():
-        query[k] = query[k].removeprefix(SANDBOX_PREFIX)
+        if isinstance(query[k], list):
+            # if a list, remove the sandbox query for each item
+            for i in range(len(query[k])):
+                query[k][i] = query[k][i].removeprefix(SANDBOX_PREFIX)
+        else:
+            # just a single entry
+            query[k] = query[k].removeprefix(SANDBOX_PREFIX)
 
     # common query parts
     if v := query.get("dataset"):
@@ -213,19 +219,19 @@ def translate_query(
         translated_query["ValidFromVersion__gte"] = translator.version_translate(v)
         translated_query["ValidToVersion__lte"] = translator.version_translate(v)
     if v := query.get("country"):
-        if type(v) == list:
+        if isinstance(v, list):
             translated_query["Country__in"] = [
                 translator.country_translate(country) for country in v]
         else:
             translated_query["Country"] = translator.country_translate(v)
     if v := query.get("method"):
-        if type(v) == list:
+        if isinstance(v, list):
             translated_query["Method__in"] = [
                 translator.method_translate(method) for method in v]
         else:
             translated_query["Method"] = translator.method_translate(v)
     if v := query.get("energy_type"):
-        if type(v) == list:
+        if isinstance(v, list):
             translated_query["EnergyType__in"] = [
                 translator.energytype_translate(energy_type) for energy_type in v]
         else:
@@ -233,7 +239,7 @@ def translate_query(
     if v := query.get("last_stage"):
         translated_query["LastStage"] = translator.laststage_translate(v)
     if v := query.get("ieamw"):
-        if type(v) == list:
+        if isinstance(v, list):
             # both were selected, use the both option in the table
             translated_query["IEAMW"] = translator.ieamw_translate("Both")
         else:
