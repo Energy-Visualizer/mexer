@@ -39,16 +39,28 @@ const createSankey = (nodes, links, options, title) => {
     plotTitle.textContent = title;
     sankeySvg.appendChild(plotTitle);
 
-    // get all the nodes ('g' tags)
-    // and all the proper labels
+    // get all the nodes ('g' tags) and put the proper labels on them
     for (const node of sankeySvg.getElementsByTagNameNS("http://www.w3.org/2000/svg", "g")) {
-        let node_info = node.children[0];
-        let label = document.createElementNS("http://www.w3.org/2000/svg","text");
+
+        let node_info = node.children[0]; // get the rect child element, which contains all the info about the node
+
+        // only apply the label if the passes a certain size threshold
+        if (node_info.getAttribute("height") < plotSection.clientHeight * 0.05)
+            continue;
+
+        // with the nodes json provided to this function, get the label for the node in question
+        let label = document.createElementNS("http://www.w3.org/2000/svg","text"); // text element to represent label
         label.textContent = nodes[node_info.getAttribute("column")][node_info.getAttribute("position")]["label"];
-        if (node_info.getAttribute("height") > plotSection.clientHeight * 0.05) {
-            node.appendChild(label)
-        }
+        node.appendChild(label)
     }
+
+    const test = new Blob([sankeySvg.outerHTML], {type: "image/svg"});
+    const url = URL.createObjectURL(test);
+    const link = document.createElement("a");
+    link.href = test;
+    link.download = "test.svg";
+    link.textContent = 'hello!';
+    document.body.appendChild(link);
 }
 
 // to let us use the function outside of this module
