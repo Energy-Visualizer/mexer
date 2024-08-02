@@ -83,7 +83,7 @@ def visualizer(request):
         "default_sandbox_version": SANDBOX_PREFIX + "v2.0a7",
 
         "countries":countries,
-        "default_country": "United States",
+        "default_country": "Ghana",
 
         "methods":methods,
         "default_method":methods[0],
