@@ -76,37 +76,35 @@ def visualize_matrix(target: DatabaseTarget, mat: coo_matrix, matnames: list = N
     Outputs:
         pgo.Figure: A Plotly graph object Figure containing the heatmap.
     """
-
-    # Convert the matrix to a format suitable for Plotly's heatmap
-    rows, cols, vals = mat.row, mat.col, mat.data
-
+    
     translator = Translator(target[0]) # get a translator for the correct database
-    # Translate row and column indices to human-readable labels
-    row_labels = [translator.index_translate(i) for i in rows]
-    col_labels = [translator.index_translate(i) for i in cols]
+    
+    # Create a dictionary mapping index IDs to their orders.
+    index_orders = {id: order for id, order in Index.objects.values_list("IndexID", "Order")}
+    
+    # columns to be used in dataframe
+    frame_columns = {
+        'x': [translator.index_translate(col) for col in mat.col],
+        'y': [translator.index_translate(row) for row in mat.row],
+        'value': mat.data,
+        'x_order': [index_orders[col] for col in mat.col],
+        'y_order': [index_orders[row] for row in mat.row]
+    }
     
     # Create a Plotly Heatmap object
     if coloring_method == 'ruvy' and matnames:
-        df = pd.DataFrame({
-            'x': col_labels,
-            'y': row_labels,
-            'value': vals,
-            'matname': [translator.matname_translate(i) for i in matnames]
-        })
+        frame_columns.update({'matname': [translator.matname_translate(i) for i in matnames]})
         tooltip = ['x', 'y', 'value', 'matname']
         colors = 'matname:N'
     else:
-        df = pd.DataFrame({
-            'x': col_labels,
-            'y': row_labels,
-            'value': vals,
-        })
         tooltip = ['x', 'y', 'value']
         colors = 'value:Q'
+    
+    df = pd.DataFrame(frame_columns)
         
     heatmap = alt.Chart(df).mark_rect(stroke='blue', strokeWidth=1).encode(
-            x=alt.X('x', axis=alt.Axis(orient='top', labelAngle=-45, title="")),
-            y=alt.Y('y', axis=alt.Axis(title="")),
+            x=alt.X('x', axis=alt.Axis(orient='top', labelAngle=-45, title=""), sort=alt.EncodingSortField(field='x_order', order='ascending')),
+            y=alt.Y('y', axis=alt.Axis(title=""), sort=alt.EncodingSortField(field='y_order', order='ascending')),
             color=alt.Color(
                 colors, 
                 scale=alt.Scale(scheme=color_scale)
