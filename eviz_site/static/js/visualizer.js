@@ -202,6 +202,6 @@ const plotInNewWindow = () => {
         plotWindow = null;
 
     // make a new plot window if need be and give it the plotHtml content
-    plotWindow ??= window.open("/plot-stage", '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
+    plotWindow ??= window.open("/plot-stage", '_blank', 'location=yes,height=600,width=600,scrollbars=yes,status=yes');
     plotWindow.document.body.innerHTML = plotHTML;
 };
