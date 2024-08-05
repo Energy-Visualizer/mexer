@@ -78,7 +78,7 @@ def get_dataframe(target: DatabaseTarget, query: dict, columns: list) -> DataFra
     
     return df
 
-META_COLUMNS = ["Dataset", "ValidFromVersion", "ValidToVersion", "Country", "Method", "EnergyType", "LastStage", "IEAMW", "IncludesNEU", "Year", "ChoppedMat", "ChoppedVar", "ProductAggregation", "IndustryAggregation"]
+META_COLUMNS = ["Dataset", "ValidFromVersion", "ValidToVersion", "Country", "Method", "EnergyType", "LastStage", "IncludesNEU", "Year", "ChoppedMat", "ChoppedVar", "ProductAggregation", "IndustryAggregation"]
 PSUT_COLUMNS = ["matname", "i", "j", "value"]
 AGGETA_COLUMNS = ["GrossNet", "EXp", "EXf", "EXu", "etapf", "etafu", "etapu"]
 def get_translated_dataframe(target: DatabaseTarget, query: dict, columns: list) -> DataFrame:
@@ -98,7 +98,6 @@ def get_translated_dataframe(target: DatabaseTarget, query: dict, columns: list)
         'Method': translator.method_translate,
         'EnergyType': translator.energytype_translate,
         'LastStage': translator.laststage_translate,
-        'IEAMW': translator.ieamw_translate,
         'ChoppedMat': translator.matname_translate,
         'ChoppedVar': translator.index_translate,
         'ProductAggregation': translator.agglevel_translate,
@@ -238,12 +237,6 @@ def translate_query(
             translated_query["EnergyType"] = translator.energytype_translate(v)
     if v := query.get("last_stage"):
         translated_query["LastStage"] = translator.laststage_translate(v)
-    if v := query.get("ieamw"):
-        if isinstance(v, list):
-            # both were selected, use the both option in the table
-            translated_query["IEAMW"] = translator.ieamw_translate("Both")
-        else:
-            translated_query["IEAMW"] = translator.ieamw_translate(v)
     # includes neu either is in the query or not, it's value does need to be more than empty string, though
     translated_query["IncludesNEU"] = translator.includesNEU_translate(
         bool(query.get("includes_neu")))

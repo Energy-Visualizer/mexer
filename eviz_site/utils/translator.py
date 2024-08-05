@@ -124,9 +124,6 @@ class Translator:
     def laststage_translate(self, value):
         return self._translate('LastStage', value, 'ECCStageID', 'ECCStage')
 
-    def ieamw_translate(self, value):
-        return self._translate('IEAMW', value, 'IEAMWID', 'IEAMW')
-
     def matname_translate(self, value):
         return self._translate('matname', value, 'matnameID', 'matname')
     
@@ -165,7 +162,6 @@ class Translator:
             'method': ('Method', 'MethodID', 'Method'),
             'energytype': ('EnergyType', 'EnergyTypeID', 'FullName'),
             'laststage': ('LastStage', 'ECCStageID', 'ECCStage'),
-            'ieamw': ('IEAMW', 'IEAMWID', 'IEAMW'),
             'matname': ('matname', 'matnameID', 'matname'),
             'agglevel': ('AggLevel', 'AggLevelID', 'AggLevel'),
             'grossnet': ('GrossNet', 'GrossNetID', 'GrossNet'),
@@ -225,7 +221,6 @@ class Translator:
             'method': ('Method', 'MethodID', 'Method'),
             'energytype': ('EnergyType', 'EnergyTypeID', 'FullName'),
             'laststage': ('LastStage', 'ECCStageID', 'ECCStage'),
-            'ieamw': ('IEAMW', 'IEAMWID', 'IEAMW'),
             'matname': ('matname', 'matnameID', 'matname'),
             'agglevel': ('AggLevel', 'AggLevelID', 'AggLevel'),
             'grossnet': ('GrossNet', 'GrossNetID', 'GrossNet'),

@@ -64,16 +64,6 @@ class LastStage(models.Model):
     class Meta:
         db_table = "ECCStage"
         managed = False
-    
-class IEAMW(models.Model):
-    """ Model representing a database table named 'IEAMW'."""
-    IEAMWID = models.PositiveSmallIntegerField(primary_key=True)
-    IEAMW = models.TextField()
-    FullName = models.TextField()
-    Description = models.TextField()
-    class Meta:
-        db_table = "IEAMW"
-        managed = False
 
 class IncludesNEU(models.Model):
     """ Model representing a database table named 'IncludesNEU'."""
@@ -148,7 +138,6 @@ class PSUT(models.Model):
     Method = models.PositiveSmallIntegerField()
     EnergyType = models.PositiveSmallIntegerField()
     LastStage = models.PositiveSmallIntegerField()
-    IEAMW = models.PositiveSmallIntegerField()
     IncludesNEU = models.PositiveSmallIntegerField()
     Year = models.PositiveSmallIntegerField()
     ChoppedMat = models.PositiveSmallIntegerField()
@@ -181,7 +170,6 @@ class AggEtaPFU(models.Model):
     Method = models.PositiveSmallIntegerField()
     EnergyType = models.PositiveSmallIntegerField()
     LastStage = models.PositiveSmallIntegerField()
-    IEAMW = models.PositiveSmallIntegerField()
     IncludesNEU = models.PositiveSmallIntegerField()
     Year = models.PositiveSmallIntegerField()
     ChoppedMat = models.PositiveSmallIntegerField()

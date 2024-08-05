@@ -179,20 +179,20 @@ def get_plot_title(query: dict, exclude: list[str] = []) -> str:
         # version
         (information.get("version") or ""),
         # country
-        (information.get("country") or ""),
+        (str(information.get("country")) or ""),
         # year(s)
         ("in " + title_from_year if title_from_year else "") + ('-' + title_to_year if title_to_year else ""),
         # collection method
-        ("collected by " + information.get("method") if information.get("method") else ""),
+        ("collected by " + str(information.get("method")) if information.get("method") else ""),
         # energy type
-        ("for " + information.get("energy_type") if information.get("energy_type") else ""),
+        ("for " + str(information.get("energy_type")) if information.get("energy_type") else ""),
         # last stage
         ("to stage " + information.get("last_stage") if information.get("last_stage") else ""),
         # including neu
         ("including NEU" if information.get("includes_neu") else ""),
         # industry aggregation
-        ("where industry aggregated by " + information.get("industry_aggregation") if information.get("industry_aggregation") else ""),
+        ("where industry aggregated by " + str(information.get("industry_aggregation")) if information.get("industry_aggregation") else ""),
         # product aggregation
-        ("and product aggregated by " + information.get("product_aggregation") if information.get("product_aggregation") else ""),
+        ("and product aggregated by " + str(information.get("product_aggregation")) if information.get("product_aggregation") else ""),
     ]
     )
