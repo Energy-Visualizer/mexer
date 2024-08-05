@@ -437,3 +437,9 @@ html {
         opacity: 0;
     }
 }
+
+.sankey-download-button {
+    position: absolute;
+    top: 0;
+    right: 0;
+}

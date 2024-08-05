@@ -22,7 +22,13 @@
 
     <!-- Internal JS -->
     <script src="../static/js/visualizer.js"></script>
-    <script type="module" src="../static/js/plotUtil.js"></script> <!-- type is module because we import SanKEY code -->
+
+    <!-- Make the plot utility imports available throughout the window -->
+    <script type="module">
+        import {downloadSankey, createSankey} from "../static/js/plotUtil.js";
+        window.downloadSankey = downloadSankey;
+        window.createSankey = createSankey;
+    </script>
 </head>
 
 
