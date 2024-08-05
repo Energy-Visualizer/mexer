@@ -161,7 +161,8 @@ def get_plot(request):
                 if nodes is None:
                     plot_div = "Error: No cooresponding data"
                 else:
-                    plot_div =f'<script>createSankey({nodes},{links},{options},"{get_plot_title(query)}")</script>'
+                    plot_div = f"<script>createSankey({nodes},{links},{options},'{get_plot_title(query)}')</script>\
+                                 <button onclick='downloadSankey()' class='sankey-download-button'>Download Sankey</button>"
 
             case "xy_plot":
                 # Extract specific parameters for xy_plot
