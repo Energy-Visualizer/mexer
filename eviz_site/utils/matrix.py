@@ -1,6 +1,18 @@
+####################################################################
+# matrix.py includes all the functions related to matrices
+# 
+# The functions can get a matrix, get special Mexer matix (RUVY)
+# and turn those matricies into HTML to display
+#
+# The matricies are represented by scipy's sparse coo_matrix
+# 
+# Authors:
+#       Kenny Howes - kmh67@calvin.edu
+#       Edom Maru - eam43@calvin.edu 
+#####################
 import plotly.graph_objects as pgo
 from scipy.sparse import coo_matrix
-from utils.data import query_database, DatabaseTarget
+from utils.data import _query_database, DatabaseTarget
 from eviz.models import PSUT, Index
 from utils.translator import Translator
 
@@ -18,7 +30,7 @@ def get_matrix(target: DatabaseTarget, query: dict) -> coo_matrix:
     # Get the sparse matrix representation
     # i, j, x for row, column, value
     # in 3-tuples
-    sparse_matrix = query_database(target, query, ["i", "j", "value"])
+    sparse_matrix = _query_database(target, query, ["i", "j", "value"])
 
     # if nothing was returned
     if not sparse_matrix:
@@ -38,8 +50,9 @@ def get_matrix(target: DatabaseTarget, query: dict) -> coo_matrix:
         (val, (row, col)),
         shape=(matrix_nrow, matrix_nrow),
     )
+
 def get_ruvy_matrix(target: DatabaseTarget, query: dict) -> tuple:
-    sparse_matrix = query_database(target, query, ["i", "j", "value", "matname"])
+    sparse_matrix = _query_database(target, query, ["i", "j", "value", "matname"])
     if not sparse_matrix:
         return None, None
     matrix_nrow = Index.objects.all().count()
@@ -63,41 +76,38 @@ def visualize_matrix(target: DatabaseTarget, mat: coo_matrix, matnames: list = N
     Outputs:
         pgo.Figure: A Plotly graph object Figure containing the heatmap.
     """
-
-    # Convert the matrix to a format suitable for Plotly's heatmap
-    rows, cols, vals = mat.row, mat.col, mat.data
-
+    
     translator = Translator(target[0]) # get a translator for the correct database
-    # Translate row and column indices to human-readable labels
-    row_labels = [translator.index_translate(i) for i in rows]
-    col_labels = [translator.index_translate(i) for i in cols]
+    
+    # Create a dictionary mapping index IDs to their orders.
+    index_orders = {id: order for id, order in Index.objects.values_list("IndexID", "Order")}
+    
+    # columns to be used in dataframe
+    frame_columns = {
+        'x': [translator.index_translate(col) for col in mat.col],
+        'y': [translator.index_translate(row) for row in mat.row],
+        'value': mat.data,
+        'x_order': [index_orders[col] for col in mat.col],
+        'y_order': [index_orders[row] for row in mat.row]
+    }
     
     # Create a Plotly Heatmap object
     if coloring_method == 'ruvy' and matnames:
-        df = pd.DataFrame({
-            'x': col_labels,
-            'y': row_labels,
-            'value': vals,
-            'matname': [translator.matname_translate(i) for i in matnames]
-        })
+        frame_columns.update({'matname': [translator.matname_translate(i) for i in matnames]})
         tooltip = ['x', 'y', 'value', 'matname']
         colors = 'matname:N'
+        color_encoding = alt.Color(colors, scale=alt.Scale(scheme=color_scale))
     else:
-        df = pd.DataFrame({
-            'x': col_labels,
-            'y': row_labels,
-            'value': vals,
-        })
         tooltip = ['x', 'y', 'value']
         colors = 'value:Q'
+        color_encoding = alt.Color(colors, scale=alt.Scale(scheme=color_scale), title='value [TJ]')
+    
+    df = pd.DataFrame(frame_columns)
         
     heatmap = alt.Chart(df).mark_rect(stroke='blue', strokeWidth=1).encode(
-            x=alt.X('x', axis=alt.Axis(orient='top', labelAngle=-45, title="")),
-            y=alt.Y('y', axis=alt.Axis(title="")),
-            color=alt.Color(
-                colors, 
-                scale=alt.Scale(scheme=color_scale)
-            ),
+            x=alt.X('x', axis=alt.Axis(orient='top', labelAngle=-45, title=""), sort=alt.EncodingSortField(field='x_order', order='ascending')),
+            y=alt.Y('y', axis=alt.Axis(title=""), sort=alt.EncodingSortField(field='y_order', order='ascending')),
+            color=color_encoding,
             tooltip=tooltip
         )
     return heatmap

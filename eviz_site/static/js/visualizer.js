@@ -3,9 +3,23 @@
  * This function is called when the page loads.
  */
 const initialize = () => {
+    document.getElementById("dataset-dropdown").addEventListener("change", (event) => {
+        if (document.getElementById("dataset-dropdown").value.startsWith("sDB:")) {
+            document.getElementById("sandbox-version-dropdown").hidden = false;
+            document.getElementById("sandbox-version-dropdown").disabled = false;
+            document.getElementById("version-dropdown").hidden = true;
+            document.getElementById("version-dropdown").disabled = true;
+        } else {
+            document.getElementById("sandbox-version-dropdown").hidden = true;
+            document.getElementById("sandbox-version-dropdown").disabled = true;
+            document.getElementById("version-dropdown").hidden = false;
+            document.getElementById("version-dropdown").disabled = false;
+        }
+    });
+
     // main metadata
     countryDropdown = document.getElementById("country-dropdown");
-
+    
     menuInputs = []; // collection to keep track of all the items that can be toggled in the menus
 
     // specific metadata
@@ -34,8 +48,11 @@ const initialize = () => {
     colorScale = document.getElementById("color-scale");
     menuInputs.push(colorScale);
 
+    labelThreshold = document.getElementById("label-threshold");
+    menuInputs.push(labelThreshold)
+
     // menu setups
-    sankeyMenuInputs = [singleYearInput];
+    sankeyMenuInputs = [singleYearInput, labelThreshold];
     xyMenuInputs = [fromYearInput, toYearInput, efficiencyDropdown, colorBy, lineBy, facetColBy, facetRowBy];
     matrixMenuInputs = [fromYearInput, toYearInput, matnameDropdown, colorScale];
 
@@ -188,6 +205,6 @@ const plotInNewWindow = () => {
         plotWindow = null;
 
     // make a new plot window if need be and give it the plotHtml content
-    plotWindow ??= window.open("/plot-stage", '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
+    plotWindow ??= window.open("/plot-stage", '_blank', 'location=yes,height=600,width=600,scrollbars=yes,status=yes');
     plotWindow.document.body.innerHTML = plotHTML;
 };

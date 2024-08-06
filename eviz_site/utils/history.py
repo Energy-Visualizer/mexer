@@ -1,5 +1,22 @@
+####################################################################
+# history.py includes all functions related to user history
+# 
+# A user's plotting history is represented as a queue of dictionaries
+# The dictionaries are previous queries
+# The queue (really a list, but treated like a queue) stores
+# MAX_HISTORY number of previous queries in it
+#
+# Authors:
+#       Kenny Howes - kmh67@calvin.edu
+#       Edom Maru - eam43@calvin.edu 
+#####################
 import pickle
 import json
+
+# Maximum number of items to keep in the user's history
+# Can't be too big because too many in history
+# Will overflow the cookie size limit
+MAX_HISTORY = 5
 
 def get_user_history(request) -> list:
     """Retrieve the user's plot history from cookies.
@@ -20,7 +37,6 @@ def get_user_history(request) -> list:
 
     return user_history
 
-MAX_HISTORY = 5 # Maximum number of items to keep in the user's history
 def update_user_history(request, plot_type, query):
     """Update the user's plot history with a new plot query.
 
@@ -51,7 +67,7 @@ def update_user_history(request, plot_type, query):
 
         user_history.insert(0, history_data) # finally, add the new query to the top of the history
 
-        # if the queue is full, take the end off
+        # if the queue (list) is full, take the end off
         if len(user_history) > MAX_HISTORY: user_history.pop()
 
     else:

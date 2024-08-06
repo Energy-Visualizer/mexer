@@ -11,7 +11,7 @@
       </div>
       <div class="right">
         {% if request.user.is_authenticated %}
-        <p style="color: #33ebed">{{ request.user.username }}</p>
+        <p style="color: #33ebed">{{ request.user.username.upper }}</p>
         {% endif %}
         <a class="links" href="{% url 'visualizer' %}">Visualizer</a>
         <!-- <a class="links" href="{% url 'about' %}">About</a> -->

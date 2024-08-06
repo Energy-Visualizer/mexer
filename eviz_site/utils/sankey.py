@@ -1,8 +1,21 @@
+####################################################################
+# sankey.py includes all the functions related to sankey diagrams
+# 
+# The main point is to get the data for rendering a sankey diagram
+# Which is achieved through get_sankey()
+#
+# Which will return the data needed to pass to the JS library
+# SanKEY.js (https://github.com/Krzysiekzd/SanKEY.js)
+#
+# Authors:
+#       Kenny Howes - kmh67@calvin.edu
+#       Edom Maru - eam43@calvin.edu 
+#####################
 import json
 from utils.translator import Translator
-from utils.data import query_database, DatabaseTarget
+from utils.data import _query_database, DatabaseTarget
 from eviz_site.settings import SANKEY_COLORS_PATH
-from eviz.logging import LOGGER
+from utils.logging import LOGGER
 
 INDUSTRY_COLOR = "midnightblue"
 
@@ -30,7 +43,8 @@ def _get_sankey_node_info(
     label_info = label_info_dict.get(label_num, -1)
     if label_info == -1:
         # add it if it is a new label and get new node_idx
-        node_list[label_col].append(dict(label=name,color=_get_sankey_color(name) or "red" if carrier else INDUSTRY_COLOR))
+        node_list[label_col].append(dict(label=name,
+                                         color=_get_sankey_color(name) or "red" if carrier else INDUSTRY_COLOR))
         
         label_info = (idx_dict[label_col], label_col)
         idx_dict[label_col] += 1
@@ -76,7 +90,7 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str] | tu
         ]})
 
     # get all four matrices to make the full RUVY matrix
-    data = query_database(target, query, ["matname", "i", "j", "value"])
+    data = _query_database(target, query, ["matname", "i", "j", "value"])
 
     # if no cooresponding data, return as such
     if not data:

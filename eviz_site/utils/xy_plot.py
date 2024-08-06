@@ -1,7 +1,18 @@
+####################################################################
+# xy_plot.py contains the functions to create... xy plots
+#
+# Given the query and some plotting information, it will put 
+# together a plotly Figure object, which can then be turned 
+# into HTML or further modified.
+#
+# Authors:
+#       Kenny Howes - kmh67@calvin.edu
+#       Edom Maru - eam43@calvin.edu 
+#####################
 import plotly.express as px
+import pandas as pd
 import plotly.graph_objects as go
 from utils.data import get_translated_dataframe, DatabaseTarget
-from eviz.models import AggEtaPFU
 
 def get_xy(efficiency_metric: str, target: DatabaseTarget, query: dict,
            color_by: str, line_by: str, facet_col_by: str = None, facet_row_by: str = None, energy_type: str = None) -> go.Figure:
@@ -38,6 +49,11 @@ def get_xy(efficiency_metric: str, target: DatabaseTarget, query: dict,
     df = get_translated_dataframe(target, query, fields_to_select)
         
     if df.empty: return None # if no data, return as such
+
+    # convert year column to datetime if present
+    # and sort on that so that the xy plots come out right
+    df["Year"] = pd.to_datetime(df["Year"], format="%Y")
+    df = df.sort_values(by="Year")
 
     try:
         # Create the line plot using Plotly Express

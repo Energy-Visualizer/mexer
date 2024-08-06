@@ -3,23 +3,32 @@
 
 <head>
     <title>Mexer Visualizer</title>
+
     <!-- CSS stylesheets -->
     <link rel="stylesheet" href="../static/css/toolbar.css" type="text/css" />
     <link rel="stylesheet" href="../static/css/visualizer.css" type="text/css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
     <!-- External libraries -->
     <script src="https://unpkg.com/htmx.org@1.9.12"></script> <!-- HTMX -->
     <script src="https://cdn.plot.ly/plotly-latest.min.js" charset="utf-8"></script> <!-- Plotly -->
     <link rel="stylesheet" href='../static/css/SanKEY_styles.css'> <!-- SanKEY css -->
 
-
-
+    <!-- External libraries: Vega -->
     <script src="https://cdn.jsdelivr.net/npm/vega@5.21.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-lite@4.17.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.17.0"></script>
+    <!-- End Vega-->
+
     <!-- Internal JS -->
     <script src="../static/js/visualizer.js"></script>
-    <script type="module" src="../static/js/plotUtil.js"></script> <!-- type is module because we import SanKEY code -->
+
+    <!-- Make the plot utility imports available throughout the window -->
+    <script type="module">
+        import {downloadSankey, createSankey} from "../static/js/plotUtil.js";
+        window.downloadSankey = downloadSankey;
+        window.createSankey = createSankey;
+    </script>
 </head>
 
 
@@ -33,7 +42,7 @@
         <!-- Right side of the toolbar -->
         <div class="right">
             {% if request.user.is_authenticated %}
-                <p style="color: #33ebed;">{{ request.user.username }}</p>
+                <p style="color: #33ebed;">{{ request.user.username.upper }}</p>
             {% endif %}
             <!-- <a class="links" href="{% url 'visualizer' %}">Visualizer</a> -->
             <a class="links" href="{% url 'about' %}">About</a>
@@ -63,6 +72,7 @@
     {% csrf_token %}
     <div id="query-section" class="menu-pane bevel-left">
         <h2>Query</h2>
+
         <div class="query-choice">
             <div class="info-text">
                 <span class="popup-icon">&#9432;
@@ -96,7 +106,7 @@
                 Version
             </div>
             <div class="input-column">
-                <select name= "version" id="version-dropdown" class="styled-dropdown space-input" required>
+                <select name = "version" id="version-dropdown" class="styled-dropdown space-input" required>
                     {% for version in versions %}
                         {% if version == default_version %}
                             <option value="{{ version }}" selected>{{ version }}</option>
@@ -104,7 +114,16 @@
                             <option value="{{ version }}">{{ version }}</option>
                         {% endif %}
                     {% endfor %}
-                    </select>
+                </select>
+                <select name = "version" id="sandbox-version-dropdown" class="styled-dropdown space-input" disabled hidden required>
+                    {% for version in sandbox_versions %}
+                        {% if version == default_sandbox_version %}
+                            <option value="{{ version }}" selected>{{ version }}</option>
+                        {% else %}
+                            <option value="{{ version }}">{{ version }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
             </div>
             &#x2800
         </div>
@@ -210,82 +229,6 @@
             </div>
             &#x2800
         </div>
-    </div>
-
-    <div style="width: 3%;"></div>
-
-    <div id="plot-setting-section" class="menu-pane bevel-right">
-        <h2>Plot</h2>
-        <!-- Various form elements for selecting visulaization toold-->
-        <!-- Each div with class "query-choice" represents a form field or group of related fields -->
-        <!-- ... (form fields for plot type, dataset, country, method, energy type, etc.) ... -->
-        <div class="query-choice">
-            <div class="column info-text">
-                <span class="popup-icon">&#9432;
-                    <span class="popup-text">
-                        Select the type of plot you want to display.
-                    </span>
-                </span>
-                Visualization
-            </div>
-            <div class="input-column">
-                <label>
-                    <input name="plot_type" type="radio" value="sankey" class="space-input" id="plot-type-input" checked>
-                    Sankey
-                </label><br>
-                <label>
-                    <input name="plot_type" type="radio" value="xy_plot" class="space-input" id="plot-type-input">
-                    X-Y plot
-                </label><br>
-                <label>
-                    <input name="plot_type" type="radio" value="matrices" class="space-input" id="plot-type-input">
-                    PSUT matrices
-                </label><br>
-            </div>
-            &#x2800
-        </div>
-
-        <div class="query-choice">
-            <div class="info-text">
-                GrossNet
-            </div>
-            <div id="grossnet_radio" class="input-column">
-                {% for grossnet in grossnets %}
-                {%if grossnet == default_grossnet%}
-                <input type="radio" value="{{ grossnet }}" name="grossnet" checked>{{ grossnet }} <br>
-                {%else%}
-                <input type="radio" value="{{ grossnet }}" name="grossnet"  required>{{ grossnet }}<br>
-                {%endif%}
-                {% endfor %}
-            </div>
-            &#x2800
-        </div>
-
-        <!-- efficiency dropdown -->
-        <div class="query-choice">
-            <div class="info-text">
-                <span class="popup-icon">&#9432;
-                    <span class="popup-text">
-                        Choose the Efficiency of interest.
-                    </span>
-                </span>
-                Efficiency
-            </div>
-            <div class="input-column">
-                <select name="efficiency" class="styled-dropdown space-input" id="efficiency-dropdown">
-                    <!-- TODO: don't hardcode these -->
-                    <option value="EXp">EXp</option>
-                    <option value="EXf">EXf</option>
-                    <option value="EXu">EXu</option>
-                    <option value="etapf">etapf</option>
-                    <option value="etafu">etafu</option>
-                    <option value="etapu">etapu</option>
-                </select>
-            </div>
-            &#x2800
-        </div>
-        <!-- efficiency dropdown end -->
-
 
         <div class="query-choice">
             <div class="info-text">
@@ -328,6 +271,81 @@
             </div>
             &#x2800
         </div>
+    </div>
+
+    <div style="width: 3%;"></div> <!-- Small break in between menus -->
+
+    <div id="plot-setting-section" class="menu-pane bevel-right">
+        <h2>Plot</h2>
+        <!-- Various form elements for selecting visulaization toold-->
+        <!-- Each div with class "query-choice" represents a form field or group of related fields -->
+        <!-- ... (form fields for plot type, dataset, country, method, energy type, etc.) ... -->
+        <div class="query-choice">
+            <div class="column info-text">
+                <span class="popup-icon">&#9432;
+                    <span class="popup-text">
+                        Select the type of plot you want to display.
+                    </span>
+                </span>
+                Visualization
+            </div>
+            <div class="input-column">
+                <label>
+                    <input name="plot_type" type="radio" value="sankey" class="space-input" id="plot-type-input" checked>
+                    Sankey
+                </label><br>
+                <label>
+                    <input name="plot_type" type="radio" value="xy_plot" class="space-input" id="plot-type-input">
+                    X-Y plot
+                </label><br>
+                <label>
+                    <input name="plot_type" type="radio" value="matrices" class="space-input" id="plot-type-input">
+                    PSUT matrices
+                </label><br>
+            </div>
+            &#x2800
+        </div>
+
+        <div class="query-choice">
+            <div class="info-text">
+                GrossNet
+            </div>
+            <div id="grossnet_radio" class="input-column">
+                {% for grossnet in grossnets %}
+                {%if grossnet == default_grossnet%}
+                <label><input type="radio" value="{{ grossnet }}" name="grossnet" class="space-input" checked>{{ grossnet }}</label><br>
+                {%else%}
+                <label><input type="radio" value="{{ grossnet }}" name="grossnet" class="space-input" required>{{ grossnet }}</label><br>
+                {%endif%}
+                {% endfor %}
+            </div>
+            &#x2800
+        </div>
+
+        <!-- efficiency dropdown -->
+        <div class="query-choice">
+            <div class="info-text">
+                <span class="popup-icon">&#9432;
+                    <span class="popup-text">
+                        Choose the Efficiency of interest.
+                    </span>
+                </span>
+                Efficiency
+            </div>
+            <div class="input-column">
+                <select name="efficiency" class="styled-dropdown space-input" id="efficiency-dropdown">
+                    <!-- TODO: don't hardcode these -->
+                    <option value="EXp">EXp</option>
+                    <option value="EXf">EXf</option>
+                    <option value="EXu">EXu</option>
+                    <option value="etapf">etapf</option>
+                    <option value="etafu">etafu</option>
+                    <option value="etapu">etapu</option>
+                </select>
+            </div>
+            &#x2800
+        </div>
+        <!-- efficiency dropdown end -->
 
         <!-- single year input -->
         <div class="query-choice">
@@ -335,7 +353,7 @@
                 Year
             </div>
             <div class="input-column">
-                <input name="year" class="styled-dropdown space-input" id="single-year-input" value="1971">
+                <input type="number" name="year" class="styled-dropdown space-input" id="single-year-input" value="1971">
             </div>
             &#x2800
         </div>
@@ -347,13 +365,13 @@
                 From year
             </div>
             <div class="input-column">
-                <input name="year" class="styled-dropdown space-input" id="from-year-input" value="1971">
+                <input name="year" type="number" class="styled-dropdown space-input" id="from-year-input" value="1971">
             </div>
             <div class="info-text">
                 to year
             </div>
             <div class="input-column">
-                <input name="to_year" class="styled-dropdown space-input" id="to-year-input" value="2020">
+                <input name="to_year" type="number" class="styled-dropdown space-input" id="to-year-input" value="2020">
             </div>
             &#x2800
         </div>
@@ -472,14 +490,36 @@
                 Coloring Method
             </div>
             <div class="input-column">
-                <input type="radio" id="weight" name="coloring_method" value="weight" checked> Weight
-                <input type="radio" id="ruvy" name="coloring_method" value="ruvy"> RUVY
+                <label><input type="radio" id="weight" name="coloring_method" value="weight" class="space-input" checked>Weight</label>
+                <label><input type="radio" id="ruvy" name="coloring_method" value="ruvy" class="space-input">RUVY</label>
             </div>
             &#x2800
         </div>
 
         <!-- matrix dropdown end -->
         <!-- metadata specifics inputs end -->
+        
+        <div class="query-choice">
+            <div class="info-text">
+                <span class="popup-icon">&#9432;
+                    <span class="popup-text">
+                        How many nodes get labels on the sankey diagram. 
+                        This is based on the size of the node.
+                    </span>
+                </span>
+                Number of Node Labels
+            </div>
+            <div class="input-column">
+                <!--This input has no name because we don't care about it in an actual plot query-->
+                <!--Important to sankey's but they are rendered *client* side-->
+                <p class="space-input">
+                <span>-</span>
+                <input type="range" id="label-threshold" min="0" max="1" step="0.05" value="0.5">
+                <span>+</span>
+                </p>
+            </div>
+            &#x2800
+        </div>
 
         <div class="query-choice">
             <div class="info-text">
@@ -491,7 +531,7 @@
                 Plot in Separate Window
             </div>
             <div class="input-column">
-                <input type="checkbox" name="separate_window">
+                <input type="checkbox" name="separate_window" class="space-input" disabled>
             </div>
             &#x2800
         </div>

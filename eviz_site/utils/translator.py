@@ -1,15 +1,25 @@
+####################################################################
 # translator.py contains the functionality to quickly translate PSUT values
 # to and from human readable form and numerical database form
 #
-# Authors: Kenny Howes - kmh67@calvin.edu
-#          Edom Maru
-##################################################
-
+# Since the "translation" tables in the database are fairly small,
+# it's quicker to load them as dictionaries in memory and use them
+# instead of doing foreign key translation database-side.
+# 
+# Any results from the database are globally cached for 
+# TRANSLATOR_CACHE_TTL number of hours. All users use the same dictionaries
+# for translations, so little memory is used for this as possible.
+#
+# Authors:
+#       Kenny Howes - kmh67@calvin.edu
+#       Edom Maru - eam43@calvin.edu 
+#####################
 from bidict import bidict
 from django.apps import apps
-from eviz.logging import LOGGER
+from utils.logging import LOGGER
 from datetime import datetime, timedelta
 from eviz.models import Dataset
+from eviz_site.settings import SANDBOX_PREFIX, IEA_TABLES
 
 # how long to cache information from the database 
 # in *hours*
@@ -89,7 +99,7 @@ class Translator:
             return translation
         
         # if no translation found
-        raise KeyError("Unrecognized key '" + value + "' for " + model_name)
+        raise KeyError("Unrecognized key '" + str(value) + "' for " + model_name)
 
     # The following methods are specific translation functions for different models
     # They all use the _translate method with appropriate parameters
@@ -113,9 +123,6 @@ class Translator:
 
     def laststage_translate(self, value):
         return self._translate('LastStage', value, 'ECCStageID', 'ECCStage')
-
-    def ieamw_translate(self, value):
-        return self._translate('IEAMW', value, 'IEAMWID', 'IEAMW')
 
     def matname_translate(self, value):
         return self._translate('matname', value, 'matnameID', 'matname')
@@ -141,10 +148,12 @@ class Translator:
             list: A list of all possible values (names) for the attribute.
         """
 
-        # special case
-        if attribute == "public datasets":
+        # special cases
+        if attribute == "datasets:public":
             return Translator.__fetch_public_datasets()
-
+        if attribute == "datasets:admin":
+            return Translator.__fetch_admin_datasets()
+        
         # Dictionary mapping attribute names to model details
         model_mappings = {
             'dataset': ('Dataset', 'DatasetID', 'Dataset'),
@@ -153,7 +162,6 @@ class Translator:
             'method': ('Method', 'MethodID', 'Method'),
             'energytype': ('EnergyType', 'EnergyTypeID', 'FullName'),
             'laststage': ('LastStage', 'ECCStageID', 'ECCStage'),
-            'ieamw': ('IEAMW', 'IEAMWID', 'IEAMW'),
             'matname': ('matname', 'matnameID', 'matname'),
             'agglevel': ('AggLevel', 'AggLevelID', 'AggLevel'),
             'grossnet': ('GrossNet', 'GrossNetID', 'GrossNet'),
@@ -176,12 +184,25 @@ class Translator:
             or (datetime.today().date() - Translator.__public_datasets[0]) > Translator.__cache_ttl
         ):
             # reload and recache
-            Translator.__public_datasets = datetime.today().date(), list(Dataset.objects.filter(Public = True).values_list("Dataset", flat = True))
+            Translator.__public_datasets = (
+                datetime.today().date(),
+                list(Dataset.objects.filter(Public = True).values_list("Dataset", flat = True))
+            )
 
         return Translator.__public_datasets[1]
+    
+    @staticmethod
+    def __fetch_admin_datasets():
+        # get all datasets from both MexerDB and SandboxDB
+        mexerdb_datasets = Translator.__load_bidict("Dataset", 'DatasetID', 'Dataset', "default")
+        sandboxdb_datasets = Translator.__load_bidict("Dataset", 'DatasetID', 'Dataset', "sandbox")
+
+        # combine them and add the sandbox prefix
+        # onto the sandbox datasets to differentitate
+        return list(mexerdb_datasets.keys()) + [SANDBOX_PREFIX + ds for ds in sandboxdb_datasets.keys()]
 
     @staticmethod
-    def get_includesNEUs(self):
+    def get_includesNEUs():
         return [True, False]
 
     # TODO: This needs to be finished...
@@ -203,7 +224,6 @@ class Translator:
             'method': ('Method', 'MethodID', 'Method'),
             'energytype': ('EnergyType', 'EnergyTypeID', 'FullName'),
             'laststage': ('LastStage', 'ECCStageID', 'ECCStage'),
-            'ieamw': ('IEAMW', 'IEAMWID', 'IEAMW'),
             'matname': ('matname', 'matnameID', 'matname'),
             'agglevel': ('AggLevel', 'AggLevelID', 'AggLevel'),
             'grossnet': ('GrossNet', 'GrossNetID', 'GrossNet'),

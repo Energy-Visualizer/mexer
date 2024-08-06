@@ -17,12 +17,17 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls import handler404, handler500, handler403, handler400
-from eviz import views
+import eviz.views.error_pages as error_pages
 
-handler400 = views.error_400
-handler403 = views.error_403
-handler404 = views.error_404
-handler500 = views.error_500
+handler400 = error_pages.error_400
+handler403 = error_pages.error_403
+handler404 = error_pages.error_404
+handler500 = error_pages.error_500
+
+# change small visuals on the admin site
+admin.site.site_header = "Mexer Admin"
+admin.site.site_title = "Mexer Admin Portal"
+admin.site.index_title = "Mexer Admin"
 
 urlpatterns = [
     path('', include("eviz.urls")),

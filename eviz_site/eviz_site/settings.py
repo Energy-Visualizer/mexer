@@ -31,7 +31,7 @@ ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
-CSRF_FAILURE_VIEW = "eviz.views.csrf_failure"
+CSRF_FAILURE_VIEW = "eviz.views.error_pages.csrf_failure"
 
 # Application definition
 
@@ -83,21 +83,24 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "OPTIONS": {
-            "service": "MexerDB"
+            "service": "MexerDB",
             # All other information provided through environment variables
             # PGSERVICEFILE and PGPASSFILE
+            "application_name": "Mexer Site"
         }
     },
     "sandbox": {
         "ENGINE": "django.db.backends.postgresql",
         "OPTIONS": {
-            "service": "SandboxDB"
+            "service": "SandboxDB",
+            "application_name": "Mexer Site"
         }
     },
     'users': {
         'ENGINE': 'django.db.backends.postgresql',
         "OPTIONS":{
-            "service": "users"
+            "service": "users",
+            "application_name": "Mexer Site"
         }
     }
 
@@ -138,8 +141,6 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
-
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
@@ -189,3 +190,7 @@ LOGGING = {
 }
 
 SANKEY_COLORS_PATH = BASE_DIR / "internal_resources" / "sankey_color_categories.json"
+
+SANDBOX_PREFIX = "sDB:"
+
+IEA_TABLES = ["CL-PFU IEA", "CL-PFU IEA+MW"]
