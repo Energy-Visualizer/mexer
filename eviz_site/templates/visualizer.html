@@ -353,7 +353,7 @@
                 Year
             </div>
             <div class="input-column">
-                <input name="year" class="styled-dropdown space-input" id="single-year-input" value="1971">
+                <input type="number" name="year" class="styled-dropdown space-input" id="single-year-input" value="1971">
             </div>
             &#x2800
         </div>
@@ -365,13 +365,13 @@
                 From year
             </div>
             <div class="input-column">
-                <input name="year" class="styled-dropdown space-input" id="from-year-input" value="1971">
+                <input name="year" type="number" class="styled-dropdown space-input" id="from-year-input" value="1971">
             </div>
             <div class="info-text">
                 to year
             </div>
             <div class="input-column">
-                <input name="to_year" class="styled-dropdown space-input" id="to-year-input" value="2020">
+                <input name="to_year" type="number" class="styled-dropdown space-input" id="to-year-input" value="2020">
             </div>
             &#x2800
         </div>
@@ -498,6 +498,23 @@
 
         <!-- matrix dropdown end -->
         <!-- metadata specifics inputs end -->
+        
+        <div class="query-choice">
+            <div class="info-text">
+                <span class="popup-icon">&#9432;
+                    <span class="popup-text">
+                        How big a node on the sankey diagram has to be to get a label.
+                    </span>
+                </span>
+                Node Label Threshold
+            </div>
+            <div class="input-column">
+                <!--This has no name because we don't care about it in an actual plot query-->
+                <!--Important to sankey's but they are rendered *client* side-->
+                <input type="range" id="label-threshold" min="0" max="1" step="0.05" value="0.5">
+            </div>
+            &#x2800
+        </div>
 
         <div class="query-choice">
             <div class="info-text">

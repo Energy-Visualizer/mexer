@@ -120,6 +120,7 @@ def valid_passwords(password1: str, password2: str) -> bool:
 
 
 from django.contrib.auth.models import User
+from eviz_site.settings import IEA_TABLES
 def iea_valid(user: User, query: dict) -> bool:
     '''Ensure that a give user's query does not give out IEA data if not authorized
 
@@ -136,7 +137,7 @@ def iea_valid(user: User, query: dict) -> bool:
     return (
         # free data
         (
-            query.get("dataset", None) not in ["CL-PFU IEA", "CL-PFU IEA+MW"]
+            query.get("dataset") not in IEA_TABLES
         )
         or
         # authorized to get proprietary data

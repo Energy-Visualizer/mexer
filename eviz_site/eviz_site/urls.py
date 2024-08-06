@@ -24,6 +24,11 @@ handler403 = error_pages.error_403
 handler404 = error_pages.error_404
 handler500 = error_pages.error_500
 
+# change small visuals on the admin site
+admin.site.site_header = "Mexer Admin"
+admin.site.site_title = "Mexer Admin Portal"
+admin.site.index_title = "Mexer Admin"
+
 urlpatterns = [
     path('', include("eviz.urls")),
     path('admin/', admin.site.urls)

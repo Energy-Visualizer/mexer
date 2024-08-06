@@ -74,10 +74,10 @@ def visualizer(request):
     # Prepare the context dictionary for the template
     context = {
         "datasets":datasets,
-        "default_dataset": datasets[0],
+        "default_dataset": "CL-PFU MW",
 
         "versions":versions,
-        "default_version": "v2.0a6",
+        "default_version": "v2.0",
 
         "sandbox_versions":sandbox_versions,
         "default_sandbox_version": SANDBOX_PREFIX + "v2.0a7",

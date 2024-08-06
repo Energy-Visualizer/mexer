@@ -192,3 +192,5 @@ LOGGING = {
 SANKEY_COLORS_PATH = BASE_DIR / "internal_resources" / "sankey_color_categories.json"
 
 SANDBOX_PREFIX = "sDB:"
+
+IEA_TABLES = ["CL-PFU IEA", "CL-PFU IEA+MW"]

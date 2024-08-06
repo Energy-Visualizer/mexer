@@ -40,13 +40,17 @@ const createSankey = (nodes, links, options, title) => {
     plotTitle.textContent = title;
     sankeySvg.appendChild(plotTitle);
 
+    // threshold for how big a node has to be to get a label
+    const labelThreshold = Math.pow(document.getElementById("label-threshold").value, 5);
+    console.log(labelThreshold);
+
     // get all the nodes ('g' tags) and put the proper labels on them
     for (const node of sankeySvg.getElementsByTagNameNS("http://www.w3.org/2000/svg", "g")) {
 
         let node_info = node.children[0]; // get the rect child element, which contains all the info about the node
 
         // only apply the label if the passes a certain size threshold
-        if (node_info.getAttribute("height") < plotSection.clientHeight * 0.05)
+        if (node_info.getAttribute("height") < plotSection.clientHeight * labelThreshold)
             continue;
 
         // with the "nodes" json argument to this function, get the label for the node in question
@@ -62,7 +66,15 @@ const createSankey = (nodes, links, options, title) => {
 
 let sankeyDownloadURL;
 const updateSankeyDownload = (sankeySVG) => {
-    // turn the inner html of the container into a data blob
+    // insert a white rectangle into the plot.
+    // this will act as the background when the plot is downloaded
+    const bg = document.createElementNS("http://www.w3.org/2000/svg","rect");
+    bg.setAttribute("fill", "#FFFFFF");
+    bg.setAttribute("width", plotSection.clientWidth);
+    bg.setAttribute("height", plotSection.clientHeight);
+    sankeySVG.insertBefore(bg, sankeySVG.firstChild);
+
+    // turn the html of the plot into a data blob
     // with mime set up for svg. This will let the textual svg in the html
     // be used by image processors to display an actual image
     const downloadBlob = new Blob([sankeySVG.outerHTML], {type: "image/svg"});
@@ -70,13 +82,16 @@ const updateSankeyDownload = (sankeySVG) => {
     // if the link was already populated, revoke it
     // as a new link is going to be used
     if (sankeyDownloadURL != null)
-        revokeObjectURL(sankeyDownloadURL);
+        URL.revokeObjectURL(sankeyDownloadURL);
 
     // set up the link with the plot data
     sankeyDownloadURL = URL.createObjectURL(downloadBlob);
 }
 
 const downloadSankey = () => {
+    // create a link that uses the object url for the sankey blob
+    // then click it to start a download
+    // this function is meant to be used as a button element's onclick event
     const a = document.createElement("a");
     a.href = sankeyDownloadURL;
     a.download = "sankey.svg";

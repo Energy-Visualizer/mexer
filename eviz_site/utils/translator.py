@@ -19,7 +19,7 @@ from django.apps import apps
 from utils.logging import LOGGER
 from datetime import datetime, timedelta
 from eviz.models import Dataset
-from eviz_site.settings import SANDBOX_PREFIX
+from eviz_site.settings import SANDBOX_PREFIX, IEA_TABLES
 
 # how long to cache information from the database 
 # in *hours*
@@ -184,7 +184,10 @@ class Translator:
             or (datetime.today().date() - Translator.__public_datasets[0]) > Translator.__cache_ttl
         ):
             # reload and recache
-            Translator.__public_datasets = datetime.today().date(), list(Dataset.objects.filter(Public = True).values_list("Dataset", flat = True))
+            Translator.__public_datasets = (
+                datetime.today().date(),
+                list(Dataset.objects.filter(Public = True).values_list("Dataset", flat = True))
+            )
 
         return Translator.__public_datasets[1]
     
