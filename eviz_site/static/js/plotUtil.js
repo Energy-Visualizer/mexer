@@ -75,6 +75,9 @@ const updateSankeyDownload = (sankeySVG) => {
     bg.setAttribute("height", plotSection.clientHeight);
     sankeySVG.insertBefore(bg, sankeySVG.firstChild);
 
+    // add the style to the svg for displaying in other apps
+    sankeySVG.addAttribute("xmlns", "http://www.w3.org/2000/svg")
+
     // turn the html of the plot into a data blob
     // with mime set up for svg. This will let the textual svg in the html
     // be used by image processors to display an actual image
