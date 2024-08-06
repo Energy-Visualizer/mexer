@@ -11,6 +11,7 @@
 #       Edom Maru - eam43@calvin.edu 
 #####################
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 from utils.misc import time_view, iea_valid, get_plot_title
 from utils.logging import LOGGER
 from eviz.models import EvizUser, Version, AggEtaPFU
@@ -41,6 +42,9 @@ def visualizer(request):
     """
     
     LOGGER.info("Visualizer page visted.")
+
+    # see if the user is iea approved
+    iea_user = request.user.is_authenticated and request.user.has_perm("eviz.get_iea")
     
     # see if the user is an admin to get access to SandboxDB table
     try:
@@ -53,6 +57,7 @@ def visualizer(request):
         datasets = Translator.get_all('datasets:admin')
     else:
         datasets = Translator.get_all('datasets:public')
+    
     countries = Translator.get_all('country')
     countries.sort()
     versions = Translator.get_all('version')
@@ -106,11 +111,12 @@ def visualizer(request):
         "industry_aggregations":industry_aggregations,
         "default_industry_aggregation":industry_aggregations[0],
 
-        "iea_user":request.user.is_authenticated and request.user.has_perm("eviz.get_iea")
+        "iea_user":iea_user
         }
 
     return render(request, "visualizer.html", context)
 
+@csrf_exempt
 @time_view
 def get_plot(request):
     """Generate and return a plot based on the POST request data.

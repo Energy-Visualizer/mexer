@@ -48,8 +48,11 @@ const initialize = () => {
     colorScale = document.getElementById("color-scale");
     menuInputs.push(colorScale);
 
+    labelThreshold = document.getElementById("label-threshold");
+    menuInputs.push(labelThreshold)
+
     // menu setups
-    sankeyMenuInputs = [singleYearInput];
+    sankeyMenuInputs = [singleYearInput, labelThreshold];
     xyMenuInputs = [fromYearInput, toYearInput, efficiencyDropdown, colorBy, lineBy, facetColBy, facetRowBy];
     matrixMenuInputs = [fromYearInput, toYearInput, matnameDropdown, colorScale];
 

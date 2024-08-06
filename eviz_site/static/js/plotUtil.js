@@ -19,9 +19,9 @@ const createSankey = (nodes, links, options, title) => {
             on_link_hover_function: (link_info,link_data_reference,link_element,event) => {
                 return `${link_info["from_label"]}<br>${Math.round(link_info["value"])} TJ<br>${link_info["to_label"]}`
             },
-            on_node_hover_function: (node_info,node_data_reference,node_element,event) => {
-                return `${node_info["label"]}<br>${Math.round(node_info["value"])} TJ`
-            }
+            // on_node_hover_function: (node_info,node_data_reference,node_element,event) => {
+            //     return `${node_info["label"]}<br>${Math.round(node_info["value"])} TJ`
+            // }
         })
     )
 
@@ -41,8 +41,9 @@ const createSankey = (nodes, links, options, title) => {
     sankeySvg.appendChild(plotTitle);
 
     // threshold for how big a node has to be to get a label
-    const labelThreshold = Math.pow(document.getElementById("label-threshold").value, 5);
-    console.log(labelThreshold);
+    // subtract from 1 to "flip" the input
+    // so big numbers come from the left of the input, and smaller numbers from the right
+    const labelThreshold = Math.pow(1 - document.getElementById("label-threshold").value, 5);
 
     // get all the nodes ('g' tags) and put the proper labels on them
     for (const node of sankeySvg.getElementsByTagNameNS("http://www.w3.org/2000/svg", "g")) {

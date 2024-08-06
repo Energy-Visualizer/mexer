@@ -96,19 +96,18 @@ def visualize_matrix(target: DatabaseTarget, mat: coo_matrix, matnames: list = N
         frame_columns.update({'matname': [translator.matname_translate(i) for i in matnames]})
         tooltip = ['x', 'y', 'value', 'matname']
         colors = 'matname:N'
+        color_encoding = alt.Color(colors, scale=alt.Scale(scheme=color_scale))
     else:
         tooltip = ['x', 'y', 'value']
         colors = 'value:Q'
+        color_encoding = alt.Color(colors, scale=alt.Scale(scheme=color_scale), title='value [TJ]')
     
     df = pd.DataFrame(frame_columns)
         
     heatmap = alt.Chart(df).mark_rect(stroke='blue', strokeWidth=1).encode(
             x=alt.X('x', axis=alt.Axis(orient='top', labelAngle=-45, title=""), sort=alt.EncodingSortField(field='x_order', order='ascending')),
             y=alt.Y('y', axis=alt.Axis(title=""), sort=alt.EncodingSortField(field='y_order', order='ascending')),
-            color=alt.Color(
-                colors, 
-                scale=alt.Scale(scheme=color_scale)
-            ),
+            color=color_encoding,
             tooltip=tooltip
         )
     return heatmap

@@ -25,7 +25,7 @@
 #       Edom Maru - eam43@calvin.edu 
 #####################
 from eviz.models import models, PSUT, IEAData, AggEtaPFU
-from pandas import DataFrame
+import pandas as pd
 from utils.misc import Silent
 import pandas.io.sql as pd_sql  # for getting data into a pandas dataframe
 from django.db import connections
@@ -64,9 +64,9 @@ def _query_database(target: DatabaseTarget, query: dict, values: list[str]):
 def _valid_database(database_name: str):
     return database_name in DATABASES.keys()
 
-def get_dataframe(target: DatabaseTarget, query: dict, columns: list) -> DataFrame:
+def get_dataframe(target: DatabaseTarget, query: dict, columns: list) -> pd.DataFrame:
     if not _valid_database(target[0]):
-        return DataFrame() # empty data frame if database is wrong
+        return pd.DataFrame() # empty data frame if database is wrong
     
     # get the data from database
     db_query = target[1].objects.filter(**query).values(*columns).query
@@ -75,13 +75,13 @@ def get_dataframe(target: DatabaseTarget, query: dict, columns: list) -> DataFra
             str(db_query),
             con=connections[target[0]].cursor().connection # get the connection associated with the requested database
         )
-    
+
     return df
 
 META_COLUMNS = ["Dataset", "ValidFromVersion", "ValidToVersion", "Country", "Method", "EnergyType", "LastStage", "IncludesNEU", "Year", "ChoppedMat", "ChoppedVar", "ProductAggregation", "IndustryAggregation"]
 PSUT_COLUMNS = ["matname", "i", "j", "value"]
 AGGETA_COLUMNS = ["GrossNet", "EXp", "EXf", "EXu", "etapf", "etafu", "etapu"]
-def get_translated_dataframe(target: DatabaseTarget, query: dict, columns: list) -> DataFrame:
+def get_translated_dataframe(target: DatabaseTarget, query: dict, columns: list) -> pd.DataFrame:
     df = get_dataframe(target, query, columns)
 
     # no need to do work if dataframe is empty (no data was found for the query)
