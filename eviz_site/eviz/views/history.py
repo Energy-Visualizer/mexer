@@ -1,5 +1,5 @@
 ####################################################################
-# history.py includes all the views for managin a user's plot history
+# history.py includes all the views for managing a user's plot history
 # 
 # Includes views to
 # Render a user's history cookie as HTML

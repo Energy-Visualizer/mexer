@@ -94,20 +94,28 @@ def visualize_matrix(target: DatabaseTarget, mat: coo_matrix, matnames: list = N
     # Create a Plotly Heatmap object
     if coloring_method == 'ruvy' and matnames:
         frame_columns.update({'matname': [translator.matname_translate(i) for i in matnames]})
-        tooltip = ['x', 'y', 'value', 'matname']
+        tooltip = [
+                alt.Tooltip('y', title='From'),
+                alt.Tooltip('x', title='To'),
+                alt.Tooltip('value'),
+                alt.Tooltip('matname')]
         colors = 'matname:N'
-        color_encoding = alt.Color(colors, scale=alt.Scale(scheme=color_scale))
     else:
-        tooltip = ['x', 'y', 'value']
+        tooltip = [
+                alt.Tooltip('y', title='From'),
+                alt.Tooltip('x', title='To'),
+                alt.Tooltip('value')]
         colors = 'value:Q'
-        color_encoding = alt.Color(colors, scale=alt.Scale(scheme=color_scale), title='value [TJ]')
     
     df = pd.DataFrame(frame_columns)
         
     heatmap = alt.Chart(df).mark_rect(stroke='blue', strokeWidth=1).encode(
             x=alt.X('x', axis=alt.Axis(orient='top', labelAngle=-45, title=""), sort=alt.EncodingSortField(field='x_order', order='ascending')),
             y=alt.Y('y', axis=alt.Axis(title=""), sort=alt.EncodingSortField(field='y_order', order='ascending')),
-            color=color_encoding,
+            color=alt.Color(
+                colors, 
+                scale=alt.Scale(scheme=color_scale)
+            ),
             tooltip=tooltip
         )
     return heatmap
