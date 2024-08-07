@@ -68,13 +68,18 @@ def handle_static(request, filepath):
     Outputs:
         HttpResponse containing the contents of the CSS file
     """
-    # example filepath: css/toolbar.css
-    match(filepath.split("/")[0]):
+    # example filepath: css/toolbar.css OR admin/css/toolbar.css
+    
+    # the type of static file to serve is used in the match case
+    # so that the correct mime type is attached
+    # other than that, the whole filepath asked for (besides static/) is used to find the file
+    file_type = filepath.split("/")[0] if filepath.split("/")[0] != "admin" else filepath.split("/")[1]
+    match(file_type):
         case "css":
             with open(f"{STATIC_BASE}/{filepath}", "rb") as f:
                 return HttpResponse(f.read(), headers = {"Content-Type": "text/css"})
-            
-        case "images":
+        
+        case "images" | "img":
             with open(f"{STATIC_BASE}/{filepath}", "rb") as f:
                 return HttpResponse(f.read(), headers = {"Content-Type": "image"})
             
