@@ -9,7 +9,7 @@
 # to keep them as individual as possible
 #
 # Authors: Kenny Howes - kmh67@calvin.edu
-#          Edom Maru
+#          Edom Maru - eam43@calvin.edu
 #####################
 
 from time import time
