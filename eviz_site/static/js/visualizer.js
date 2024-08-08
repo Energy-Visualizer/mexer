@@ -3,6 +3,14 @@
  * This function is called when the page loads.
  */
 const initialize = () => {
+    // document.body.addEventListener("htmx:responseError", (detail) => {
+    //     detail.target.innerHTML = "Error";
+    // });
+    
+    // document.body.addEventListener("htmx:sendError", (detail) => {
+    //     detail.target.innerHTML = "Error";
+    // });
+
     document.getElementById("dataset-dropdown").addEventListener("change", (event) => {
         if (document.getElementById("dataset-dropdown").value.startsWith("sDB:")) {
             document.getElementById("sandbox-version-dropdown").hidden = false;

@@ -60,7 +60,7 @@ ROOT_URLCONF = 'eviz_site.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [ "./templates" ],
+        'DIRS': [ Path(__file__).resolve().parent.parent / "templates" ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -130,17 +130,15 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
+TIME_ZONE = 'America/Detroit'
 USE_I18N = True
-
 USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
+# NOT used in the Django way...
+# see eviz/views/misc.py for how statics are handled
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
@@ -193,4 +191,4 @@ SANKEY_COLORS_PATH = BASE_DIR / "internal_resources" / "sankey_color_categories.
 
 SANDBOX_PREFIX = "sDB:"
 
-IEA_TABLES = ["CL-PFU IEA", "CL-PFU IEA+MW"]
+IEA_TABLES = ["IEA EWEB", "CL-PFU IEA", "CL-PFU IEA+MW"]

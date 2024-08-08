@@ -76,16 +76,19 @@ def handle_static(request, filepath):
     file_type = filepath.split("/")[0] if filepath.split("/")[0] != "admin" else filepath.split("/")[1]
     match(file_type):
         case "css":
-            with open(f"{STATIC_BASE}/{filepath}", "rb") as f:
-                return HttpResponse(f.read(), headers = {"Content-Type": "text/css"})
+            mime_type = "text/css"
         
         case "images" | "img":
-            with open(f"{STATIC_BASE}/{filepath}", "rb") as f:
-                return HttpResponse(f.read(), headers = {"Content-Type": "image"})
+            mime_type = "image"
             
         case "js":
-            with open(f"{STATIC_BASE}/{filepath}", "rb") as f:
-                return HttpResponse(f.read(), headers = {"Content-Type": "text/javascript"})
+            mime_type = "text/javascript"
         
         case _:
-            return error_404(request, "")
+            return error_404(request, f"Couldn't figure out content type of {filepath}")
+    
+    try:
+        with open(f"{STATIC_BASE}/{filepath}", "rb") as f:
+                return HttpResponse(f.read(), headers = {"Content-Type": mime_type})
+    except Exception as e:
+        return error_404(request, e)

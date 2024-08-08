@@ -1,7 +1,7 @@
 # Django framework - used for building the web application
 Django>=5.0.6
 
-# PostgreSQL database (What django uses to connect to the database)
+# PostgreSQL database connections (What django uses to connect to the database)
 psycopg2-binary>=2.9.9
 
 # Scientific computing library for Python
@@ -15,9 +15,11 @@ plotly>=5.22.0
 # Data manipulation and analysis library
 # Used for handling and processing data efficiently (used in various parts including panda dataframes)
 pandas>=2.2.2
-
+    
 # Bidirectional dictionary implementation
 # Useful for creating two-way mappings between keys and values (used for translating queries)
 bidict>=0.1.5
 
+# Plotting library
+# For matrix plots
 altair>=5.3.0
