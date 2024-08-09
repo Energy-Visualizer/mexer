@@ -1,7 +1,7 @@
 ####################################################################
 # misc.py contains miscellaneous utility functions for the Mexer project
 #
-# Function included don't neccessarily have a better place to go
+# Function included don't necessarily have a better place to go
 # and aren't big enough to have their own file
 #
 # Because the contents of this file are unrelated,
