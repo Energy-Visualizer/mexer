@@ -1,7 +1,11 @@
 ####################################################################
 # error_pages.py includes all the views for various HTTP error codes
 # 
-# Error codes included are 400, 403, 404, 500
+# Error codes included are
+# - 400 Bad Request
+# - 403 Forbidden
+# - 404 Not Found
+# - 500 Internal Server Error
 # And the error page for if Django has a CSRF issue
 # 
 # Authors:

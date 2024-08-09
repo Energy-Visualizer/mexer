@@ -178,7 +178,19 @@ def user_logout(request):
     return redirect('home')
 
 def forgot_password(request):
-
+    '''Handle password reset 
+    
+    This function manages the initial step if the password reset process.
+    It displays a form for the user to enter their username and, upon submission,
+    sends a password reset email if the user  exists.
+    
+    Inputs:
+        - request: The current HTTP request object.
+    
+    Outputs:
+        - A rendered HTML template with a form for the password reset request page.
+    
+    '''
     if request.method == "GET":
         # start the reset process
         return render(request, "reset.html") # page with form to get which user is requesting the reset
@@ -234,7 +246,19 @@ def forgot_password(request):
         return render(request, "reset_explain.html")
         
 def reset_password(request):
+    """Handle password reset using a reset code.
     
+    This function manages the final step of the password reset process. 
+    It verifies the reset code and updates the user's password if the code is valid.
+    
+    Inputs:
+        - request: the HTTP request object
+        - code: the reset code provided by the user
+    
+    Outputs:
+        -  Rendered HTML response for the password reset submission or a 
+        redirect to the login page if the password was successfully reset.
+    """
     if request.method == "GET":
         form = ResetForm()
         code = request.GET.get("code")
