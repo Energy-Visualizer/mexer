@@ -48,13 +48,14 @@ def get_xy(efficiency_metric: str, target: DatabaseTarget, query: dict,
     # get the respective data from the database
     df = get_translated_dataframe(target, query, fields_to_select)
         
+    
     if df.empty: return None # if no data, return as such
 
     # convert year column to datetime if present
     # and sort on that so that the xy plots come out right
     df["Year"] = pd.to_datetime(df["Year"], format="%Y")
     df = df.sort_values(by="Year")
-
+    
     try:
         # Create the line plot using Plotly Express
         fig = px.line(
@@ -64,6 +65,7 @@ def get_xy(efficiency_metric: str, target: DatabaseTarget, query: dict,
             facet_col=field_mapping.get(facet_col_by),
             facet_row=field_mapping.get(facet_row_by),
             facet_col_spacing=0.05,
+            category_orders={"EnergyType": ["Energy", "Exergy"]},
         )
         
         # Set the y-axis title based on the energy type
@@ -106,7 +108,7 @@ def get_xy(efficiency_metric: str, target: DatabaseTarget, query: dict,
         # Update overall layout
         fig.update_layout(
             plot_bgcolor="white",
-            showlegend=False,
+            showlegend=True,
             margin=dict(l=50, r=50, t=50, b=50),
         )
         
