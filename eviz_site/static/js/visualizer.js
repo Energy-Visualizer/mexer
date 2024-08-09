@@ -3,13 +3,14 @@
  * This function is called when the page loads.
  */
 const initialize = () => {
-    // document.body.addEventListener("htmx:responseError", (detail) => {
-    //     detail.target.innerHTML = "Error";
-    // });
+
+    document.body.addEventListener("htmx:responseError", (error) => {
+        error.detail.target.innerHTML = `Error creating plot! Status code ${error.detail.xhr.status}.\nPlease try again later. Contact information on the about page.`;
+    });
     
-    // document.body.addEventListener("htmx:sendError", (detail) => {
-    //     detail.target.innerHTML = "Error";
-    // });
+    document.body.addEventListener("htmx:sendError", (error) => {
+        error.detail.target.innerHTML = `Error creating plot! Status code ${error.detail.xhr.status}.\nPlease try again later. Contact information on the about page.`;
+    });
 
     document.getElementById("dataset-dropdown").addEventListener("change", (event) => {
         if (document.getElementById("dataset-dropdown").value.startsWith("sDB:")) {

@@ -69,7 +69,9 @@ def user_signup(request):
             # send the email and make sure it was successful
             # 0 is failure
             if msg.send() == 0:
-                LOGGER.error(f"Couldn't send signup email to {new_user_email}")      
+                LOGGER.error(f"Couldn't send signup email to {new_user_email}")
+                messages.add_message(request, messages.INFO, "Couldn't send verification email. Please try again later.")
+                return redirect("signup")
             else:
                 LOGGER.info(f"Signup email sent to {new_user_email}.")
 
@@ -97,10 +99,12 @@ def verify_email(request):
         code = request.GET.get("code")
 
         new_user = None
+
+        EvizUser.objects.filter()
         try: 
             new_user = EmailAuthCode.objects.get(code = code) # try to get associated user from code
-        except Exception as e: 
-            return error_400(request, e) # bad request, no new user found
+        except Exception as e:
+            pass # bad request, no new user found, let the code below handle this
 
         if new_user:
             # if there is an associated user, set up their account
@@ -111,7 +115,7 @@ def verify_email(request):
             messages.add_message(request, messages.INFO, "Verification was successful!")
             LOGGER.info(f"{account_info.get('username')} account created.")
         else:
-            messages.add_message(request, messages.INFO, "Bad verification code!")
+            messages.add_message(request, messages.INFO, "Didn't find user to set up. Account may have already been verified.")
 
     return redirect("login")
 
@@ -209,8 +213,16 @@ def forgot_password(request):
                 content = f"<p>Please <a href='{url}'>click here</a> to reset your Mexer password.</p>",
                 mimetype = "text/html"
             )
-            msg.send()
-            LOGGER.info(f"Successfully sent password reset email for {username}")
+
+            # send the email and make sure it was successful
+            # 0 is failure
+            if msg.send() == 0:
+                LOGGER.error(f"Couldn't send password reset email for {username}")
+                messages.add_message(request, messages.INFO, "Couldn't send password reset email. Please try again later.")
+                return redirect("forgot_password")
+            else:
+                LOGGER.info(f"Successfully sent password reset email for {username}")
+
         
         # NOTE: this is not in a final block because
         # django will not send any exceptions in the else
@@ -247,9 +259,6 @@ def reset_password(request):
         
         user.set_password(ps1)
         user.save()
-
-        # if no errors getting the user,
-        # delete the cooresponding row
-        pass_reset_row.delete()
+        pass_reset_row.delete() # if no errors getting the user, delete the cooresponding row
 
         return redirect("login")
