@@ -55,7 +55,7 @@ def matrix_info(request):
     return render(request, 'matrix_info.html', context = {"matricies":matricies})
 
 from eviz_site.settings import STATIC_BASE
-def handle_static(request, filepath):
+def handle_static(request, filepath: str):
     """Serve CSS static files directly from a specified directory.
 
     This function reads a CSS file from a static files directory
@@ -79,7 +79,7 @@ def handle_static(request, filepath):
             mime_type = "text/css"
         
         case "images" | "img":
-            mime_type = "image"
+            mime_type = "image/svg" if filepath.endswith("svg") else "image"
             
         case "js":
             mime_type = "text/javascript"
