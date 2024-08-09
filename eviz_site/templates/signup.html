@@ -36,6 +36,7 @@
         <h1>Sign up</h1>
         <form method="POST">
           {% csrf_token %}
+          {% for error_message in form.errors.values %} {{ error_message }} {% endfor %}
           <div class="form-group">
             {{ form.username.label_tag }} {{ form.username }}
           </div>
@@ -63,8 +64,6 @@
               I agree to the <a href={% url 'terms_and_conditions' %}>terms and conditions</a>.
             </label>
           </div>
-          {% for error_message in form.errors.values %} {{ error_message }}
-          {%endfor %}
           <button type="submit">Sign up</button>
           <p>
             Already have an account?

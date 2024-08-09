@@ -12,9 +12,9 @@
 #       Edom Maru - eam43@calvin.edu 
 #####################
 from utils.logging import LOGGER
-from eviz.forms import SignupForm, LoginForm
+from eviz.forms import SignupForm, LoginForm, ResetForm
 from eviz.views.error_pages import *
-from utils.misc import new_email_code, new_reset_code, valid_passwords
+from utils.misc import new_email_code, new_reset_code
 from django.core.mail import EmailMultiAlternatives # for email verification
 from eviz.models import EmailAuthCode, PassResetCode, EvizUser
 import pickle
@@ -70,7 +70,7 @@ def user_signup(request):
             # 0 is failure
             if msg.send() == 0:
                 LOGGER.error(f"Couldn't send signup email to {new_user_email}")
-                messages.add_message(request, messages.INFO, "Couldn't send verification email. Please try again later.")
+                messages.add_message(request, messages.ERROR, "Couldn't send verification email. Please try again later.")
                 return redirect("signup")
             else:
                 LOGGER.info(f"Signup email sent to {new_user_email}.")
@@ -218,7 +218,7 @@ def forgot_password(request):
             # 0 is failure
             if msg.send() == 0:
                 LOGGER.error(f"Couldn't send password reset email for {username}")
-                messages.add_message(request, messages.INFO, "Couldn't send password reset email. Please try again later.")
+                messages.add_message(request, messages.ERROR, "Couldn't send password reset email. Please try again later.")
                 return redirect("forgot_password")
             else:
                 LOGGER.info(f"Successfully sent password reset email for {username}")
@@ -236,28 +236,26 @@ def forgot_password(request):
 def reset_password(request):
     
     if request.method == "GET":
+        form = ResetForm()
         code = request.GET.get("code")
-        return render(request, "reset-submit.html", context = {"code": code})
+        return render(request, "reset-submit.html", context = {"code": code, "form": form})
     
     elif request.method == "POST":
-        ps1 = request.POST.get("password1")
-        ps2 = request.POST.get("password2")
+        form = ResetForm(request.POST)
         code = request.POST.get("code")
-
-        if not valid_passwords(ps1, ps2):
-            # TODO: have more descriptive messages about why password(s) not valid
-            messages.add_message(request, messages.ERROR, "Passwords not valid!")
-            return render(request, "reset-submit.html", context = {"code": code})
+    
+        if not form.is_valid():
+            return render(request, "reset-submit.html", context = {"code": code, "form": form})
         
         # try to get the user with the information provided
         try:
             pass_reset_row = PassResetCode.objects.get(code = code)
             user = pass_reset_row.user
         except Exception as e:
-            # bad request, no user found
-            return error_400(request, e)
+            return error_400(request, e) # bad request, no user found
         
-        user.set_password(ps1)
+        # if no errors, set up the new password
+        user.set_password(form.cleaned_data.get("password1"))
         user.save()
         pass_reset_row.delete() # if no errors getting the user, delete the cooresponding row
 

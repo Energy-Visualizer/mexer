@@ -104,21 +104,6 @@ def new_reset_code(user: EvizUser) -> str:
     PassResetCode(code = code, user = user).save() # save code and user to database
     return code
 
-def valid_passwords(password1: str, password2: str) -> bool:
-    
-    return (
-        isinstance(password1, str) and isinstance(password2, str)
-        and
-        password1 == password2 # passwords must be the same
-        and
-        len(password1) >= 8 # password must be at least 8 characters
-        and
-        sum([c.isnumeric() for c in password1]) > 0 # password must have at least one number
-        and
-        sum([c.isupper() for c in password1]) > 0 # password must have at least one capital letter
-    )
-
-
 from django.contrib.auth.models import User
 from eviz_site.settings import IEA_TABLES
 def iea_valid(user: User, query: dict) -> bool:

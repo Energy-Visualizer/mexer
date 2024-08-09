@@ -29,7 +29,6 @@
         <h1>Reset Password</h1>
         <p>
           Please input your password twice in the boxes to the right to finish resetting your password.
-          Note: passwords much match, be at least 8 characters long, and have at least one capital letter and one number.
         </p>
       </div>
       <div class="login-box">
@@ -37,9 +36,10 @@
         <form method="POST">
           {% csrf_token %}
           <input type="hidden" name="code" value={{ code }}>
-          <input type="password" placeholder="New Password" name="password1" required>
-          <input type="password" placeholder="Confirm New Password" name="password2" required>
+          {{ form.password1 }}
+          {{ form.password2 }}
           {% for error_message in messages %} <p>{{ error_message }}</p> {% endfor %}
+          {% for error_message in form.errors.values %} {{ error_message }} {% endfor %}
           <button type="submit">Reset Password</button>
         </form>
       </div>
