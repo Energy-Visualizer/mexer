@@ -79,7 +79,9 @@ def handle_static(request, filepath: str):
             mime_type = "text/css"
         
         case "images" | "img":
-            mime_type = "image/svg" if filepath.endswith("svg") else "image"
+            # filepath.split(".")[-1] is the last part of the file, i.e. the handle like jpeg, png, etc.
+            # if the handle is svg, the mime must be image/svg+xml
+            mime_type = f"image/{filepath.split(".")[-1] if not filepath.endswith("svg") else "svg+xml"}"
             
         case "js":
             mime_type = "text/javascript"
