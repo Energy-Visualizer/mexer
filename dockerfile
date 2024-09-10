@@ -9,7 +9,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Bring in all the source code
 # TODO: is the the best way to get the pgpass permissions to work
 # The --chmod=0600 sets read/write permissions for the owner only
-COPY --chmod=0600 ./eviz_site/ .
+COPY --chmod=0600 ./Mexer_site/ .
 
 
 # Set environment variables

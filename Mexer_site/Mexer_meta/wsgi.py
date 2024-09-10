@@ -1,5 +1,5 @@
 """
-WSGI config for eviz_site project.
+WSGI config for Mexer project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'eviz_site.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Mexer_meta.settings')
 
 application = get_wsgi_application()

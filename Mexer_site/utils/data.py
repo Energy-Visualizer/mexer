@@ -24,13 +24,13 @@
 #       Kenny Howes - kmh67@calvin.edu
 #       Edom Maru - eam43@calvin.edu 
 #####################
-from eviz.models import models, PSUT, IEAData, AggEtaPFU
+from Mexer.models import models, PSUT, IEAData, AggEtaPFU
 import pandas as pd
 from utils.misc import Silent
 import pandas.io.sql as pd_sql  # for getting data into a pandas dataframe
 from django.db import connections
 from utils.translator import Translator
-from eviz_site.settings import DATABASES, SANDBOX_PREFIX
+from Mexer_meta.settings import DATABASES, SANDBOX_PREFIX
 
 DatabaseTarget = tuple[str, models.Model]
 

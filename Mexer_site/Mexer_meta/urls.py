@@ -1,5 +1,5 @@
 """
-URL configuration for eviz_site project.
+URL configuration for Mexer project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/5.0/topics/http/urls/
@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls import handler404, handler500, handler403, handler400
-import eviz.views.error_pages as error_pages
+import Mexer.views.error_pages as error_pages
 
 handler400 = error_pages.error_400
 handler403 = error_pages.error_403

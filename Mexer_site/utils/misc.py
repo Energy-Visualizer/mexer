@@ -105,7 +105,7 @@ def new_reset_code(user: EvizUser) -> str:
     return code
 
 from django.contrib.auth.models import User
-from eviz_site.settings import IEA_TABLES
+from Mexer_meta.settings import IEA_TABLES
 def iea_valid(user: User, query: dict) -> bool:
     '''Ensure that a give user's query does not give out IEA data if not authorized
 

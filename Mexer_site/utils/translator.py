@@ -18,8 +18,8 @@ from bidict import bidict
 from django.apps import apps
 from utils.logging import LOGGER
 from datetime import datetime, timedelta
-from eviz.models import Dataset
-from eviz_site.settings import SANDBOX_PREFIX, IEA_TABLES
+from Mexer.models import Dataset
+from Mexer_meta.settings import SANDBOX_PREFIX, IEA_TABLES
 
 # how long to cache information from the database 
 # in *hours*

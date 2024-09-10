@@ -14,9 +14,9 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from utils.misc import time_view, iea_valid, get_plot_title
 from utils.logging import LOGGER
-from eviz.models import EvizUser, Version, AggEtaPFU
+from Mexer.models import EvizUser, Version, AggEtaPFU
 from utils.translator import Translator
-from eviz_site.settings import SANDBOX_PREFIX
+from Mexer_meta.settings import SANDBOX_PREFIX
 from django.shortcuts import render
 from utils.data import *
 from django.http import HttpResponse

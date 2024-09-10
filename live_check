@@ -3,7 +3,7 @@
 RED="\033[31m"
 GREEN="\033[32m"
 
-if grep -q "DEBUG\s*=\s*True" ./eviz_site/eviz_site/settings.py; then
+if grep -q "DEBUG\s*=\s*True" ./Mexer_site/Mexer_meta/settings.py; then
     printf "${RED}Debug is set to True in settings.py. Please set it to False.\n";
     exit;
 fi

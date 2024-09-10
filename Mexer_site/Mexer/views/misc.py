@@ -54,7 +54,7 @@ def matrix_info(request):
     matricies = matname.objects.all()
     return render(request, 'matrix_info.html', context = {"matricies":matricies})
 
-from eviz_site.settings import STATIC_BASE
+from Mexer_meta.settings import STATIC_BASE
 def handle_static(request, filepath: str):
     """Serve CSS static files directly from a specified directory.
 

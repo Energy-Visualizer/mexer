@@ -3,7 +3,7 @@
 # 
 # It is 2 lines. It gives developers a logger to use called LOGGER.
 #
-# The logging format is defined in eviz_site/settings.py
+# The logging format is defined in Mexer_meta/settings.py
 #
 # Use: LOGGER.info("message"), LOGGER.warn("message"), etc.
 # It is built on python's native logging system, so it can use those functions
