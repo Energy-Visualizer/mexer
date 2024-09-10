@@ -76,7 +76,7 @@ class Translator:
         LOGGER.info(f"Loading and caching {database}:{model_name} for {id_field} <-> {name_field}")
 
         # Get the model class dynamically
-        model = apps.get_model(app_label='eviz', model_name=model_name)
+        model = apps.get_model(app_label='Mexer', model_name=model_name)
 
         # Create a bidict with name:id pairs
         Translator.__translations[database + ":" + model_name] = (

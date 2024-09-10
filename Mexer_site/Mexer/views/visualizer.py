@@ -44,7 +44,7 @@ def visualizer(request):
     LOGGER.info("Visualizer page visted.")
 
     # see if the user is iea approved
-    iea_user = request.user.is_authenticated and request.user.has_perm("eviz.get_iea")
+    iea_user = request.user.is_authenticated and request.user.has_perm("Mexer.get_iea")
     
     # see if the user is an admin to get access to SandboxDB table
     try:

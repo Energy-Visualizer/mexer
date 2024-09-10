@@ -75,8 +75,8 @@ class Silent():
 
 from uuid import uuid4
 import pickle
-from eviz.models import EmailAuthCode, PassResetCode, EvizUser
-from eviz.forms import SignupForm
+from Mexer.models import EmailAuthCode, PassResetCode, EvizUser
+from Mexer.forms import SignupForm
 def new_email_code(account_info: SignupForm) -> str:
     """Generate a new email verification code and save associated account information.
 
@@ -128,7 +128,7 @@ def iea_valid(user: User, query: dict) -> bool:
         # authorized to get proprietary data
         (
             user.is_authenticated
-            and user.has_perm("eviz.get_iea")
+            and user.has_perm("Mexer.get_iea")
         )
     )
 

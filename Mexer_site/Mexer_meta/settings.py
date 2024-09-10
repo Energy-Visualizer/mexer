@@ -31,7 +31,7 @@ ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
-CSRF_FAILURE_VIEW = "eviz.views.error_pages.csrf_failure"
+CSRF_FAILURE_VIEW = "Mexer.views.error_pages.csrf_failure"
 
 # Application definition
 
@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    "eviz"
+    "Mexer"
 ]
 
 MIDDLEWARE = [
@@ -106,7 +106,7 @@ DATABASES = {
 
 }
 
-DATABASE_ROUTERS = ["eviz.routers.DatabaseRouter"]
+DATABASE_ROUTERS = ["Mexer.routers.DatabaseRouter"]
 
 
 # Password validation
@@ -138,7 +138,7 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # NOT used in the Django way...
-# see eviz/views/misc.py for how statics are handled
+# see Mexer/views/misc.py for how statics are handled
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
@@ -180,7 +180,7 @@ LOGGING = {
         }
     },
     "loggers": {
-        "eviz_default": {
+        "Mexer_default": {
             "level": "DEBUG",
             "handlers": ["file"]
         } 

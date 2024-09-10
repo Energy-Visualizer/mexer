@@ -14,4 +14,4 @@
 #####################
 import logging
 
-LOGGER = logging.getLogger("eviz_default")
+LOGGER = logging.getLogger("Mexer_default")

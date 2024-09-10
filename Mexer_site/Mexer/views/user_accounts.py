@@ -12,11 +12,11 @@
 #       Edom Maru - eam43@calvin.edu 
 #####################
 from utils.logging import LOGGER
-from eviz.forms import SignupForm, LoginForm, ResetForm
-from eviz.views.error_pages import *
+from Mexer.forms import SignupForm, LoginForm, ResetForm
+from Mexer.views.error_pages import *
 from utils.misc import new_email_code, new_reset_code
 from django.core.mail import EmailMultiAlternatives # for email verification
-from eviz.models import EmailAuthCode, PassResetCode, EvizUser
+from Mexer.models import EmailAuthCode, PassResetCode, EvizUser
 import pickle
 from django.contrib import messages
 from django.shortcuts import render, redirect

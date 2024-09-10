@@ -14,8 +14,8 @@
 from utils.misc import time_view
 from utils.logging import LOGGER
 from django.shortcuts import render
-from eviz.models import Dataset, matname
-from eviz.views.error_pages import *
+from Mexer.models import Dataset, matname
+from Mexer.views.error_pages import *
 from django.http import HttpResponse
 
 

@@ -13,7 +13,7 @@
 import plotly.graph_objects as pgo
 from scipy.sparse import coo_matrix
 from utils.data import _query_database, DatabaseTarget
-from eviz.models import PSUT, Index
+from Mexer.models import PSUT, Index
 from utils.translator import Translator
 
 def get_matrix(target: DatabaseTarget, query: dict) -> coo_matrix:

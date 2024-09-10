@@ -1,9 +1,9 @@
 from django.urls import path, re_path
 from django.views.generic.base import RedirectView
-import eviz.views.history as history_views
-import eviz.views.misc as misc_views
-import eviz.views.user_accounts as accounts_views
-import eviz.views.visualizer as visualizer_views
+import Mexer.views.history as history_views
+import Mexer.views.misc as misc_views
+import Mexer.views.user_accounts as accounts_views
+import Mexer.views.visualizer as visualizer_views
 
 favicon_view = RedirectView.as_view(url='/static/images/favicon.png', permanent=True)
 

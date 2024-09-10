@@ -1,5 +1,5 @@
 from django.contrib.admin import action as admin_action, site as admin_site
-from eviz.models import EvizUser
+from Mexer.models import EvizUser
 from django.contrib.auth.models import Permission
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.messages import success as success_message
@@ -60,7 +60,7 @@ class IEAAdmin(UserAdmin):
 
     def iea_approved(self, obj: EvizUser) -> bool:
         """Determine if a user has IEA permissions."""
-        return obj.has_perm("eviz.get_iea")
+        return obj.has_perm("Mexer.get_iea")
     iea_approved.boolean = True # to show it as a checkmark / x symbol
 
 # Register controls what shows up on the admin page
@@ -68,5 +68,5 @@ class IEAAdmin(UserAdmin):
 # has IEAAdmin permissions, if they are also staff
 admin_site.register(EvizUser, IEAAdmin)
 
-from eviz.models import EmailAuthCode, PassResetCode
+from Mexer.models import EmailAuthCode, PassResetCode
 admin_site.register((EmailAuthCode, PassResetCode))

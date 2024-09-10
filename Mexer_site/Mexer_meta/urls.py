@@ -30,6 +30,6 @@ admin.site.site_title = "Mexer Admin Portal"
 admin.site.index_title = "Mexer Admin"
 
 urlpatterns = [
-    path('', include("eviz.urls")),
+    path('', include("Mexer.urls")),
     path('admin/', admin.site.urls)
 ]

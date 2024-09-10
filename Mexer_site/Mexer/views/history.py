@@ -15,7 +15,7 @@ from utils.history import get_user_history, get_history_html
 from django.http import HttpResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
-from eviz.views.error_pages import *
+from Mexer.views.error_pages import *
 import pickle
 
 def render_history(request):
