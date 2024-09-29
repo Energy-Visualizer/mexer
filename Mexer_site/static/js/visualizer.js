@@ -3,7 +3,9 @@
  * This function is called when the page loads.
  */
 const initialize = () => {
-
+    
+    // let htmx give a general error response when something goes wrong with 
+    // some data
     document.body.addEventListener("htmx:responseError", (error) => {
         error.detail.target.innerHTML = `Error creating plot! Status code ${error.detail.xhr.status}.\nPlease try again later. Contact information on the about page.`;
     });
@@ -12,6 +14,8 @@ const initialize = () => {
         error.detail.target.innerHTML = `Error creating plot! Status code ${error.detail.xhr.status}.\nPlease try again later. Contact information on the about page.`;
     });
 
+    // switch version dropdowns if user is looking at a sandbox or regular
+    // dataset
     document.getElementById("dataset-dropdown").addEventListener("change", (event) => {
         if (document.getElementById("dataset-dropdown").value.startsWith("sDB:")) {
             document.getElementById("sandbox-version-dropdown").hidden = false;
@@ -205,15 +209,27 @@ function refreshHistory() {
 }
 
 let plotWindow = null;
+let plotWindowLoaded = false;
 const plotInNewWindow = () => {
     // get the plot html to insert into the plot window
     const plotHTML = document.getElementById("plot-section").outerHTML;
 
     // if the plot was closed, set it to null to reopen
-    if (plotWindow?.closed)
+    if (plotWindow?.closed) {
         plotWindow = null;
+        plotWindowLoaded = false;
+    }
 
     // make a new plot window if need be and give it the plotHtml content
     plotWindow ??= window.open("/plot-stage", '_blank', 'location=yes,height=600,width=600,scrollbars=yes,status=yes');
-    plotWindow.document.body.innerHTML = plotHTML;
+    // use insertAdjacentHTML() to parse the plotHTML and insert the proper 
+    // nodes into the new window DOM
+    plotWindow.onload = (e) => {
+        plotWindow.document.body.insertAdjacentHTML("afterbegin", plotHTML);
+        plotWindowLoaded = true;
+    };
+
+    if (plotWindowLoaded)
+        plotWindow.document.body.innerHTML = plotHTML;
 };
+
