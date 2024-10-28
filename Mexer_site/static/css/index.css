@@ -45,6 +45,8 @@ div.center-item {
 .highlight:hover {
     background-color: #393E46;
     color: #00ADB5;
+
+
 }
 
 article.light {
@@ -67,6 +69,22 @@ div.center-item>a:visited {
 
 div.center-item>a:hover {
     color: #63e5ec;
+}
+
+div.citations-container {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+}
+
+.thanks-grid {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+}
+
+@media (width <= 768px) {
+  div.citations-container {
+    grid-template-columns: auto;
+  }
 }
 
 #get-started {
@@ -103,6 +121,29 @@ div.information>article {
     padding-top: 0;
     padding-bottom: 0;
     transition: background-color 0.5s ease, color 0.5s ease;
+
+    &:last-of-type {
+      padding-bottom: 2rem;
+    }
+}
+
+.papers-container:hover {
+  p {
+    background-color: #496666;
+  }
+}
+
+.papers-container p {
+  padding: 10px;
+  background-color: #499999;
+
+  &:first-of-type {
+    border-radius: 10px 10px 0 0;
+  }
+
+  &:last-of-type {
+    border-radius: 0 0 10px 10px;
+  }
 }
 
 article>h3 {
