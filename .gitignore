@@ -9,3 +9,5 @@ db.sqlite3
 migrations
 
 general.log
+
+mexer_venv
