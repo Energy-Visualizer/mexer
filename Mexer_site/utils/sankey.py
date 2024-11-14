@@ -18,6 +18,8 @@ from Mexer_meta.settings import SANKEY_COLORS_PATH
 from utils.logging import LOGGER
 
 INDUSTRY_COLOR = "midnightblue"
+OVERRIDE_COL = 1 # where to put energy carrier nodes
+OVERRIDE_COL_ON = False # only affects energy carrier columns
 
 with open(SANKEY_COLORS_PATH) as f:
     SANKEY_COLORS: dict[str, str] = json.loads(f.read())
@@ -36,7 +38,7 @@ def _get_sankey_node_info(
         label_num: int, label_col: int,
         node_list: list[list], idx_dict: dict, label_info_dict: dict,
         translator: Translator,
-        carrier: bool
+        carrier: bool,
 ):
     name = translator.index_translate(label_num)
     # try to get saved information about the label
@@ -59,7 +61,7 @@ def _get_sankey_node_info(
         node_idx = label_info[0]
     
 
-    return node_idx, label_col
+    return (node_idx, label_col)
 
 def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str] | tuple[None, None, None]:
     ''' Gets a sankey diagram for a query
@@ -132,21 +134,21 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str] | tu
         match(translator.matname_translate(matname)):
             case("R"):
                 from_node_col = 0
-                to_node_col = 1
+                to_node_col = 1 if not OVERRIDE_COL_ON else OVERRIDE_COL
                 carrier_col = True
 
             case("U"):
-                from_node_col = 1
+                from_node_col = 1 if not OVERRIDE_COL_ON else OVERRIDE_COL
                 to_node_col = 2
                 carrier_row = True
 
             case("V"):
                 from_node_col = 2
-                to_node_col = 3
+                to_node_col = 3 if not OVERRIDE_COL_ON else OVERRIDE_COL
                 carrier_col = True
 
             case("Y"):
-                from_node_col = 3
+                from_node_col = 3 if not OVERRIDE_COL_ON else OVERRIDE_COL
                 to_node_col = 4
                 carrier_row = True
 
