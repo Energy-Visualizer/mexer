@@ -1,11 +1,8 @@
 from django.urls import path, re_path
-from django.views.generic.base import RedirectView
 import Mexer.views.history as history_views
 import Mexer.views.misc as misc_views
 import Mexer.views.user_accounts as accounts_views
 import Mexer.views.visualizer as visualizer_views
-
-favicon_view = RedirectView.as_view(url='/static/images/favicon.png', permanent=True)
 
 urlpatterns = [
     # main pages
@@ -34,6 +31,5 @@ urlpatterns = [
     path('data-info/', misc_views.data_info, name="data-info"),
     path('matrix-info/', misc_views.matrix_info, name="matrix-info"),
     re_path(r"static/(.*/[^(\.)]*\..*)", misc_views.handle_static),
-    path("favicon.ico", favicon_view),
     path("plot-stage/", misc_views.plot_stage),
 ]
