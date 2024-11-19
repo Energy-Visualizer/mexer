@@ -13,6 +13,19 @@ body {
     box-sizing: border-box;
     display: flex;
     height: 50px;
+
+    a, p {
+        text-align: center;
+        padding: 15px;
+        width: 75px;
+        color: #00adb5;
+        text-decoration: none;
+    }
+
+    p {
+      margin-right: 5px;
+      width: max-content;
+    }
 }
 
 .topbar .left {
@@ -25,14 +38,6 @@ body {
     align-items: center;
 }
 
-.topbar a,
-.topbar p {
-    text-align: center;
-    padding: 15px;
-    width: 75px;
-    color: #00adb5;
-    text-decoration: none;
-}
 
 .topbar a.main {
     font-size: 30px;
