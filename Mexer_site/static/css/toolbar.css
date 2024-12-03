@@ -20,11 +20,7 @@ body {
         width: 75px;
         color: #00adb5;
         text-decoration: none;
-    }
-
-    p {
-      margin-right: 5px;
-      width: max-content;
+        width: max-content;
     }
 }
 

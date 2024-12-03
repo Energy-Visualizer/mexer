@@ -14,7 +14,7 @@
   </head>
 
   <body>
-    <div class="topbar">
+    <nav class="topbar">
       <div class="left">
         <a class="main" href="{% url 'home' %}">Mexer</a>
       </div>
@@ -31,7 +31,7 @@
         <p style="color: #33ebed">{{ request.user.username.upper }}</p>
         {% endif %}
       </div>
-    </div>
+    </nav>
 
     <div id="heading-box">
       <svg viewBox="0 0 500 10" preserveAspectRatio="xMinYMin meet">
@@ -48,14 +48,14 @@
       <div id="para-bg-1" class="para-bg"></div>
       <div id="para-bg-0" class="para-bg"></div>
 
-      <div id="title">
+      <header id="title">
         <span class="energy-effect"></span>
         <p class="welcome-text">Welcome to</p>
         <h1>
           Mexer
         </h1>
         <h2>Materials and Energy eXERgy visualizer</h2>
-      </div>
+      </header>
 
       <div class="center-item">
         <a href="{% url 'visualizer' %}"
