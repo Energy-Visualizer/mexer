@@ -128,7 +128,7 @@ def iea_valid(user: User, query: dict) -> bool:
         # authorized to get proprietary data
         (
             user.is_authenticated
-            and user.has_perm("Mexer.get_iea")
+            and user.has_perm("eviz.get_iea")
         )
     )
 

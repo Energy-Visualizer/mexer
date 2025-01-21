@@ -62,7 +62,7 @@ class IEAAdmin(UserAdmin):
 
     def iea_approved(self, obj: EvizUser) -> bool:
         """Determine if a user has IEA permissions."""
-        return obj.has_perm("Mexer.get_iea")
+        return obj.has_perm("eviz.get_iea")
     iea_approved.boolean = True # to show it as a checkmark / x symbol
 
 # Register controls what shows up on the admin page

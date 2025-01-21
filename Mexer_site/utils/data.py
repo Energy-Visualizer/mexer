@@ -26,6 +26,7 @@
 #####################
 from Mexer.models import models, PSUT, IEAData, AggEtaPFU
 import pandas as pd
+from utils.logging import LOGGER
 from utils.misc import Silent
 import pandas.io.sql as pd_sql  # for getting data into a pandas dataframe
 from django.db import connections
@@ -58,6 +59,8 @@ def _query_database(target: DatabaseTarget, query: dict, values: list[str]):
         .values_list(*values)
         .filter(**query)
     )
+
+    LOGGER.debug(f"Query is {query}")
 
     return data
 
@@ -239,7 +242,7 @@ def translate_query(
         translated_query["LastStage"] = translator.laststage_translate(v)
     # includes neu either is in the query or not, it's value does need to be more than empty string, though
     translated_query["IncludesNEU"] = translator.includesNEU_translate(
-        bool(query.get("includes_neu")))
+        bool(query.get("including_neu")))
     if v := query.get("chopped_mat"):
         translated_query["ChoppedMat"] = translator.matname_translate(v)
     if v := query.get("chopped_var"):
@@ -271,4 +274,5 @@ def translate_query(
         else:
             translated_query["matname"] = translator.matname_translate(v)
 
+    LOGGER.debug(f"Translated query: {translated_query}")
     return translated_query

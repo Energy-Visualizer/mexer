@@ -44,12 +44,13 @@ def visualizer(request):
     LOGGER.info("Visualizer page visted.")
 
     # see if the user is iea approved
-    iea_user = request.user.is_authenticated and request.user.has_perm("Mexer.get_iea")
+    iea_user = request.user.is_authenticated and request.user.has_perm("eviz.get_iea")
     
     # see if the user is an admin to get access to SandboxDB table
     try:
         admin_user = EvizUser.objects.get_by_natural_key(request.user.username).is_staff
-    except:
+    except Exception as e:
+        print(e)
         admin_user = False
 
     # Fetch all available options for various parameters from the Translator
