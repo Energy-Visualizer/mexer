@@ -152,7 +152,7 @@ STATIC_BASE = BASE_DIR / "static"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CSRF_TRUSTED_ORIGINS = ['https://eviz.cs.calvin.edu', "https://*.mexer.site"]
+CSRF_TRUSTED_ORIGINS = ["https://*.mexer.site"]
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
