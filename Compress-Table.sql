@@ -17,24 +17,24 @@ BEGIN
 		-- ensure table is locked to prevent race condition
 		query := FORMAT('LOCK TABLE %I IN ACCESS EXCLUSIVE MODE; ' ||
 		
-						'CREATE TEMPORARY TABLE compressed_set AS (' ||
-					 		'SELECT MIN(%I), MAX(%I), %s ' ||
-					 		'FROM %I GROUP BY %s); ' ||
-					 	
-					 	'TRUNCATE TABLE %I; ' ||
-					 	
-					 	'INSERT INTO %I (%I, %I, %s) ' ||
-					 	'SELECT * FROM compressed_set; ' ||
-					 	
-					 	'DROP TABLE compressed_set;',
-					 	target,
-				 		version_from_col, version_to_col, cols,
-				 		target, cols,
-				 		target,
-				 		target, version_from_col, version_to_col, cols);
-	
+                    'CREATE TEMPORARY TABLE compressed_set AS (' ||
+                      'SELECT MIN(%I), MAX(%I), %s ' ||
+                      'FROM %I GROUP BY %s); ' ||
+
+                    'TRUNCATE TABLE %I; ' ||
+
+                    'INSERT INTO %I (%I, %I, %s) ' ||
+                    'SELECT * FROM compressed_set; ' ||
+
+                    'DROP TABLE compressed_set;',
+                    target,
+                    version_from_col, version_to_col, cols,
+                    target, cols,
+                    target,
+                    target, version_from_col, version_to_col, cols);
+
 		EXECUTE query;
-	
+
 		-- catch exceptions in transaction and revert for safety
 		EXCEPTION WHEN OTHERS THEN
 			ROLLBACK;
