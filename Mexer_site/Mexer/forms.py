@@ -1,5 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
+
+from utils.logging import LOGGER
 from .models import EvizUser
 from django.contrib.auth.password_validation import validate_password
 
@@ -8,6 +10,9 @@ PASSWORD_PATTERN = r"(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
 # no period at end of title because browsers add the period automatically ??
 PASSWORD_TITLE = "At least one number, one lowercase character, and one uppercase character. At least 8 characters long"
 
+########## 
+# Form for user sign up 
+######
 class SignupForm(UserCreationForm):
     """ Custom form for user registration
     
@@ -53,11 +58,30 @@ class SignupForm(UserCreationForm):
         widget=forms.PasswordInput(attrs={'placeholder': 'Confirm Password', 'pattern': PASSWORD_PATTERN, 'title': PASSWORD_TITLE})
     )
 
+    honeypot = forms.CharField(
+        label="validation-user-password-credential",
+        required=False,
+        widget=forms.TextInput()
+    )
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+
+        if (hp := cleaned_data.get("honeypot")) != "":
+            LOGGER.warning(f"Honeypot field set! Value: {hp}")
+            cleaned_data["honeypot-tripped"] = True;
+
+        return cleaned_data
+
     class Meta:
         # Use the custom custom user model
         model = EvizUser 
         fields = ['username', 'email', 'password1', 'password2', 'institution_type', 'institution_name', 'country']
 
+
+########## 
+# Form for users wanting to reset their password
+######
 class ResetForm(forms.ModelForm):
 
     password1 = forms.CharField(
@@ -95,6 +119,10 @@ class ResetForm(forms.ModelForm):
         model = EvizUser
         fields = ['password1', 'password2']
 
+
+########## 
+# Form for user log ins
+######
 class LoginForm(forms.Form):
     """Custom form foruser login.
     

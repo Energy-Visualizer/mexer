@@ -43,6 +43,10 @@ def user_signup(request):
         # Create a form instance with the submitted data
         form = SignupForm(request.POST)
         if form.is_valid():
+
+            # Check honeypot and simply stop early if tripped
+            if form.cleaned_data.get("honeypot-tripped"):
+                return render(request, 'index.html')
             
             # Extract the email from the cleaned form data
             new_user_email = form.cleaned_data.get("email")
