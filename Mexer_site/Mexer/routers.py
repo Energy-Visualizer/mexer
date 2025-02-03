@@ -4,14 +4,24 @@ class DatabaseRouter:
     This router directs database operations for authentication and 
     user-specific models to a specific database.
     """
+
+    # Django's authorization/authentication apps
     AUTH_APPS = ["auth", "sessions", "contenttypes", "admin"]
+
+    # Models to go to the Users DB
     USERS_DB_MODEL_NAMES = ["EvizUser", "EmailAuthCode", "PassResetCode"]
+
+    # Contains every app name that should be routed to the Users db 
+    ALL_USERS_APPS = AUTH_APPS + ["captcha"]
+
+    # Contains every model that should be routed to the Users db 
+    ALL_USERS_MODELS = USERS_DB_MODEL_NAMES
 
     def db_for_read(self, model, **hints):
         """ Database for read operations."""
 
         # everything for user auth
-        if model._meta.app_label in self.AUTH_APPS or model.__name__ in self.USERS_DB_MODEL_NAMES:
+        if model._meta.app_label in self.ALL_USERS_APPS or model.__name__ in self.ALL_USERS_MODELS:
             return "users"
         return None # None will go to default db
 
@@ -19,7 +29,7 @@ class DatabaseRouter:
     def db_for_write(self, model, **hints):
 
         # everything for user auth
-        if model._meta.app_label in self.AUTH_APPS or model.__name__ in self.USERS_DB_MODEL_NAMES:
+        if model._meta.app_label in self.ALL_USERS_APPS or model.__name__ in self.ALL_USERS_MODELS:
             return "users"
         return None # None will go to default db
 

@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = environ["django_secret_key"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
@@ -32,6 +32,8 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
 CSRF_FAILURE_VIEW = "Mexer.views.error_pages.csrf_failure"
+
+CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.word_challenge'
 
 # Application definition
 
@@ -42,7 +44,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    "Mexer"
+    "Mexer",
+    "captcha"
 ]
 
 MIDDLEWARE = [

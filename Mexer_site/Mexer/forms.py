@@ -5,6 +5,8 @@ from utils.logging import LOGGER
 from .models import EvizUser
 from django.contrib.auth.password_validation import validate_password
 
+from captcha.fields import CaptchaField
+
 # at least one number, one lowercase, one uppercase, and at least 8 chars long
 PASSWORD_PATTERN = r"(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
 # no period at end of title because browsers add the period automatically ??
@@ -58,16 +60,18 @@ class SignupForm(UserCreationForm):
         widget=forms.PasswordInput(attrs={'placeholder': 'Confirm Password', 'pattern': PASSWORD_PATTERN, 'title': PASSWORD_TITLE})
     )
 
-    honeypot = forms.CharField(
+    # Security fields
+    validation_user_password_credential = forms.CharField(
         label="validation-user-password-credential",
         required=False,
         widget=forms.TextInput()
     )
+    captcha = CaptchaField()
 
     def clean(self):
         cleaned_data = self.cleaned_data
 
-        if (hp := cleaned_data.get("honeypot")) != "":
+        if (hp := cleaned_data.get("validation_user_password_credential")) != "":
             LOGGER.warning(f"Honeypot field set! Value: {hp}")
             cleaned_data["honeypot-tripped"] = True;
 
