@@ -82,6 +82,16 @@ class SignupForm(UserCreationForm):
         model = EvizUser 
         fields = ['username', 'email', 'password1', 'password2', 'institution_type', 'institution_name', 'country']
 
+########## 
+# For for requesting a password reset 
+######
+class ResetRequestForm(forms.Form):
+    username = forms.CharField(
+        label="Username",
+        required=True,
+        widget=forms.TextInput(attrs={"placeholder":"Username"})
+    )
+    captcha = CaptchaField()
 
 ########## 
 # Form for users wanting to reset their password

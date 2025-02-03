@@ -12,7 +12,7 @@
 #       Edom Maru - eam43@calvin.edu 
 #####################
 from utils.logging import LOGGER
-from Mexer.forms import SignupForm, LoginForm, ResetForm
+from Mexer.forms import ResetRequestForm, SignupForm, LoginForm, ResetForm
 from Mexer.views.error_pages import *
 from utils.misc import new_email_code, new_reset_code
 from django.core.mail import EmailMultiAlternatives # for email verification
@@ -197,13 +197,17 @@ def forgot_password(request):
     '''
     if request.method == "GET":
         # start the reset process
-        return render(request, "reset.html") # page with form to get which user is requesting the reset
+        return render(request, "reset.html", context={"form": ResetRequestForm()}) # page with form to get which user is requesting the resets
 
     elif request.method == "POST":
         # a user has submitted their username for a password reset
         # get the username given and try to send an email to the
         # account cooresponding inbox
-        username: str = request.POST.get("username")
+        form = ResetRequestForm(request.POST)
+        if not form.is_valid():
+            return render(request, "reset.html", context={"form": form})
+
+        username = form.cleaned_data["username"]
 
         try:
             user = EvizUser.objects.get_by_natural_key(username)

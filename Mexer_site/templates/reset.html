@@ -38,7 +38,18 @@
         {% csrf_token %}
         <p>To reset your password, please input your username below.</p>
         <p>If there is an account associated with that username, an email will be sent to the inbox registered with that account.</p>
-        <div style="text-align: center;">
+        {{ form }}
+        <button style="
+        width: 50%;
+        padding: 10px;
+        background-color: #00adb5;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        "
+        type="submit">Request Password Reset</button>
+        <!-- <div style="text-align: center;">
             <input style="
             width: 50%;
             padding: 10px;
@@ -49,20 +60,7 @@
             "
             type="text"
             placeholder="Username"
-            name="username">
-
-            <button style="
-            width: 50%;
-            padding: 10px;
-            background-color: #00adb5;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            "
-            type="submit">Request Password Reset</button>
-            {% for error_message in messages %} <p>{{ error_message }}</p> {% endfor %}
-        </div>
+            name="username"> -->
       </form>
     </div>
   </body>
