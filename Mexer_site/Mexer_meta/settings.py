@@ -33,6 +33,8 @@ CSRF_COOKIE_SECURE = True
 
 CSRF_FAILURE_VIEW = "Mexer.views.error_pages.csrf_failure"
 
+CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.word_challenge'
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -42,7 +44,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    "Mexer"
+    "Mexer",
+    "captcha"
 ]
 
 MIDDLEWARE = [

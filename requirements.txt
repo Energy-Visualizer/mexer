@@ -23,3 +23,7 @@ bidict>=0.1.5
 # Plotting library
 # For matrix plots
 altair>=5.3.0
+
+# CAPTCHA library
+# For security on email sending pages
+django-simple-captcha>=0.6.1
