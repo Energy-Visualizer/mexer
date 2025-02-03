@@ -31,5 +31,6 @@ admin.site.index_title = "Mexer Admin"
 
 urlpatterns = [
     path('', include("Mexer.urls")),
-    path('admin/', admin.site.urls)
+    path('admin/', admin.site.urls),
+    path('captcha/', include("captcha.urls")),
 ]
