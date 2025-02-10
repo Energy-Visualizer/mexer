@@ -11,6 +11,7 @@
 #       Kenny Howes - kmh67@calvin.edu
 #       Edom Maru - eam43@calvin.edu 
 #####################
+from django.urls import is_valid_path
 from utils.logging import LOGGER
 from Mexer.forms import ResetRequestForm, SignupForm, LoginForm, ResetForm
 from Mexer.views.error_pages import *
@@ -56,7 +57,7 @@ def user_signup(request):
             LOGGER.info(f"{form.cleaned_data['username']} signed up for account w/ email {new_user_email}.")
 
             # handle the email construction and sending
-            code = new_email_code(account_info = form.clean())
+            code = new_email_code(account_info = form)
             url = f"https://mexer.site/verify?code={code}"
             msg = EmailMultiAlternatives(
                 subject="New Mexer Account",
@@ -108,16 +109,18 @@ def verify_email(request):
         try: 
             new_user = EmailAuthCode.objects.get(code = code) # try to get associated user from code
         except Exception as e:
-            pass # bad request, no new user found, let the code below handle this
+            LOGGER.error(e) # bad request, no new user found, let the code below handle this
 
         if new_user:
             # if there is an associated user, set up their account
             # load the serialized account info from the database and save it
-            account_info = pickle.loads(new_user.account_info)
-            SignupForm(account_info).save()
+            account = new_user.account
+            account.is_active = True
+            account.save()
+
             new_user.delete() # get rid of row in database
             messages.add_message(request, messages.INFO, "Verification was successful!")
-            LOGGER.info(f"{account_info.get('username')} account created.")
+            LOGGER.info(f"{account.username} account created.")
         else:
             messages.add_message(request, messages.INFO, "Didn't find user to set up. Account may have already been verified.")
 

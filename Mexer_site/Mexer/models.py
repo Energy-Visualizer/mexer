@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User as DjangoUser
+from django.db.models.deletion import CASCADE
 
 class Dataset(models.Model):
     """ Model representing a database table named 'Dataset'."""
@@ -199,7 +200,7 @@ class EvizUser(DjangoUser):
 class EmailAuthCode(models.Model):
     """ Model for storing email auhtentication codes and associated account information."""
     code = models.TextField(max_length=255)
-    account_info = models.BinaryField()
+    account = models.ForeignKey(to=EvizUser, on_delete=CASCADE)
 
 class PassResetCode(models.Model):
     """ Model for storing password reset codes and the associated user."""

@@ -86,9 +86,14 @@ def new_email_code(account_info: SignupForm) -> str:
     Outputs:
         str: A unique verification code.
     """
-    code = str(uuid4()) # Generate a unique code using UUID
-    account_info = pickle.dumps(account_info) # serialize the account info for storing it in the database 
-    EmailAuthCode(code=code, account_info=account_info).save() # save account setup info to database
+    code = str(uuid4()) # Generate a unique code using UUID 
+
+    # create new user and immediately deactivate (cannot log in) until verification
+    new_user = account_info.save()
+    new_user.is_active = False
+    new_user.save()
+
+    EmailAuthCode(code=code, account=new_user).save() # save account to database for verification later
     return code
 
 def new_reset_code(user: EvizUser) -> str:
