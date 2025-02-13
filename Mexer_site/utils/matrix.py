@@ -16,6 +16,11 @@ from utils.data import _query_database, DatabaseTarget
 from Mexer.models import PSUT, Index
 from utils.translator import Translator
 
+######### Set up altair to enable working with large datasets for matrices
+import altair as alt
+alt.data_transformers.enable("default")
+#########
+
 def get_matrix(target: DatabaseTarget, query: dict) -> coo_matrix:
     '''Collects, constructs, and returns one of the RUVY matrices
 

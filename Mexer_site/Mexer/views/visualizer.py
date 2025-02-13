@@ -12,6 +12,7 @@
 #####################
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
+from plotly.graph_objects import Data
 from utils.misc import time_view, iea_valid, get_plot_title
 from utils.logging import LOGGER
 from Mexer.models import EvizUser, Version, AggEtaPFU
@@ -25,7 +26,7 @@ from utils.xy_plot import get_xy
 from utils.matrix import get_matrix, get_ruvy_matrix, visualize_matrix
 from plotly.offline import plot
 from utils.history import update_user_history
-
+from altair.utils.data import MaxRowsError # for catching with matrices are too big
 
 @login_required(login_url="/login")
 @time_view
@@ -117,7 +118,71 @@ def visualizer(request):
 
     return render(request, "visualizer.html", context)
 
-@csrf_exempt
+def generate_sankey_html(target: DatabaseTarget, query: dict) -> str:
+    translated_query = translate_query(target, query)
+    nodes,links,options = get_sankey(target, translated_query)
+
+    if nodes is None:
+        return "Error: No cooresponding data"
+    return f"<script>createSankey({nodes},{links},{options},\"{get_plot_title(query)}\")</script>\
+                    <button onclick='downloadSankey()' class='sankey-download-button'>Download Sankey</button>"
+
+def generate_xy_html(target: DatabaseTarget, query: dict) -> str:
+    # Extract specific parameters for xy_plot
+    efficiency_metric = query.get('efficiency')
+    color_by = query.get("color_by")
+    line_by = query.get("line_by")
+    facet_col_by = query.get("facet-col-by")
+    facet_row_by = query.get("facet-row-by")
+    energy_type = query.get("energy_type")
+    
+    # Handle combined Energy and Exergy case
+    if 'Energy' in energy_type and 'Exergy' in energy_type:
+        energy_type = 'Energy, Exergy'
+    
+    translated_query = translate_query(target, query)
+    xy = get_xy(efficiency_metric, target, translated_query, color_by, line_by, facet_col_by, facet_row_by, energy_type)
+    if xy is None:
+        return "Error: No corresponding data"
+
+    xy.update_layout(
+        title=get_plot_title(query, exclude=[color_by, line_by, facet_col_by, facet_row_by, energy_type])
+    )
+    LOGGER.info("XY plot made")
+    return plot(xy, output_type="div", include_plotlyjs=False)
+
+def generate_matrix_html(target: DatabaseTarget, query: dict) -> str:
+    # Extract specific parameters for matrices
+    matrix_name = query.get("matname")
+    color_scale = query.get('color_scale', "inferno")
+
+    # Retrieve the matrix
+    coloring_method = query.get('coloring_method', 'weight')
+    translated_query = translate_query(target, query)
+    
+    matname = None
+    if matrix_name == "RUVY" and coloring_method == "ruvy":
+        matrix, matname = get_ruvy_matrix(target, translated_query)
+    else:
+        matrix = get_matrix(target, translated_query)
+
+    if matrix is None:
+        return "Error: No corresponding data"
+
+    heatmap = visualize_matrix(target, matrix, matname, color_scale, coloring_method)
+    heatmap = heatmap.properties(
+        title=matrix_name + " Matrix: " + get_plot_title(query),
+        autosize = {"type": "fit", "contains": "padding"}
+    )
+
+    try:
+        LOGGER.info("Matrix visualization made")
+        return heatmap.to_html()
+    except MaxRowsError:
+        LOGGER.error("Overly large matrix attempted")
+        return "Error: Query results in overly large dataset. Please try a different visualization method or download the raw data."
+
+@csrf_exempt # TODO: why is this exempt?
 @time_view
 def get_plot(request):
     """Generate and return a plot based on the POST request data.
@@ -142,7 +207,7 @@ def get_plot(request):
 
         try:
             if query["dataset"].startswith(SANDBOX_PREFIX) != query["version"].startswith(SANDBOX_PREFIX):
-                return HttpResponse("Error: Dataset and version must both be from sandbox or both not be from sandbox!")
+                return HttpResponse(b"Error: Dataset and version must both be from sandbox or both not be from sandbox!")
         except:
             pass
         
@@ -154,91 +219,42 @@ def get_plot(request):
         # TODO: make this work with status = 403, problem is HTMX won't show anything
         if not iea_valid(request.user, query):
             LOGGER.warning(f"IEA data requested by unauthorized user {request.user.get_username() or 'anonymous user'}")
-            return HttpResponse("You do not have access to IEA data. Please contact <a style='color: #00adb5' :visited='{color: #87CEEB}' href='mailto:matthew.heun@calvin.edu'>matthew.heun@calvin.edu</a> with questions."
-                                "You can also purchase WEB data at <a style='color: #00adb5':visited='{color: #87CEEB}' href='https://www.iea.org/data-and-statistics/data-product/world-energy-balances'> World Energy Balances</a>.")
+            return HttpResponse(b"You do not have access to IEA data. Please contact <a style='color: #00adb5' :visited='{color: #87CEEB}' href='mailto:matthew.heun@calvin.edu'>matthew.heun@calvin.edu</a> with questions."
+                                b"You can also purchase WEB data at <a style='color: #00adb5':visited='{color: #87CEEB}' href='https://www.iea.org/data-and-statistics/data-product/world-energy-balances'> World Energy Balances</a>.")
         
-        plot_div = None # where to store what html will be sent to the user
+        plot_div: str | None = None # where to store what html will be sent to the user
 
         # Use match-case to handle different plot types
         match plot_type:
             case "sankey":
-                translated_query = translate_query(target, query)
-                nodes,links,options = get_sankey(target, translated_query)
-
-                if nodes is None:
-                    plot_div = "Error: No cooresponding data"
-                else:
-                    plot_div = f"<script>createSankey({nodes},{links},{options},\"{get_plot_title(query)}\")</script>\
-                                <button onclick='downloadSankey()' class='sankey-download-button'>Download Sankey</button>"
+                plot_div = generate_sankey_html(target, query)
 
             case "xy_plot":
-                # Extract specific parameters for xy_plot
-                efficiency_metric = query.get('efficiency')
-                color_by = query.get("color_by")
-                line_by = query.get("line_by")
-                facet_col_by = query.get("facet-col-by")
-                facet_row_by = query.get("facet-row-by")
-                energy_type = query.get("energy_type")
-                
-                # Handle combined Energy and Exergy case
-                if 'Energy' in energy_type and 'Exergy' in energy_type:
-                    energy_type = 'Energy, Exergy'
-                
-                translated_query = translate_query(target, query)
-                xy = get_xy(efficiency_metric, target, translated_query, color_by, line_by, facet_col_by, facet_row_by, energy_type)
-                if xy is None:
-                    plot_div = "Error: No corresponding data"
-                else:
-                    xy.update_layout(
-                        title=get_plot_title(query, exclude=[color_by, line_by, facet_col_by, facet_row_by, energy_type])
-                    )
-                    plot_div = plot(xy, output_type="div", include_plotlyjs=False)
-                    LOGGER.info("XY plot made")
+                plot_div = generate_xy_html(target, query)
 
             case "matrices":
-                # Extract specific parameters for matrices
-                matrix_name = query.get("matname")
-                color_scale = query.get('color_scale', "inferno")
-
-                # Retrieve the matrix
-                coloring_method = query.get('coloring_method', 'weight')
-                translated_query = translate_query(target, query)
-                
-                matname = None
-                if matrix_name == "RUVY" and coloring_method == "ruvy":
-                    matrix, matname = get_ruvy_matrix(target, translated_query)
-                else:
-                    matrix = get_matrix(target, translated_query)
-
-                if matrix is None:
-                    plot_div = "Error: No corresponding data"
-                else:
-                    heatmap = visualize_matrix(target, matrix, matname, color_scale, coloring_method)
-                    heatmap = heatmap.properties(
-                        title=matrix_name + " Matrix: " + get_plot_title(query),
-                        autosize = {"type": "fit", "contains": "padding"}
-                    )
-                    plot_div = heatmap.to_html() # Render the figure as an HTML div
-                
-                LOGGER.info("Matrix visualization made")
-        
+                plot_div = generate_matrix_html(target, query)
 
             case _: # default
                 plot_div = "Error: Plot type not specified or supported"
                 LOGGER.warning("Unrecognized plot type requested")
-        
-        response = HttpResponse(plot_div) # the final response to be returned
-        
-        # Update user history only if there was no error
-        if not plot_div.startswith("Error"):
-            serialized_data = update_user_history(request, plot_type, query)
-            response.content += b"<script>refreshHistory();</script>"
-            if separate_window:
-                response.content += b"<script>plotInNewWindow();</script>"
-            # Set cookie to expire in 7 days
-            response.set_cookie('user_history', serialized_data.hex(), max_age=7 * 24 * 60 * 60)
 
-    return response
+        # stop early if an error occured, and send error message to client
+        if plot_div.startswith("Error"):
+            return HttpResponse(plot_div.encode())
+
+        # Add functions to call on the client side
+        plot_div = plot_div + "<script>refreshHistory();</script>"
+        if separate_window:
+            plot_div = plot_div + "<script>plotInNewWindow();</script>"
+        print(plot_div)
+        response = HttpResponse(plot_div.encode()) # the final response to be returned
+
+        # Set ploy history cookie to expire in 7 days
+        serialized_data = update_user_history(request, plot_type, query)
+        response.set_cookie('user_history', serialized_data.hex(), max_age=7 * 24 * 60 * 60)
+
+        return response
 
 @time_view
 def get_data(request):
