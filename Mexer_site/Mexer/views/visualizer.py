@@ -247,7 +247,6 @@ def get_plot(request):
         plot_div = plot_div + "<script>refreshHistory();</script>"
         if separate_window:
             plot_div = plot_div + "<script>plotInNewWindow();</script>"
-        print(plot_div)
         response = HttpResponse(plot_div.encode()) # the final response to be returned
 
         # Set ploy history cookie to expire in 7 days
