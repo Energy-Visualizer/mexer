@@ -24,6 +24,7 @@
 #       Kenny Howes - kmh67@calvin.edu
 #       Edom Maru - eam43@calvin.edu 
 #####################
+import io
 from Mexer.models import models, PSUT, IEAData, AggEtaPFU
 import pandas as pd
 from utils.logging import LOGGER
@@ -122,15 +123,18 @@ def get_translated_dataframe(target: DatabaseTarget, query: dict, columns: list)
     
     return df
 
-def get_csv_from_query(target: DatabaseTarget, query: dict, columns: list):
-    
+def get_csv_from_query(target: DatabaseTarget, query: dict, columns: list) -> str:
+
     # index false to not have column of row numbers
     return get_translated_dataframe(target, query, columns).to_csv(index=False)
 
-def get_excel_from_query(target: DatabaseTarget, query: dict, columns = PSUT_COLUMNS):
+def get_excel_from_query(target: DatabaseTarget, query: dict, columns = PSUT_COLUMNS) -> bytes:
 
     # index false to not have column of row numbers
-    return get_translated_dataframe(target, query, columns).to_excel(index=False)
+    buffer = io.BytesIO()
+    with pd.ExcelWriter(buffer) as writer:
+        get_translated_dataframe(target, query, columns).to_excel(writer, index=False)
+    return buffer.getvalue()
 
 def shape_post_request(
     payload, ret_plot_type = False, ret_database_target = False

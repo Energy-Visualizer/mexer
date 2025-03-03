@@ -271,7 +271,7 @@ def get_data(request):
     LOGGER.info(f"Data requested by {request.user.get_username() or 'anonymous user'}")
 
     if request.method == "POST":
-        
+
         # set up query and get csv from it
         query, target = shape_post_request(request.POST, ret_database_target = True)
 
@@ -286,24 +286,27 @@ def get_data(request):
         # Generate CSV data based on the query
         if target[1] is AggEtaPFU:
             # get xy info
-            csv = get_csv_from_query(target, query, columns = META_COLUMNS + AGGETA_COLUMNS)
+            # csv = get_csv_from_query(target, query, columns = META_COLUMNS + AGGETA_COLUMNS)
+            excel_sheet = get_excel_from_query(target, query, columns = META_COLUMNS + AGGETA_COLUMNS)
         else:
             # get psut (sankey and matrix) info
-            csv = get_csv_from_query(target, query, columns = META_COLUMNS + PSUT_COLUMNS)
+            # csv = get_csv_from_query(target, query, columns = META_COLUMNS + PSUT_COLUMNS)
+            excel_sheet = get_excel_from_query(target, query, columns = META_COLUMNS + PSUT_COLUMNS)
 
         # set up the response:
         # content is the csv made above
         # then give csv MIME 
         # and appropriate http header
+        # final_response = HttpResponse(
+        #     content = csv,
+        #     content_type = "text/csv",
+        #     headers = {"Content-Disposition": 'attachment; filename="eviz_data.csv"'} # TODO: make this file name more descriptive
+        # )
         final_response = HttpResponse(
-            content = csv,
-            content_type = "text/csv",
-            headers = {"Content-Disposition": 'attachment; filename="eviz_data.csv"'} # TODO: make this file name more descriptive
+            content = excel_sheet,
+            content_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers = {"Content-Disposition": 'attachment; filename="eviz_data.xlsx"'}
         )
         LOGGER.info("Made CSV data")
 
-        # TODO: excel downloads
-        # MIME for workbook is application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-        # file handle is xlsx for workbook 
-
-    return final_response
+        return final_response
