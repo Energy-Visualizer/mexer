@@ -27,6 +27,7 @@ from utils.matrix import get_matrix, get_ruvy_matrix, visualize_matrix
 from plotly.offline import plot
 from utils.history import update_user_history
 from altair.utils.data import MaxRowsError # for catching with matrices are too big
+from Mexer_meta.settings import SITE_VERSION
 
 @login_required(login_url="/login")
 @time_view
@@ -113,7 +114,9 @@ def visualizer(request):
         "industry_aggregations":industry_aggregations,
         "default_industry_aggregation":industry_aggregations[0],
 
-        "iea_user":iea_user
+        "iea_user":iea_user,
+
+        "site_version":SITE_VERSION, # version of the site to be displayed to users 
         }
 
     return render(request, "visualizer.html", context)
