@@ -24,6 +24,7 @@
 #       Kenny Howes - kmh67@calvin.edu
 #       Edom Maru - eam43@calvin.edu 
 #####################
+from typing import Mapping
 from Mexer.models import models, PSUT, IEAData, AggEtaPFU
 import pandas as pd
 from utils.logging import LOGGER
@@ -132,9 +133,7 @@ def get_excel_from_query(target: DatabaseTarget, query: dict, columns = PSUT_COL
     # index false to not have column of row numbers
     return get_translated_dataframe(target, query, columns).to_excel(index=False)
 
-def shape_post_request(
-    payload, ret_plot_type = False, ret_database_target = False
-) -> tuple[dict, str, DatabaseTarget]:
+def shape_post_request(payload: Mapping) -> tuple[dict, str | None, DatabaseTarget]:
     '''Turn a POST request payload into a ready to use query in a dictionary
 
     Input:
@@ -167,18 +166,11 @@ def shape_post_request(
         if len(v) == 1:
             shaped_query[k] = v[0]
     
-    if ret_plot_type:
-        plot_type = shaped_query.get("plot_type")
+    plot_type = shaped_query.get("plot_type")
 
-    if ret_database_target:
-        # to be returned at the end
-        db_target = _get_database_target(shaped_query)
+    db_target = _get_database_target(shaped_query)
 
-    return tuple(
-        [shaped_query]
-        + ([plot_type] if ret_plot_type else [])
-        + ([db_target] if ret_database_target else [])
-    )
+    return shaped_query, plot_type, db_target
 
 # TODO: rewrite this to use a for loop instead
 def translate_query(
