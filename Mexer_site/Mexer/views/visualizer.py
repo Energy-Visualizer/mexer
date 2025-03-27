@@ -220,7 +220,7 @@ def get_plot(request):
         if not iea_valid(request.user, query):
             LOGGER.warning(f"IEA data requested by unauthorized user {request.user.get_username() or 'anonymous user'}")
             return HttpResponse(b"You do not have access to IEA data. Please contact <a style='color: #00adb5' :visited='{color: #87CEEB}' href='mailto:matthew.heun@calvin.edu'>matthew.heun@calvin.edu</a> with questions."
-                                b"You can also purchase WEB data at <a style='color: #00adb5':visited='{color: #87CEEB}' href='https://www.iea.org/data-and-statistics/data-product/world-energy-balances'> World Energy Balances</a>.")
+                                b"You can also purchase IEA WEB data at <a style='color: #00adb5':visited='{color: #87CEEB}' href='https://www.iea.org/data-and-statistics/data-product/world-energy-balances'> World Energy Balances</a>.")
         
         plot_div: str | None = None # where to store what html will be sent to the user
 
@@ -278,7 +278,7 @@ def get_data(request):
         if not iea_valid(request.user, query):
             LOGGER.warning(f"IEA data requested by unauthorized user {request.user.get_username() or 'anonymous user'}")
             return HttpResponse("You do not have access to IEA data. Please contact <a style='color: #00adb5' :visited='{color: #87CEEB}' href='mailto:matthew.heun@calvin.edu'>matthew.heun@calvin.edu</a> with questions."
-                                "You can also purchase WEB data at <a style='color: #00adb5':visited='{color: #87CEEB}' href='https://www.iea.org/data-and-statistics/data-product/world-energy-balances'> World Energy Balances</a>.")
+                                "You can also purchase IEA WEB data at <a style='color: #00adb5':visited='{color: #87CEEB}' href='https://www.iea.org/data-and-statistics/data-product/world-energy-balances'> World Energy Balances</a>.")
 
         # Translate the query to match database field names
         query = translate_query(target, query)
@@ -298,7 +298,7 @@ def get_data(request):
         final_response = HttpResponse(
             content = csv,
             content_type = "text/csv",
-            headers = {"Content-Disposition": 'attachment; filename="eviz_data.csv"'} # TODO: make this file name more descriptive
+            headers = {"Content-Disposition": 'attachment; filename="mexer_data.csv"'} # TODO: make this file name more descriptive
         )
         LOGGER.info("Made CSV data")
 

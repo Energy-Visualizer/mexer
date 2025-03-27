@@ -24,7 +24,8 @@ urlpatterns = [
     # history tool pages
     path("history", history_views.render_history),
     path('delete-history-item/', history_views.delete_history_item, name='delete_history_item'),
-
+    path('toggle_pin_history_item/', history_views.toggle_pin_history_item, name='toggle_pin_history_item'),
+    
     # misc pages
     path('about/', misc_views.about, name='about'),
     path('terms_and_conditions/', misc_views.terms_and_conditions, name='terms_and_conditions'),

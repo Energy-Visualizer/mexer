@@ -84,3 +84,33 @@ def delete_history_item(request):
     
     # Return an error response if the request is invalid
     return error_400(request, "")
+
+@csrf_exempt
+@require_POST
+def toggle_pin_history_item(request):
+    """Toggle the pinned status of a history item."""
+    
+    index = int(request.POST.get('index', -1))
+    if index < 0:
+        return error_400(request, "Bad history index")
+
+    user_history = get_user_history(request)
+
+    if 0 <= index < len(user_history):
+        item = user_history[index]
+        item['pinned'] = not item.get('pinned', False)
+
+        # Remove the item and reinsert it at the correct position
+        user_history.pop(index)
+        if item['pinned']:
+            user_history.insert(0, item)  # Move to top
+        else:
+            pin_index = next((i for i, item in enumerate(user_history) if not item.get('pinned', False)), len(user_history))
+            user_history.insert(pin_index, item)
+
+        serialized_data = pickle.dumps(user_history)
+        response = HttpResponse(get_history_html(user_history))
+        response.set_cookie('user_history', serialized_data.hex(), max_age=30 * 24 * 60 * 60)
+        return response
+
+    return error_400(request, "Invalid history index")

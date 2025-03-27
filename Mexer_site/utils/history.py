@@ -37,7 +37,7 @@ def get_user_history(request) -> list:
 
     return user_history
 
-def update_user_history(request, plot_type, query):
+def update_user_history(request, plot_type, query, pinned=False):
     """Update the user's plot history with a new plot query.
 
     Inputs:
@@ -54,56 +54,70 @@ def update_user_history(request, plot_type, query):
     # Create a dictionary with the new history data
     history_data = {
         'plot_type': plot_type,
-        **query
+        **query,
+        'pinned': pinned  # Preserve pin status
     }
 
-    # Check if user_history is not empty
-    if user_history:
+    # Check if the query already exists
+    for item in user_history:
+        if item['plot_type'] == history_data['plot_type'] and all(item[k] == history_data[k] for k in query):
+            # Preserve pin status if it exists
+            history_data['pinned'] = item.get('pinned', False)
+            user_history.remove(item)
+            break
 
-        # if query is already in history, remove it to move it to the top
-        try:
-            user_history.remove(history_data)
-        except ValueError: pass # don't care if not in, trying to remove anyways
-
-        user_history.insert(0, history_data) # finally, add the new query to the top of the history
-
-        # if the queue (list) is full, take the end off
-        if len(user_history) > MAX_HISTORY: user_history.pop()
-
+    # Insert the item at the correct position
+    if history_data['pinned']:
+        user_history.insert(0, history_data)  # Keep pinned items at the top
     else:
-        # If user_history is empty, append the new history_data
-        user_history.append(history_data)
+        pin_index = next((i for i, item in enumerate(user_history) if not item.get('pinned', False)), len(user_history))
+        user_history.insert(pin_index, history_data)
 
+    # Ensure max history limit
+    if len(user_history) > MAX_HISTORY:
+        user_history.pop()
+    
     # Serialize the updated user history
-    serialized_data = pickle.dumps(user_history)
-    return serialized_data
+    Serialized_data = pickle.dumps(user_history)
+    return Serialized_data
 
 from django.urls import reverse
 def get_history_html(user_history: list[dict]) -> str:
     history_html = ''
-    
+
     if user_history:
         # Iterate through each history item and create HTML buttons
         for index, history_item in enumerate(user_history):
             # Create HTML for each history item, including plot and delete buttons
+            pin_class = "pinned-item" if history_item.get('pinned', False) else "unpin-item"
+            pin_icon = "📌" if history_item.get('pinned', False) else "📍"
+
             history_html += f'''
-            <div class="history-item">
-                <button type="button" 
-                    hx-vals='{json.dumps(history_item)}' 
-                    hx-indicator="#plot-spinner" 
-                    hx-post="/plot" 
-                    hx-target="#plot-section" 
-                    hx-swap="innerHTML" 
-                    onclick='document.getElementById("plot-section").scrollIntoView();' 
-                    class="history-button">
+            <div class="history-item {pin_class}">
+                <button type="button"
+                    hx-vals='{json.dumps(history_item)}'
+                    hx-indicator="#plot-spinner"
+                    hx-post="/plot"
+                    hx-target="#plot-section"
+                    hx-swap="innerHTML"
+                    onclick='document.getElementById("plot-section").scrollIntoView(); repopulateQueryField({json.dumps(history_item)});'
+                    class="history-button"
+                    data-history-item='{json.dumps(history_item)}'>
                     Plot Type: {history_item["plot_type"].capitalize()}<br>
                     Dataset: {history_item["dataset"]}<br>
                     Country: {history_item["country"]}
                 </button>
-                <button class="delete-history" 
-                    hx-post="{reverse('delete_history_item')}" 
-                    hx-vals='{{"index": {index}}}' 
-                    hx-target="#history-list" 
+                <button class="toggle-pin"
+                    hx-post="{reverse('toggle_pin_history_item')}"
+                    hx-vals='{{"index": {index}}}'
+                    hx-target="#history-list"
+                    hx-swap="innerHTML">
+                    {pin_icon}
+                </button>
+                <button class="delete-history"
+                    hx-post="{reverse('delete_history_item')}"
+                    hx-vals='{{"index": {index}}}'
+                    hx-target="#history-list"
                     hx-swap="innerHTML">
                     <i class="fas fa-trash-alt"></i>
                 </button>

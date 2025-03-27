@@ -233,3 +233,98 @@ const plotInNewWindow = () => {
         plotWindow.document.body.innerHTML = plotHTML;
 };
 
+function repopulateQueryField(historyItem) {
+    // Set the plot type
+    document.querySelector(`input[name="plot_type"][value="${historyItem.plot_type}"]`).checked = true;
+  
+    // Set the dataset
+    document.getElementById("dataset-dropdown").value = historyItem.dataset;
+  
+    // Set the country
+    document.getElementById("country-dropdown").value = historyItem.country;
+  
+    // Trigger the appropriate plot type handler
+    if (historyItem.plot_type === 'xy_plot') {
+      handleXYPlot();
+    } else if (historyItem.plot_type === 'sankey') {
+      handleSankey();
+    } else if (historyItem.plot_type === 'matrices') {
+      handleMatrices();
+    }
+  
+    // Set other fields based on the plot type
+    if (historyItem.plot_type === 'xy_plot') {
+      document.getElementById("from-year-input").value = historyItem.from_year;
+      document.getElementById("to-year-input").value = historyItem.to_year;
+      document.getElementById("efficiency-dropdown").value = historyItem.efficiency;
+      document.getElementById("color-by").value = historyItem.color_by;
+      document.getElementById("line-by").value = historyItem.line_by;
+      document.getElementById("facet-col-by").value = historyItem.facet_col_by;
+      document.getElementById("facet-row-by").value = historyItem.facet_row_by;
+    } else if (historyItem.plot_type === 'sankey') {
+      document.getElementById("single-year-input").value = historyItem.year;
+      document.getElementById("label-threshold").value = historyItem.label_threshold;
+    } else if (historyItem.plot_type === 'matrices') {
+      document.getElementById("from-year-input").value = historyItem.from_year;
+      document.getElementById("to-year-input").value = historyItem.to_year;
+      document.getElementById("matname-dropdown").value = historyItem.matname;
+      document.getElementById("color-scale").value = historyItem.color_scale;
+    }
+  }
+  
+
+  function togglePin(index) {
+    htmx.ajax("POST", "/toggle-pin-history-item", { values: { index: index }, target: "#history-list", swap: "innerHTML" });
+}
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    const popupIcons = document.querySelectorAll('.popup-icon');
+
+    popupIcons.forEach(icon => {
+        icon.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const tooltip = this.querySelector('.popup-text');
+            tooltip.style.visibility = tooltip.style.visibility === 'visible' ? 'hidden' : 'visible';
+            tooltip.style.opacity = tooltip.style.opacity === '1' ? '0' : '1';
+        });
+    });
+
+    document.addEventListener('click', function() {
+        const tooltips = document.querySelectorAll('.popup-text');
+        tooltips.forEach(tooltip => {
+            tooltip.style.visibility = 'hidden';
+            tooltip.style.opacity = '0';
+        });
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeTooltips();
+});
+
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        initializeTooltips();
+    }
+});
+
+function initializeTooltips() {
+    const popupIcons = document.querySelectorAll('.popup-icon');
+    popupIcons.forEach(icon => {
+        icon.addEventListener('mouseenter', showTooltip);
+        icon.addEventListener('mouseleave', hideTooltip);
+    });
+}
+
+function showTooltip() {
+    const tooltip = this.querySelector('.popup-text');
+    tooltip.style.visibility = 'visible';
+    tooltip.style.opacity = '1';
+}
+
+function hideTooltip() {
+    const tooltip = this.querySelector('.popup-text');
+    tooltip.style.visibility = 'hidden';
+    tooltip.style.opacity = '0';
+}
