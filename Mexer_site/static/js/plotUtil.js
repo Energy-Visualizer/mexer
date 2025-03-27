@@ -11,7 +11,7 @@ const createSankey = (nodes, links, options, title) => {
         plotSection.clientWidth, // plot width
         plotSection.clientHeight, // plot height
         0, // first column to show
-        5, // last column to show (e.g. 0, 4 shows columns 0-3)
+        10, // number of columns to show (e.g. 0, 4 declares columns 0-3)
 
         // further options
         // combination of "options" param and options defined here
