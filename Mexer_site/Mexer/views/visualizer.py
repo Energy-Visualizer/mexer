@@ -12,7 +12,7 @@
 #####################
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
-from plotly.graph_objects import Data
+import time # for timestamp in data file name
 from utils.misc import time_view, iea_valid, get_plot_title
 from utils.logging import LOGGER
 from Mexer.models import EvizUser, Version, AggEtaPFU
@@ -203,7 +203,7 @@ def get_plot(request):
     
     if request.method == "POST":
         # Extract plot type and query parameters from the POST request
-        query, plot_type, target = shape_post_request(request.POST, ret_plot_type = True, ret_database_target = True)
+        query, plot_type, target = shape_post_request(request.POST)
 
         try:
             if query["dataset"].startswith(SANDBOX_PREFIX) != query["version"].startswith(SANDBOX_PREFIX):
@@ -275,12 +275,12 @@ def get_data(request):
         return_type = request.POST.get("returnDataType"); # get if request is for csv or request
 
         # set up query and get csv from it
-        query, target = shape_post_request(request.POST, ret_database_target = True)
+        query, _, target = shape_post_request(request.POST)
 
         if not iea_valid(request.user, query):
             LOGGER.warning(f"IEA data requested by unauthorized user {request.user.get_username() or 'anonymous user'}")
-            return HttpResponse("You do not have access to IEA data. Please contact <a style='color: #00adb5' :visited='{color: #87CEEB}' href='mailto:matthew.heun@calvin.edu'>matthew.heun@calvin.edu</a> with questions."
-                                "You can also purchase WEB data at <a style='color: #00adb5':visited='{color: #87CEEB}' href='https://www.iea.org/data-and-statistics/data-product/world-energy-balances'> World Energy Balances</a>.")
+            return HttpResponse("You do not have access to IEA data. Please contact <a style='color: #00adb5' :visited='{color: #87CEEB}' href='mailto:matthew.heun@calvin.edu'>matthew.heun@calvin.edu</a> with questions. \
+                                You can also purchase WEB data at <a style='color: #00adb5':visited='{color: #87CEEB}' href='https://www.iea.org/data-and-statistics/data-product/world-energy-balances'> World Energy Balances</a>.".encode())
 
         # Translate the query to match database field names
         query = translate_query(target, query)
@@ -296,19 +296,20 @@ def get_data(request):
 
         # set up the response:
         # then give csv MIME 
-        # and appropriate http header
+        # and appropriate http content header
         final_response = HttpResponse()
+        filename = f"mexer-data-{time.strftime('%H-%M_%d-%m-%Y')}"
 
         if return_type == "csv":
             final_response.write(get_csv_from_query(target, query, columns).encode())
             final_response.headers["Content-Type"] = "text/csv"
-            final_response.headers["Content-Disposition"] = 'attachment; filename="eviz_data.csv"'
+            final_response.headers["Content-Disposition"] = f'attachment; filename="{filename}.csv"'
             LOGGER.info("Made CSV data")
 
         elif return_type == "excel":
             final_response.write(get_excel_from_query(target, query, columns))
             final_response.headers["Content-Type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            final_response.headers["Content-Disposition"] = 'attachment; filename="eviz_data.xlsx"'
+            final_response.headers["Content-Disposition"] = f'attachment; filename="{filename}.xlsx"'
             LOGGER.info("Made Excel data")
 
         return final_response
