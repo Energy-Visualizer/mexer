@@ -26,12 +26,6 @@ OVERRIDE_COL_ON = False # only affects energy carrier columns
 with open(SANKEY_COLORS_PATH) as f:
     SANKEY_COLORS: dict[str, str] = json.loads(f.read())
 
-# get ordering from db
-with connections["sandbox"].cursor() as cursor:
-    cursor.execute('SELECT "Index", "SankeyColumn" FROM "Index";')
-    orders = cursor.fetchall()
-    SANKEY_ORDERS = {row[0]:row[1] for row in orders}
-
 class NodeInfo:
     def __init__(self, column: int, index: int):
         self.column = column
@@ -47,49 +41,19 @@ def _get_sankey_color(node_name: str) -> str:
 
     return SANKEY_COLORS.get(carrier_name) or (LOGGER.error("Couldn't find sankey color for " + node_name) or "") # return empty string if can't find
 
-def _get_sankey_node_info(
-        label_num: int, label_col: int,
-        node_list: list[list], idx_counter: dict, label_info_dict: dict,
-        translator: Translator,
-        carrier: bool,
-):
-    name = translator.index_translate(label_num)
-    # try to get saved information about the label
-    label_info = label_info_dict.get(label_num, -1)
-    if label_info == -1:
-        # add it if it is a new label and get new node_idx
-        node_list[label_col].append(dict(label=name,
-                                         color=_get_sankey_color(name) or "red" if carrier else INDUSTRY_COLOR))
-        
-        label_info = (idx_counter[label_col], label_col)
-        idx_counter[label_col] += 1
-
-        # remember which index and column the label is in so future nodes can find this one
-        label_info_dict[label_num] = label_info
-        node_idx = label_info[0]
-
-    else:
-        # if node is not new, just get the recorded col and idx
-        label_col = label_info[1]
-        node_idx = label_info[0]
-    
-
-    return (node_idx, label_col)
-
-
-### shape of data
+### shape of data to be returned
 # nodes = [
 #     [ <- column 0
 #         {"label": "label1", "color": "color1"},
 #         {"label": "label2", "color": "color2"},
 #         ...
 #     ],
-#     ...
+#     ... repeated
 # ]
 ###
-def _create_new_node(name: str, node_info_by_name: dict, indexes_by_col: Counter) -> NodeInfo:
+def _create_new_node(name: str, node_info_by_name: dict, indexes_by_col: Counter, sankey_orders: dict) -> NodeInfo:
     ''' Creates a new node info for a given name '''
-    node_column = SANKEY_ORDERS.get(name, -1) # -1 represents an error state
+    node_column = sankey_orders.get(name, -1) # -1 represents an error state
 
     node_info = NodeInfo(node_column, indexes_by_col[node_column]) # store column and next index in column
     indexes_by_col[node_column] += 1 # update next index in column for next node
@@ -98,7 +62,7 @@ def _create_new_node(name: str, node_info_by_name: dict, indexes_by_col: Counter
     return node_info
 
 def _get_node_info(name: str, node_info_by_name: dict) -> NodeInfo:
-    ''' Gets the node info for a given name '''
+    ''' Gets the node info for a given name. A little redundant, but it ensures proper exceptions are thrown '''
     # either get the node info or throw an error
     node_info = node_info_by_name.get(name)
     if not node_info:
@@ -135,6 +99,11 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str] | tu
 
     # get all four matrices to make the full RUVY matrix
     data = _query_database(target, query, ["matname", "i", "j", "value"])
+
+    # get ordering from db, target[0] defines which db from which to get data
+    with connections[target[0]].cursor() as cursor:
+        cursor.execute('SELECT "Index", "SankeyColumn" FROM "Index";')
+        sankey_orders = {row[0]:row[1] for row in cursor.fetchall()} # turn it into a dictionary to actually use
 
     # if no cooresponding data, return as such
     if not data:
@@ -180,14 +149,15 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str] | tu
         try:
             from_node_info = _get_node_info(i_name, node_info_by_name)
         except KeyError:
-            from_node_info = _create_new_node(i_name, node_info_by_name, indexes_by_column)
+            # if we didn't already have it, make a new node and log it in the nodes dictionary
+            from_node_info = _create_new_node(i_name, node_info_by_name, indexes_by_column, sankey_orders)
             nodes[from_node_info.column].append(dict(label=i_name,
                                                      color=_get_sankey_color(i_name) or "red" if not j_is_carrier else INDUSTRY_COLOR))
             
         try:
             to_node_info = _get_node_info(j_name, node_info_by_name)
         except KeyError:
-            to_node_info = _create_new_node(j_name, node_info_by_name, indexes_by_column)
+            to_node_info = _create_new_node(j_name, node_info_by_name, indexes_by_column, sankey_orders)
             nodes[to_node_info.column].append(dict(label=j_name,
                                                    color=_get_sankey_color(j_name) or "red" if j_is_carrier else INDUSTRY_COLOR))
         
