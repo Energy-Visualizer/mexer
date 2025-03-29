@@ -145,7 +145,7 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str] | tu
 
     # these three variables are what ultimately get json dumped
     # and sent to the javascript renderer
-    nodes = [list() for _ in range(10)] # 8 columns for the sankey diagram
+    nodes = [list() for _ in range(10)] # 10 columns for the sankey diagram
     links = list()
     options = dict(
         plot_background_color = '#f4edf7',
