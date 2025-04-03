@@ -11,32 +11,15 @@
       <a
         href="https://www.sciencedirect.com/science/article/pii/S0306261918308298"
         target="_blank"
-        >PSUT framework.</a
-      >
+        class="text-cyan-400 dark:text-cyan-600 hover:text-cyan-300"
+        >PSUT framework.</a>
     </p>
-    <h2>Our Vision</h2>
-    <p>
-      We envision a sustainable world in which everyone has access to clear and
-      actionable energy data. By providing this web application, we aim to make
-      understanding and working with energy data easier, fostering informed,
-      sustainable policy-making.
-    </p>
-    <h2>Our Team</h2>
-    <p>
-      Our team consists of varied and passionate people, with the common goal of
-      a sustainable world. From engineers to economists, the Energy Economics
-      Team is dedicated to the research and presentation of sustainable
-      policies.
-    </p>
-    <h3>Site Authors</h3>
-    <p>
-      This website was programmed by
-      <ul>
-        <li>Kenneth Howes - <a href="http://littlekendian.me" target="_blank">littlekendian.me</a></li>
-        <li>Edom Maru - <a href="mailto: edomamaru@gmail.com" target="_blank">edomamaru@gmail.com</a></li>
-      </ul>
-      The source code is kept in this <a href="https://github.com/Energy-Visualizer/eviz" target="_blank">GitHub repository</a>.
-    <p>
+    {% include "snippets/card.html" with title="Our Vision" content="We envision a sustainable world in which everyone has access to clear and actionable energy data. By providing this web application, we aim to make understanding and working with energy data easier, fostering informed, sustainable policy-making." %}
+    {% include "snippets/card.html" with title="Our Team" content="Our team consists of varied and passionate people, with the common goal of a sustainable world. From engineers to economists, the Energy Economics Team is dedicated to the research and presentation of sustainable policies." %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {% include "snippets/card.html" with title="Kenneth Howes" content="This website was programmed by Kenneth Howes. Visit his personal website at <a href='http://littlekendian.me' target='_blank' class='text-cyan-400 dark:text-cyan-600 hover:text-cyan-300'>littlekendian.me</a>." %}
+      {% include "snippets/card.html" with title="Edom Maru" content="This website was programmed by Edom Maru. Contact her via email at <a href='mailto:edomamaru@gmail.com' target='_blank' class='text-cyan-400 dark:text-cyan-600 hover:text-cyan-300'>edomamaru@gmail.com</a>." %}
+    </div>
     <h2>Contact Us</h2>
     <p>
       We'd love to hear from you! Whether you have a question about our tools,
@@ -60,90 +43,3 @@
       Téchnico, Lisbon, Portugal with a subcontract to Calvin University.
     </p>
 {% endblock content %}
-
-<!-- <body>
-  <nav class="topbar">
-    <div class="left">
-      <a class="main" href="{% url 'home' %}">Mexer</a>
-    </div>
-    <div class="right">
-      <a class="links" href="{% url 'visualizer' %}">Vizualizer</a>
-      <p class="links" href="{% url 'about' %}">About</p>
-      <a class="links" href="{% url 'data-info' %}">Data Info</a>
-      {% if request.user.is_authenticated %}
-      <a class="links" href="{% url 'logout' %}">Sign Out</a>
-      {% else %}
-      <a class="links" href="{% url 'login' %}">Sign In</a>
-      {% endif %}
-      {% if request.user.is_authenticated %}
-      <p style="color: #33ebed">{{ request.user.username.upper }}</p>
-      {% endif %}
-    </div>
-  </nav>
-
-  <svg viewBox="0 0 500 10" preserveAspectRatio="xMinYMin meet">
-    <path
-      d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z"
-      style="stroke: none; fill: #393e46"
-    ></path>
-  </svg>
-
-  <div class="about-content">
-    <h1>About Us</h1>
-    <p>
-      Welcome to Mexer. Our mission is to empower researchers to better
-      understand energy conversion chains (ECCs) through intuitive visualization
-      tools underpinned by the
-      <a
-        href="https://www.sciencedirect.com/science/article/pii/S0306261918308298"
-        target="_blank"
-        >PSUT framework.</a
-      >
-    </p>
-    <h2>Our Vision</h2>
-    <p>
-      We envision a sustainable world in which everyone has access to clear and
-      actionable energy data. By providing this web application, we aim to make
-      understanding and working with energy data easier, fostering informed,
-      sustainable policy-making.
-    </p>
-    <h2>Our Team</h2>
-    <p>
-      Our team consists of varied and passionate people, with the common goal of
-      a sustainable world. From engineers to economists, the Energy Economics
-      Team is dedicated to the research and presentation of sustainable
-      policies.
-    </p>
-    <h3>Site Authors</h3>
-    <p>
-      This website was programmed by
-      <ul>
-        <li>Kenneth Howes - <a href="http://littlekendian.me" target="_blank">littlekendian.me</a></li>
-        <li>Edom Maru - <a href="mailto: edomamaru@gmail.com" target="_blank">edomamaru@gmail.com</a></li>
-      </ul>
-      The source code is kept in this <a href="https://github.com/Energy-Visualizer/eviz" target="_blank">GitHub repository</a>.
-    <p>
-    <h2>Contact Us</h2>
-    <p>
-      We'd love to hear from you! Whether you have a question about our tools,
-      need support, or want to provide feedback, please reach out to
-      <a href="mailto: matthew.heun@calvin.edu">matthew.heun@calvin.edu</a>, or
-      create
-      <a href="https://github.com/Energy-Visualizer/eviz/issues"
-        >a GitHub issue</a
-      >.
-    </p>
-
-    <p>
-      Information about the data available on Mexer can be found
-      <a href="{% url 'data-info' %}">here</a>.
-    </p>
-
-    <h2>Acknowledgement</h2>
-    <p>
-      Development of the Mexer website in Summer 2024 was made possible by a
-      generous grant from the Energy Economics journal to Instituto Superior
-      Téchnico, Lisbon, Portugal with a subcontract to Calvin University.
-    </p>
-  </div>
-</body> -->
