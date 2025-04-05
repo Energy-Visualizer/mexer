@@ -3,6 +3,14 @@
 {% block hero_title %} About Mexer {% endblock %}
 {% block hero_subtitle %} All about the Mexer project {% endblock %}
 
+{% load static %}
+{% block extra_head %}
+    <!-- components -->
+    {% include "snippets/card.html" %} <!-- include template html -->
+    <script src={% static "js/components/card.js" %} defer></script> <!-- include web component script -->
+    <!-- end components -->
+{% endblock %}
+
 {% block content %}
     <p>
       Welcome to Mexer. Our mission is to empower researchers to better
@@ -14,32 +22,63 @@
         class="text-cyan-400 dark:text-cyan-600 hover:text-cyan-300"
         >PSUT framework.</a>
     </p>
-    {% include "snippets/card.html" with title="Our Vision" content="We envision a sustainable world in which everyone has access to clear and actionable energy data. By providing this web application, we aim to make understanding and working with energy data easier, fostering informed, sustainable policy-making." %}
-    {% include "snippets/card.html" with title="Our Team" content="Our team consists of varied and passionate people, with the common goal of a sustainable world. From engineers to economists, the Energy Economics Team is dedicated to the research and presentation of sustainable policies." %}
+    <mexer-card>
+      <span id="title">Our Vision</span> 
+      <span id="content">
+        We envision a sustainable world in which everyone has access to clear and actionable energy data. 
+        By providing this web application, we aim to make understanding and working with energy data easier, fostering informed, sustainable policy-making.
+      </span> 
+    </mexer-card>
+    <mexer-card>
+      <span id="title">Our Team</span>
+      <span id="content">
+        Our team consists of varied and passionate people, with the common goal of a sustainable world. 
+        From engineers to economists, the Energy Economics Team is dedicated to the research and presentation of sustainable policies.
+      </span>
+    </mexer-card>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {% include "snippets/card.html" with title="Kenneth Howes" content="This website was programmed by Kenneth Howes. Visit his personal website at <a href='http://littlekendian.me' target='_blank' class='text-cyan-400 dark:text-cyan-600 hover:text-cyan-300'>littlekendian.me</a>." %}
-      {% include "snippets/card.html" with title="Edom Maru" content="This website was programmed by Edom Maru. Contact her via email at <a href='mailto:edomamaru@gmail.com' target='_blank' class='text-cyan-400 dark:text-cyan-600 hover:text-cyan-300'>edomamaru@gmail.com</a>." %}
+      <div class="ml-20">
+        <mexer-card>
+          <span id="title">Kenneth Howes</span>
+          <span id="content">
+            This website was programmed by Kenneth Howes.
+            Contact him via email at <a href='http://littlekendian.com' target='_blank' class='text-cyan-400 dark:text-cyan-600 hover:text-cyan-300'>kenneth.howes53@gmail.com</a>.
+          </span>
+        </mexer-card>
+      </div>
+      <div class="mr-20">
+        <mexer-card>
+          <span id="title">Edom Maru</span>
+          <span id="content">
+            This website was programmed by Edom Maru.
+            Contact her via email at <a href='mailto:edomamaru@gmail.com' target='_blank' class='text-cyan-400 dark:text-cyan-600 hover:text-cyan-300'>edomamaru@gmail.com</a>.
+          </span>
+        </mexer-card>
+      </div>
     </div>
-    <h2>Contact Us</h2>
-    <p>
-      We'd love to hear from you! Whether you have a question about our tools,
-      need support, or want to provide feedback, please reach out to
-      <a href="mailto: matthew.heun@calvin.edu">matthew.heun@calvin.edu</a>, or
-      create
-      <a href="https://github.com/Energy-Visualizer/eviz/issues"
-        >a GitHub issue</a
-      >.
-    </p>
+    <mexer-card>
+      <span id="title">Contact Us</span>
+      <span id="content">
+        We'd love to hear from you!
+        Whether you have a question about our tools, need support, or want to provide feedback, please reach out to
+        <a class='text-cyan-400 dark:text-cyan-600 hover:text-cyan-300' href='mailto: matthew.heun@calvin.edu'>matthew.heun@calvin.edu</a>,
+        or create <a class='text-cyan-400 dark:text-cyan-600 hover:text-cyan-300' href='https://github.com/Energy-Visualizer/eviz/issues' >a GitHub issue</a >.
+      </span>
+    </mexer-card>
 
-    <p>
-      Information about the data available on Mexer can be found
-      <a href="{% url 'data-info' %}">here</a>.
-    </p>
+    <mexer-card>
+      <span id="title">Data Offered</span>
+      <span id="content">
+        Information about the data available on Mexer can be found <a href="{% url 'data-info' %}" class="text-cyan-400 dark:text-cyan-600 hover:text-cyan-300">here</a>.
+      </span>
+    </mexer-card>
 
-    <h2>Acknowledgement</h2>
-    <p>
-      Development of the Mexer website in Summer 2024 was made possible by a
-      generous grant from the Energy Economics journal to Instituto Superior
-      Téchnico, Lisbon, Portugal with a subcontract to Calvin University.
-    </p>
+    <mexer-card>
+      <span id="title">Acknowledgements</span>
+      <span id="content">
+        Development of the Mexer website in Summer 2024 was made possible by a
+        generous grant from the Energy Economics journal to Instituto Superior
+        Téchnico, Lisbon, Portugal with a subcontract to Calvin University.
+      </span>
+    </mexer-card>
 {% endblock content %}

@@ -1,0 +1,81 @@
+<!--
+Info Page Base
+
+This base defines the skeleton for an informative, blog post esque page.
+
+Blocks:
+ - title, title of the browser tab
+ - extra_head, any other links to include in the head section
+ - hero_title, title of the page
+ - hero_subtitle, subtitle of the page
+ - content, the content of the page... shocker
+-->
+
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}Mexer{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.png' %}" />
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body class="bg-gray-200 text-gray-800">
+  <nav class="bg-gray-900 text-white">
+    <div class="container mx-auto flex justify-between items-center py-4">
+      <a class="text-5xl font-bold hover:text-cyan-300" href="{% url 'home' %}">Mexer</a>
+      <div class="flex space-x-4">
+        <a class="hover:text-gray-400" href="{% url 'visualizer' %}">Visualizer</a>
+        <a class="hover:text-gray-400" href="{% url 'about' %}">About</a>
+        <a class="hover:text-gray-400" href="{% url 'data-info' %}">Data Info</a>
+        {% if request.user.is_authenticated %}
+        <a class="hover:text-gray-400" href="{% url 'logout' %}">Sign Out</a>
+        <span class="text-cyan-400">{{ request.user.username|upper }}</span>
+        {% else %}
+        <a class="hover:text-gray-400" href="{% url 'login' %}">Sign In</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <svg viewBox="0 0 500 10" preserveAspectRatio="xMinYMin meet" class="w-full">
+    <path
+      d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z"
+      style="stroke: none"
+      class="fill-gray-900"
+    ></path>
+  </svg>
+
+  <section class="bg-primary text-cyan-400 py-12">
+    <div class="container mx-auto text-center">
+      <h1 class="text-4xl font-bold">{% block hero_title %}Welcome to Mexer{% endblock %}</h1>
+      <h2 class="text-xl mt-4">{% block hero_subtitle %}Your energy visualization tool{% endblock %}</h2>
+    </div>
+  </section>
+
+  <section class="py-8 mb-auto">
+    <div class="container mx-auto pb-24">
+      {% block content %}
+      <p>Default content goes here. Override this block in child templates.</p>
+      {% endblock %}
+    </div>
+  </section>
+
+  <footer class="bg-gray-900 text-white py-6 fixed w-full bottom-0">
+    <div class="container mx-auto text-center">
+      <p>
+        <strong>Mexer</strong> by <a href="mailto:kenneth.howes53@gmail.com" class="text-cyan-400 hover:underline" target="_blank">Kenneth Howes</a> and
+        <a href="mailto:edomamaru@gmail.com" class="text-cyan-400 hover:underline" target="_blank">Edom Maru</a>. Source code on
+        <a href="https://github.com/Energy-Visualizer/eviz" class="text-cyan-400 hover:underline" target="_blank">GitHub</a>.
+      </p>
+      <p>
+        Contact us at <a href="mailto:matthew.heun@calvin.edu" class="text-cyan-400 hover:underline">matthew.heun@calvin.edu</a> or
+        <a href="https://github.com/Energy-Visualizer/eviz/issues" class="text-cyan-400 hover:underline" target="_blank">create a GitHub issue</a>.
+      </p>
+    </div>
+  </footer>
+</body>
+</html>
