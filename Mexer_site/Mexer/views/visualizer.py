@@ -272,6 +272,8 @@ def get_data(request):
 
     if request.method == "POST":
 
+        return_type = request.POST.get("returnDataType"); # get if request is for csv or request
+
         # set up query and get csv from it
         query, _, target = shape_post_request(request.POST)
 
@@ -284,27 +286,30 @@ def get_data(request):
         query = translate_query(target, query)
 
         # Generate CSV data based on the query
+        columns: list = [] # columns to get
         if target[1] is AggEtaPFU:
             # get xy info
-            csv = get_csv_from_query(target, query, columns = META_COLUMNS + AGGETA_COLUMNS)
+            columns = META_COLUMNS + AGGETA_COLUMNS
         else:
             # get psut (sankey and matrix) info
-            csv = get_csv_from_query(target, query, columns = META_COLUMNS + PSUT_COLUMNS)
+            columns = META_COLUMNS + PSUT_COLUMNS
 
         # set up the response:
-        # content is the csv made above
-        # then give csv MIME
-        # and appropriate http header
-        final_response = HttpResponse(
-            content = csv.encode(),
-            content_type = "text/csv",
-            headers = {"Content-Disposition": f'attachment; filename="mexer-data-{time.strftime("%H-%M_%d-%m-%Y")}.csv"'} # TODO: make this file name more descriptive
-        )
-        LOGGER.info("Made CSV data")
+        # then give csv MIME 
+        # and appropriate http content header
+        final_response = HttpResponse()
+        filename = f"mexer-data-{time.strftime('%H-%M_%d-%m-%Y')}"
 
-        # TODO: excel downloads
-        # MIME for workbook is application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-        # file handle is xlsx for workbook 
+        if return_type == "csv":
+            final_response.write(get_csv_from_query(target, query, columns).encode())
+            final_response.headers["Content-Type"] = "text/csv"
+            final_response.headers["Content-Disposition"] = f'attachment; filename="{filename}.csv"'
+            LOGGER.info("Made CSV data")
+
+        elif return_type == "excel":
+            final_response.write(get_excel_from_query(target, query, columns))
+            final_response.headers["Content-Type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            final_response.headers["Content-Disposition"] = f'attachment; filename="{filename}.xlsx"'
+            LOGGER.info("Made Excel data")
 
         return final_response
-

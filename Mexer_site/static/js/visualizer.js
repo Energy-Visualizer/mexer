@@ -102,6 +102,13 @@ const initialize = () => {
     else {
         startMenuSwitch();
     }
+
+
+    // Let users select what form of data they would like to download
+    document.getElementById('download-options-button').addEventListener('click', function() {
+        var downloadOptions = document.getElementById('download-options');
+        downloadOptions.classList.toggle('hidden');
+    });
 }
 
 /** Enables an input element and displays its container. */

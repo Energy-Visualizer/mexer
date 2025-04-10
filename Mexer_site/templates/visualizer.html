@@ -543,11 +543,22 @@
                 <!-- onclick for bringing user to plot area -->
                 Make Plot
             </button>
-            <button type="submit" id="download" class="main-button"
-                onclick="return confirm('By accepting you confirm that you understand IEA data is proprietary and cannot be shared with those not authorized to see it.')">
-                <!-- onclick for bringing user to plot area -->
-                Download Data
-            </button>
+            <div id="download-area" class="main-button">
+                <div id="download-buttons">
+                    <button type="button" id="download-options-button" class="main-button">
+                        Download Data
+                    </button>
+                </div>
+                <div id="download-options" class="hidden">
+                    <!-- buttons to control what the user downloads -->
+                    <ul>
+                        <li><button type="submit" id="download-csv-option" name="returnDataType" value="csv"
+                                    onclick="return confirm('By accepting you confirm that you understand IEA data is proprietary and cannot be shared with those not authorized to see it.')">CSV</button></li>
+                        <li><button type="submit" id="download-excel-option" name="returnDataType" value="excel"
+                                    onclick="return confirm('By accepting you confirm that you understand IEA data is proprietary and cannot be shared with those not authorized to see it.')">Excel</button></li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
     </form>
