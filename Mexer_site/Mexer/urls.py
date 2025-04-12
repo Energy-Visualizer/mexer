@@ -3,8 +3,10 @@ import Mexer.views.history as history_views
 import Mexer.views.misc as misc_views
 import Mexer.views.user_accounts as accounts_views
 import Mexer.views.visualizer as visualizer_views
+from django.conf import settings
 
-urlpatterns = [
+# build url patterns
+__urlpatterns = [
     # main pages
     path('', misc_views.index, name='home'),
     path("visualizer/", visualizer_views.visualizer, name="visualizer"),
@@ -33,3 +35,10 @@ urlpatterns = [
     re_path(r"static/(.*/[^(\.)]*\..*)", misc_views.handle_static),
     path("plot-stage/", misc_views.plot_stage),
 ]
+
+# append testing routes
+if settings.DEBUG:
+    __urlpatterns.append(re_path(r"test_render/(.*)", misc_views.__test_render_page))
+
+# apply, "urlpatterns" is what Django will be given
+urlpatterns = __urlpatterns

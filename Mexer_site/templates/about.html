@@ -1,32 +1,35 @@
 {% extends "bases/info_page_base.html" %}
 
 {% block hero_title %} About Mexer {% endblock %}
-{% block hero_subtitle %} All about the Mexer project {% endblock %}
+{% block hero_subtitle %} Our Vision and Team {% endblock %}
 
 {% load static %}
 {% block extra_head %}
-    <!-- components -->
-    {% include "snippets/card.html" %} <!-- include template html -->
-    <script src={% static "js/components/card.js" %} defer></script> <!-- include web component script -->
-    <!-- end components -->
+  <!-- components -->
+  {% include "snippets/card.html" %} <!-- include template html -->
+  <script src={% static "js/components/card.js" %} defer></script> <!-- include web component script -->
+  <!-- end components -->
 {% endblock %}
 
 {% block content %}
-    <p>
-      Welcome to Mexer. Our mission is to empower researchers to better
-      understand energy conversion chains (ECCs) through intuitive visualization
-      tools underpinned by the
-      <a
-        href="https://www.sciencedirect.com/science/article/pii/S0306261918308298"
-        target="_blank"
-        class="text-cyan-400 dark:text-cyan-600 hover:text-cyan-300"
-        >PSUT framework.</a>
-    </p>
     <mexer-card>
       <span id="title">Our Vision</span> 
       <span id="content">
-        We envision a sustainable world in which everyone has access to clear and actionable energy data. 
-        By providing this web application, we aim to make understanding and working with energy data easier, fostering informed, sustainable policy-making.
+        <p>
+          Welcome to Mexer. Our mission is to empower researchers to better
+          understand energy conversion chains (ECCs) through intuitive visualization
+          tools underpinned by the
+          <a
+            href="https://www.sciencedirect.com/science/article/pii/S0306261918308298"
+            target="_blank"
+            class="text-cyan-400 dark:text-cyan-600 hover:text-cyan-300"
+            >PSUT framework.</a>
+        </p>
+        <br>
+        <p>
+          We envision a sustainable world in which everyone has access to clear and actionable energy data. 
+          By providing this web application, we aim to make understanding and working with energy data easier, fostering informed, sustainable policy-making.
+        </p>
       </span> 
     </mexer-card>
     <mexer-card>
