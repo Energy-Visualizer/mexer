@@ -101,13 +101,16 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str] | tu
     # get all four matrices to make the full RUVY matrix
     data = _query_database(target, query, ["matname", "i", "j", "value"])
 
-    # get foreign keys from the query results
-    foreign_keys = set(row[1] for row in data).union(row[2] for row in data)
-
     # if no cooresponding data, return as such
     # TODO: would probably be better to raise an exception
     if not data:
-        return (None, None, None)
+        return (None, None, None, None)
+
+    # get rid of any duplicate i,j,x combinations (many exist)
+    data = set(data)
+
+    # get foreign keys from the query results
+    foreign_keys = set(row[1] for row in data).union(row[2] for row in data)
 
     # get needed orderings from the db
     index_records = Index.objects.filter(IndexID__in=foreign_keys).values("Index", "SankeyColumn")
@@ -118,9 +121,6 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str] | tu
     column_mapping = {old: new for new, old in enumerate(unique_columns)}
     sankey_orders = {key: column_mapping[value] for key, value in sankey_orders.items()}
     max_columns = max(column_mapping.values()) + 1 # get how many columns the plot will have
-
-    # get rid of any duplicate i,j,x combinations (many exist)
-    data = set(data)
 
     # these three variables are what ultimately get json dumped
     # and sent to the javascript renderer
