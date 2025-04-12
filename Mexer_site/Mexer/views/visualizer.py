@@ -120,11 +120,11 @@ def visualizer(request):
 
 def generate_sankey_html(target: DatabaseTarget, query: dict) -> str:
     translated_query = translate_query(target, query)
-    nodes,links,options = get_sankey(target, translated_query)
+    nodes,links,options,num_columns = get_sankey(target, translated_query)
 
     if nodes is None:
         return "Error: No cooresponding data"
-    return f"<script>createSankey({nodes},{links},{options},\"{get_plot_title(query)}\")</script>\
+    return f"<script>createSankey({nodes},{links},{options},\"{get_plot_title(query)}\",{num_columns})</script>\
                     <button onclick='downloadSankey()' class='sankey-download-button'>Download Sankey</button>"
 
 def generate_xy_html(target: DatabaseTarget, query: dict) -> str:

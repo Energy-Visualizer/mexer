@@ -2,7 +2,7 @@ const plotSection = document.getElementById("plot-section");
 
 import {PlotCreator} from './SanKEY_script.js'
 
-const createSankey = (nodes, links, options, title) => {
+const createSankey = (nodes, links, options, title, num_columns) => {
     // plotSection.innerHTML = ""; // clear the plot section first
     let sankeyPlot = new PlotCreator(
         plotSection, // container in the dom
@@ -11,7 +11,7 @@ const createSankey = (nodes, links, options, title) => {
         plotSection.clientWidth, // plot width
         plotSection.clientHeight, // plot height
         0, // first column to show
-        10, // number of columns to show (e.g. 0, 4 declares columns 0-3)
+        num_columns, // number of columns to show (e.g. 0, 4 declares columns 0-3)
 
         // further options
         // combination of "options" param and options defined here

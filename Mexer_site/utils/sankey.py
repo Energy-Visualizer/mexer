@@ -18,6 +18,7 @@ from Mexer_meta.settings import SANKEY_COLORS_PATH
 from utils.logging import LOGGER
 from collections import Counter
 from django.db import connections
+from Mexer.models import Index
 
 INDUSTRY_COLOR = "midnightblue"
 OVERRIDE_COL = 1 # where to put energy carrier nodes
@@ -100,21 +101,30 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str] | tu
     # get all four matrices to make the full RUVY matrix
     data = _query_database(target, query, ["matname", "i", "j", "value"])
 
-    # get ordering from db, target[0] defines which db from which to get data
-    with connections[target[0]].cursor() as cursor:
-        cursor.execute('SELECT "Index", "SankeyColumn" FROM "Index";')
-        sankey_orders = {row[0]:row[1] for row in cursor.fetchall()} # turn it into a dictionary to actually use
+    # get foreign keys from the query results
+    foreign_keys = set(row[1] for row in data).union(row[2] for row in data)
 
     # if no cooresponding data, return as such
+    # TODO: would probably be better to raise an exception
     if not data:
         return (None, None, None)
+
+    # get needed orderings from the db
+    index_records = Index.objects.filter(IndexID__in=foreign_keys).values("Index", "SankeyColumn")
+    sankey_orders = {record["Index"]: record["SankeyColumn"] for record in index_records}
+
+    # normalize the values of sankey_orders to remove "empty" columns
+    unique_columns = set(sorted(sankey_orders.values()))
+    column_mapping = {old: new for new, old in enumerate(unique_columns)}
+    sankey_orders = {key: column_mapping[value] for key, value in sankey_orders.items()}
+    max_columns = max(column_mapping.values()) + 1 # get how many columns the plot will have
 
     # get rid of any duplicate i,j,x combinations (many exist)
     data = set(data)
 
     # these three variables are what ultimately get json dumped
     # and sent to the javascript renderer
-    nodes = [list() for _ in range(10)] # 10 columns for the sankey diagram
+    nodes = [list() for _ in range(max_columns)] # n columns for the sankey diagram, found from database values
     links = list()
     options = dict(
         plot_background_color = '#f4edf7',
@@ -170,6 +180,6 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str] | tu
                       "to": dict(column=to_node_info.column, node = to_node_info.index),
                       "value": magnitude,
                       "color": _get_sankey_color(translator.index_translate(j if j_is_carrier else i))})
-    
+
     # convert everything to json to send it to the javascript renderer
-    return json.dumps(nodes), json.dumps(links), json.dumps(options)
+    return json.dumps(nodes), json.dumps(links), json.dumps(options), max_columns
