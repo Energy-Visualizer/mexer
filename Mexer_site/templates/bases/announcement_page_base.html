@@ -10,7 +10,6 @@ Blocks:
  - title, title of the browser tab
  - extra_head, any other links to include in the head section
  - hero_title, title of the page
- - hero_subtitle, subtitle of the page
  - content, the content of the page... shocker
 -->
 
@@ -27,13 +26,15 @@ Blocks:
 {% endblock %}
 
 {% block inner %}
-  <section class="py-8 mb-auto max-w-[80%] mx-auto">
+  <section class="py-8 mb-auto max-w-[60%] mx-auto">
     <mexer-card>
-      <span id="title">{% block title %}{% endblock %}</span>
+      <span id="title"><div class="text-center text-7xl mb-10">{% block hero_title %}{% endblock %}</div></span>
       <span id="content">
-      {% block content %}
-      <p>Default content goes here. Override this block in child templates.</p>
-      {% endblock %}
+      <div class="text-center text-3xl">
+        {% block content %}
+        <p>Default content goes here. Override this block in child templates.</p>
+        {% endblock %}
+      </div>
       </span>
     </mexer-card>
   </section>

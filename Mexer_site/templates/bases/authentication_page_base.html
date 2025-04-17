@@ -1,0 +1,47 @@
+{% extends "bases/mexer_page_base.html" %}
+
+<!--
+Authentication Page Base
+
+This base defines the skeleton for a page that requires authentication,
+for example, a login page.
+
+Blocks:
+ - title, title of the browser tab
+ - extra_head, any other links to include in the head section
+ - hero_title, title of the page
+ - blurb, a short blurb about the page
+ - form, the form to be displayed on the page
+-->
+
+{% load static %}
+
+{% block extra_head %}
+  <!-- components -->
+  {% include "snippets/card.html" %} <!-- include template html -->
+  <script src={% static "js/components/card.js" %} defer></script> <!-- include web component script -->
+  {% include "snippets/form-input.html" %}
+  <script src={% static "js/components/formInput.js" %} defer></script>
+  <!-- end components -->
+
+  <!-- for use with para-bg elements below -->
+  <link rel="stylesheet" href="{% static 'css/bg-waves.css' %}" type="text/css" />
+{% endblock %}
+
+{% block inner %}
+  <div class="flex py-8 max-w-[80%] mx-auto">
+    <div class="w-1/2 p-10 text-center rounded-lg flex items-center justify-center text-gray-900">
+          {% block blurb %}{% endblock %}
+    </div>
+    <div class="bg-gray-900 w-1/2 p-10 text-center rounded-lg m-20 h-fit">
+          {% block form %}{% endblock %}
+    </div>
+  </div>
+
+  <div id="para-bg-5" class="para-bg"></div>
+  <div id="para-bg-4" class="para-bg"></div>
+  <div id="para-bg-3" class="para-bg"></div>
+  <div id="para-bg-2" class="para-bg"></div>
+  <div id="para-bg-1" class="para-bg"></div>
+  <div id="para-bg-0" class="para-bg"></div>
+{% endblock %}

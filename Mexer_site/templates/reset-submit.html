@@ -1,65 +1,48 @@
-<!DOCTYPE html>
-<html  lang="en">
-  <head>
-    <title>Signup</title>
-    <link rel="stylesheet" href="../static/css/toolbar.css" type="text/css" />
-    <link rel="stylesheet" href="../static/css/signup.css" type="text/css" />
-    <link rel="icon" type="image/x-icon" href="../static/images/favicon.png" />
-  </head>
+{% extends "bases/authentication_page_base.html" %}
 
-  <body class="gradient">
-    <nav class="topbar">
-      <div class="left">
-        <a class="main" href="{% url 'home' %}">Mexer</a>
-      </div>
-      <div class="right">
-        <a class="links" href="{% url 'visualizer' %}">Vizualizer</a>
-        <a class="links" href="{% url 'about' %}">About</a>
-        <a class="links" href="{% url 'data-info' %}">Data Info</a>
-        {% if request.user.is_authenticated %}
-        <a class="links" href="{% url 'logout' %}">Sign Out</a>
-        {% else %}
-        <a class="links" href="{% url 'login' %}">Sign In</a>
-        {% endif %}
-        {% if request.user.is_authenticated %}
-        <p style="color: #33ebed">{{ request.user.username.upper }}</p>
-        {% endif %}
-      </div>
-    </nav>
+{% block title %}Reset Password{% endblock %}
 
-    <svg viewBox="0 0 500 10" preserveAspectRatio="xMinYMin meet">
-      <path
-        d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z"
-        style="stroke: none; fill: #393e46"
-      ></path>
-    </svg>
+{% block hero_title %}Reset Password{% endblock %}
 
-    <div class="content">
-      <div class="energy-visulizer">
-        <h1>Reset Password</h1>
-        <p>
-          Please input your password twice in the boxes to the right to finish resetting your password.
-        </p>
-      </div>
-      <div class="login-box">
-        <h1>Reset Password</h1>
-        <form method="POST">
-          {% csrf_token %}
-          <input type="hidden" name="code" value={{ code }}>
-          {{ form.password1 }}
-          {{ form.password2 }}
-          {% for error_message in messages %} <p>{{ error_message }}</p> {% endfor %}
-          {% for error_message in form.errors.values %} {{ error_message }} {% endfor %}
-          <button type="submit">Reset Password</button>
-        </form>
-      </div>
-    </div>
+{% block blurb %}
+  <div>
+    <h2 class="text-4xl text-cyan-400 font-bold mb-5">Reset Password</h2>
+    <p class="text-2xl">
+      Please enter your <em>new</em> password twice to finish resetting your Mexer account password.
+    </p>
+  </div>
+{% endblock %}
 
-    <div id="para-bg-5" class="para-bg"></div>
-    <div id="para-bg-4" class="para-bg"></div>
-    <div id="para-bg-3" class="para-bg"></div>
-    <div id="para-bg-2" class="para-bg"></div>
-    <div id="para-bg-1" class="para-bg"></div>
-    <div id="para-bg-0" class="para-bg"></div>
-  </body>
-</html>
+{% block form %}
+  <form method="POST" class="text-white flex flex-col gap-3">
+    {% csrf_token %}
+    <input type="hidden" name="code" value={{ code }}>
+    <mexer-form-input>
+      <label for="{{ form.password1.id_for_label }}">
+        {{ form.password1.label }}
+      </label>
+      <input 
+        type="text" 
+        name="{{ form.password1.html_name }}" 
+        id="{{ form.password1.id_for_label }}" 
+        value="{{ form.password1.value|default_if_none:'' }}" 
+        placeholder="Enter your password"
+      />
+    </mexer-form-input>
+    <mexer-form-input>
+      <label for="{{ form.password2.id_for_label }}">
+        {{ form.password2.label }}
+      </label>
+      <input 
+        type="text" 
+        name="{{ form.password2.html_name }}" 
+        id="{{ form.password2.id_for_label }}" 
+        value="{{ form.password2.value|default_if_none:'' }}" 
+        placeholder="Enter your password again"
+      />
+    </mexer-form-input>
+    {% for error_message in messages %} <p>{{ error_message }}</p> {% endfor %}
+    {% for error_message in form.errors.values %} {{ error_message }} {% endfor %}
+    <button type="submit" class="bg-cyan-400 rounded text-2xl font-bold p-2">Reset Password</button>
+  </form>
+{% endblock %}

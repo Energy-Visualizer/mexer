@@ -1,80 +1,63 @@
-<!DOCTYPE html>
-<html  lang="en">
-<head>
-  <title>Login</title>
-  <link rel="stylesheet" href="../static/css/toolbar.css" type="text/css" />
-  <link rel="stylesheet" href="../static/css/signup.css" type="text/css" />
-  <link rel="icon" type="image/x-icon" href="../static/images/favicon.png" />
-</head>
+{% extends "bases/authentication_page_base.html" %}
 
-<body class="gradient">
-  <nav class="topbar">
-    <div class="left">
-      <a class="main" href="{% url 'home' %}">Mexer</a>
-    </div>
-    <div class="right">
-      <a class="links" href="{% url 'visualizer' %}">Vizualizer</a>
-      <a class="links" href="{% url 'about' %}">About</a>
-      <a class="links" href="{% url 'data-info' %}">Data Info</a>
-      {% if request.user.is_authenticated %}
-      <p class="links" href="{% url 'logout' %}">Sign Out</p>
-      {% else %}
-      <p class="links" href="{% url 'login' %}">Sign In</p>
-      {% endif %}
-      {% if request.user.is_authenticated %}
-      <p style="color: #33ebed">{{ request.user.username.upper }}</p>
-      {% endif %}
-    </div>
-  </nav>
+{% block title %}Login{% endblock %}
 
-  <svg viewBox="0 0 500 10" preserveAspectRatio="xMinYMin meet">
-    <path
-      d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z"
-      style="stroke: none; fill: #393e46"
-    ></path>
-  </svg>
+{% block hero_title %}Login{% endblock %}
 
-  <div class="content">
-    <div class="energy-visulizer">
-      <h1>Material, Energy and Exergy Visualization</h1>
-      <p>
-        Discover how energy flows and transforms with our powerful visualization
-        tools.
-      </p>
-    </div>
-    <div class="login-box">
-      <h1>Log in</h1>
-      <form method="POST">
-        {% csrf_token %}
-        <div class="form-group">
-          {{ form.username.label_tag }} {{ form.username }}
-        </div>
-        <div class="form-group">
-          {{ form.password.label_tag }} {{ form.password }}
-        </div>
-        {% if messages %}
-          {% for message in messages %}
-          <p{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %} style="color:red;"{% endif %}>{{ message }}</p>
-          {% endfor %}
-        {% endif %}
-        <button type="submit">Log In</button>
-        <p>
-          Forgot password?
-          <a style="color: #00adb5" href="{% url 'forgot_password' %}">Reset</a>
-        </p>
-        <p>
-          Don't have an account?
-          <a style="color: #00adb5" href="{% url 'signup' %}">Sign Up</a>
-        </p>
-      </form>
-    </div>
+{% block blurb %}
+  <div>
+    <h2 class="text-4xl text-cyan-400 font-bold mb-5">Material, Energy and Exergy Visualization</h2>
+    <p class="text-2xl">
+      Discover how energy flows and transforms with our powerful visualization
+      tools.
+    </p>
   </div>
+{% endblock %}
 
-  <div id="para-bg-5" class="para-bg"></div>
-  <div id="para-bg-4" class="para-bg"></div>
-  <div id="para-bg-3" class="para-bg"></div>
-  <div id="para-bg-2" class="para-bg"></div>
-  <div id="para-bg-1" class="para-bg"></div>
-  <div id="para-bg-0" class="para-bg"></div>
-</body>
-</html>
+{% block form %}
+  <form method="POST" class="text-white flex flex-col gap-3">
+    {% csrf_token %}
+
+    <mexer-form-input>
+      <label for="{{ form.username.id_for_label }}">
+        {{ form.username.label }}
+      </label>
+      <input 
+        type="text" 
+        name="{{ form.username.html_name }}" 
+        id="{{ form.username.id_for_label }}" 
+        value="{{ form.username.value|default_if_none:'' }}" 
+        placeholder="Enter your username"
+      />
+    </mexer-form-input>
+
+    <mexer-form-input>
+      <label for="{{ form.password.id_for_label }}">
+        {{ form.password.label }}
+      </label>
+      <input 
+        type="password" 
+        name="{{ form.password.html_name }}" 
+        id="{{ form.password.id_for_label }}" 
+        value="{{ form.password.value|default_if_none:'' }}" 
+        placeholder="Enter your password"
+      />
+    </mexer-form-input>
+
+    {% if messages %}
+      {% for message in messages %}
+      <p{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %} style="color:red;"{% endif %}>{{ message }}</p>
+      {% endfor %}
+    {% endif %}
+
+    <button type="submit" class="bg-cyan-400 rounded text-2xl font-bold p-2">Log In</button>
+    <p>
+      Forgot password?
+      <a style="color: #00adb5" href="{% url 'forgot_password' %}">Reset</a>
+    </p>
+    <p>
+      Don't have an account?
+      <a style="color: #00adb5" href="{% url 'signup' %}">Sign Up</a>
+    </p>
+  </form>
+{% endblock %}
