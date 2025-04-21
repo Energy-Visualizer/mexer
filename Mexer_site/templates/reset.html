@@ -34,10 +34,15 @@
       />
     </mexer-form-input>
 
-    <label for="{{ form.captcha.id_for_label }}" class="text-cyan-400 text-left font-medium">{{ form.captcha.label }}</label>
-    <div class="flex gap-5 w-full text-gray-900">
-      {{ form.captcha }}
-    </div>
+    <mexer-form-input>
+      <label for="{{ form.captcha.id_for_label }}">
+        {{ form.captcha.label }}
+      </label>
+      <div class="flex gap-5 w-full text-gray-900">
+        {{ form.captcha }}
+      </div>
+    </mexer-form-input>
+
     {% for error_message in messages %} <p>{{ error_message }}</p> {% endfor %}
     {% for error_message in form.errors.values %} {{ error_message }} {% endfor %}
     <button type="submit" class="bg-cyan-400 rounded text-2xl font-bold p-2">Request Password Reset</button>
