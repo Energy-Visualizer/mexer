@@ -17,20 +17,25 @@
 {% endblock %}
 
 {% block inner %}
-  <div id="para-bg-5" class="para-bg"></div>
-  <div id="para-bg-4" class="para-bg"></div>
-  <div id="para-bg-3" class="para-bg"></div>
-  <div id="para-bg-2" class="para-bg"></div>
-  <div id="para-bg-1" class="para-bg"></div>
-  <div id="para-bg-0" class="para-bg"></div>
+  <div id="para-bg-5" class="para-bg fixed bottom-0 w-full"></div>
+  <div id="para-bg-4" class="para-bg fixed bottom-0 w-full"></div>
+  <div id="para-bg-3" class="para-bg fixed bottom-0 w-full"></div>
+  <div id="para-bg-2" class="para-bg fixed bottom-0 w-full"></div>
+  <div id="para-bg-1" class="para-bg fixed bottom-0 w-full"></div>
+  <div id="para-bg-0" class="para-bg fixed bottom-0 w-full"></div>
 
   <header id="title" class="text-center py-12">
     <span class="block mx-auto w-16 h-1 bg-gradient-to-r from-blue-500 to-cyan-300 mb-4"></span>
     <p class="text-lg font-medium text-gray-600">Welcome to</p>
-    <h1 class="text-4xl font-extrabold text-cyan-400 tracking-tight sm:text-5xl">
+    <h1 class="text-9xl font-extrabold text-cyan-400 tracking-tight sm:text-7xl relative">
+      <span class="absolute inset-0 flex justify-center items-center pointer-events-none">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" style="filter: drop-shadow(0 0 6px rgba(0, 255, 255, 0.9)); z-index: 1;" class="max-w-xl opacity-100" viewBox="0 80 960 603.4">
+          <path d="M0 400c80-240 0 0 240 0 160 0 320 0 480 0 240 0 120 320 240 0V320c-80 240 0 69-239 69H240C0 388 120 0 0 320Z"></path>
+        </svg>
+      </span>
       Mexer
     </h1>
-    <h2 class="text-xl font-semibold text-gray-500 mt-2">
+    <h2 class="text-xl font-semibold text-gray-600 mt-2">
       Materials and Energy eXERgy Visualizer
     </h2>
   </header>
@@ -38,7 +43,9 @@
   <div class="flex justify-center items-center">
     <a href="{% url 'visualizer' %}">
       <button id="get-started" class="px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-400 text-white text-lg font-bold rounded-lg shadow-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-cyan-500 transform hover:scale-105 transition-transform duration-300">
-        Get Started
+        <span class="text-4xl">
+          Get Started
+        </span>
       </button>
     </a>
   </div>
@@ -52,172 +59,116 @@
     </div>
   </article>
 
-      <article class="bg-gray-100 text-gray-800 rounded-lg shadow-lg p-6 my-8 max-w-[75%] mx-auto">
-        <h3 class="text-2xl font-bold text-center mb-4">Papers Related to Mexer</h3>
-        <a
-          href="https://doi.org/10.1088/2753-3751/ad4e39"
-          target="_blank"
-        >
-          <mexer-card>
-            <span id="title">
-              Paul E Brockway, Matthew Kuperus Heun, Zeke Marshall, Emmanuel
-              Aramendia, Paul Steenwyk, Thomas Relph, Michelle Widjanarko,
-              Jeonghoo (James) Kim, Anjana Sainju, Julian Irtube
-            </span>
-            <span id="content">
-              <div class="italic">
-                "A country-level primary-final-useful (CL-PFU) energy and exergy
-                database: overview of its construction and 1971–2020 world-level
-                efficiency results."
-              </div>
-              <div>2024 Environmental Research: Energy 1 025005.</div>
-              <div class="text-blue-500">DOI: 10.1088/2753-3751/ad4e39</div>
-            </span>
-          </mexer-card>
-        </a>
+  <article class="bg-gray-100 text-gray-800 rounded-lg shadow-lg p-6 my-8 max-w-[75%] mx-auto">
+    <h3 class="text-2xl font-bold text-center mb-4">Papers Related to Mexer</h3>
 
-        <a
-          href="https://doi.org/10.1016/j.apenergy.2024.123344"
-          target="_blank"
-        >
-          <mexer-card>
-            <span id="title">
-              Bernardo Tostes, Sofia T. Henriques, Paul E. Brockway, Matthew
-              Kuperus Heun, Tiago Domingos, Tânia Sousa
-            </span>
-            <span id="content">
-              <div class="italic">
-                “On the Right Track? Energy Use, Carbon Emissions, and Intensities
-                of World Rail Transportation, 1840–2020.”
-              </div>
-              <div>Applied Energy, vol. 367, Aug. 2024, p. 123344.</div>
-              <div class="text-blue-500">DOI: 10.1016/j.apenergy.2024.123344</div>
-            </span>
-          </mexer-card>
-        </a>
+    <a
+      href="https://doi.org/10.1088/2753-3751/ad4e39"
+      target="_blank"
+    >
+      <mexer-card>
+        <span id="title">
+            A country-level primary-final-useful (CL-PFU) energy and exergy
+            database: overview of its construction and 1971–2020 world-level
+            efficiency results.
+        </span>
+        <span id="content">
+          <div>
+            Paul E Brockway, Matthew Kuperus Heun, Zeke Marshall, Emmanuel
+            Aramendia, Paul Steenwyk, Thomas Relph, Michelle Widjanarko,
+            Jeonghoo (James) Kim, Anjana Sainju, Julian Irtube
+          </div>
+          <div>2024 Environmental Research: Energy 1 025005.</div>
+          <div class="text-blue-500">DOI: 10.1088/2753-3751/ad4e39</div>
+        </span>
+      </mexer-card>
+    </a>
 
-        <mexer-card>
-          <span id="title">
-            Ricardo Pinto, Sofia T. Henriques, Paul E. Brockway, Matthew
-            Kuperus Heun, Tânia Sousa
-          </span>
-          <span id="content">
-            <div class="italic">
-              “The Rise and Stall of World Electricity Efficiency:1900–2017,
-              Results and Insights for the Renewables Transition.”
-            </div>
-            <div>Energy, vol. 269, Apr. 2023, p. 126775.</div>
-            <div class="text-blue-500">DOI: 10.1016/j.energy.2023.126775</div>
-          </span>
-          <a
-            href="https://doi.org/10.1016/j.energy.2023.126775"
-            target="_blank"
-            class="related-paper block bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
-          >
-            Read More
-          </a>
-        </mexer-card>
+    <a
+      href="https://doi.org/10.1016/j.apenergy.2024.123344"
+      target="_blank"
+    >
+      <mexer-card>
+        <span id="title">
+          On the Right Track? Energy Use, Carbon Emissions, and Intensities
+          of World Rail Transportation, 1840–2020.
+        </span>
+        <span id="content">
+          <div>
+            Bernardo Tostes, Sofia T. Henriques, Paul E. Brockway, Matthew
+            Kuperus Heun, Tiago Domingos, Tânia Sousa
+          </div>
+          <div>Applied Energy, vol. 367, Aug. 2024, p. 123344.</div>
+          <div class="text-blue-500">DOI: 10.1016/j.apenergy.2024.123344</div>
+        </span>
+      </mexer-card>
+    </a>
 
-        <mexer-card>
-          <span id="title">
-            Paul Steenwyk, Matthew Kuperus Heun, Paul E. Brockway, Tania
-            Sousa, and Sofia Henriques.
-          </span>
-          <span id="content">
-            <div class="italic">
-              “The contributions of muscle and machine work to land and labor
-              productivity in world agriculture since 1800.”
-            </div>
-            <div>Biophysical Economics and Sustainability, 7(2):1–17, 2022.</div>
-            <div class="text-blue-500">DOI: 10.1007/s41247-022-00096-z</div>
-          </span>
-          <a
-            href="https://link.springer.com/article/10.1007/s41247-022-00096-z"
-            target="_blank"
-            class="related-paper block bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
-          >
-            Read More
-          </a>
-        </mexer-card>
-        href="https://doi.org/10.1016/j.apenergy.2024.123344"
-        target="_blank"
-        class="related-paper block bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
-          >
-        <p class="font-semibold">
-          Bernardo Tostes, Sofia T. Henriques, Paul E. Brockway, Matthew
-          Kuperus Heun, Tiago Domingos, Tânia Sousa
-        </p>
-        <p class="italic">
-          “On the Right Track? Energy Use, Carbon Emissions, and Intensities
-          of World Rail Transportation, 1840–2020.”
-        </p>
-        <p>Applied Energy, vol. 367, Aug. 2024, p. 123344.</p>
-        <p class="text-blue-500">DOI: 10.1016/j.apenergy.2024.123344</p>
-          </a>
-          <a
-        href="https://doi.org/10.1016/j.energy.2023.126775"
-        target="_blank"
-        class="related-paper block bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
-          >
-        <p class="font-semibold">
+    <a
+      href="https://doi.org/10.1016/j.energy.2023.126775"
+      target="_blank"
+    >
+    <mexer-card>
+      <span id="title">
+        The Rise and Stall of World Electricity Efficiency:1900–2017,
+        Results and Insights for the Renewables Transition.
+      </span>
+      <span id="content">
+        <div>
           Ricardo Pinto, Sofia T. Henriques, Paul E. Brockway, Matthew
           Kuperus Heun, Tânia Sousa
-        </p>
-        <p class="italic">
-          “The Rise and Stall of World Electricity Efficiency:1900–2017,
-          Results and Insights for the Renewables Transition.”
-        </p>
-        <p>Energy, vol. 269, Apr. 2023, p. 126775.</p>
-        <p class="text-blue-500">DOI: 10.1016/j.energy.2023.126775</p>
-          </a>
-          <a
-        href="https://link.springer.com/article/10.1007/s41247-022-00096-z"
-        target="_blank"
-        class="related-paper block bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
-          >
-        <p class="font-semibold">
+        </div>
+        <div>Energy, vol. 269, Apr. 2023, p. 126775.</div>
+        <div class="text-blue-500">DOI: 10.1016/j.energy.2023.126775</div>
+      </span>
+    </mexer-card>
+    </a>
+
+    <a
+      href="https://link.springer.com/article/10.1007/s41247-022-00096-z"
+      target="_blank"
+    >
+    <mexer-card>
+      <span id="title">
+        The contributions of muscle and machine work to land and labor
+        productivity in world agriculture since 1800.
+      </span>
+      <span id="content">
+        <div>
           Paul Steenwyk, Matthew Kuperus Heun, Paul E. Brockway, Tania
           Sousa, and Sofia Henriques.
-        </p>
-        <p class="italic">
-          “The contributions of muscle and machine work to land and labor
-          productivity in world agriculture since 1800.”
-        </p>
-        <p>Biophysical Economics and Sustainability, 7(2):1–17, 2022.</p>
-        <p class="text-blue-500">DOI: 10.1007/s41247-022-00096-z</p>
-          </a>
         </div>
-      </article>
+        <div>Biophysical Economics and Sustainability, 7(2):1–17, 2022.</div>
+        <div class="text-blue-500">DOI: 10.1007/s41247-022-00096-z</div>
+      </span>
+    </mexer-card>
+    </a>
+  </article>
 
-      <article class="highlight dark">
-        <div class="center-item">
-          <h2>
-            Special Thanks
-          </h2>
-          <div class="thanks-grid">
-            <div>
-              <a href="https://calvin.edu" target="_blank">
-                <img src="../static/images/calvin-logo.png" height="150px" alt="Calvin University Logo"/>
-              </a>
-              <p>
-                Mexer was developed at Calvin University by students for the STEM
-                department's summer research program.
-              </p>
-            </div>
-            <div>
-              <a href="https://tecnico.ulisboa.pt/en/" target="_blank">
-                <img src="../static/images/technico.png" height="150px" alt="Instituto Superior Técnico Logo"/>
-              </a>
-              <p>
-                Initial development on Mexer was made possible with a grant from 
-                Instituto Superior Técnico in Lisbon, Portugal.
-              </p>
-            </div>
-          </div>
-        </div>
-      </article>
-
-  </body>
-</html>
+  <article class="bg-gray-800 text-white rounded-lg shadow-lg p-6 my-8 max-w-[75%] mx-auto">
+    <div class="text-center">
+      <h2 class="text-2xl font-bold mb-6">Special Thanks</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+    <div class="flex flex-col items-center">
+      <a href="https://calvin.edu" target="_blank" class="mb-4">
+        <img src="{% static 'images/calvin-logo.png' %}" class="h-24 w-auto bg-slate-100 p-2 rounded-lg shadow-md" alt="Calvin University Logo" />
+      </a>
+      <p class="text-center">
+        Mexer was developed at Calvin University by students for the STEM
+        department's summer research program.
+      </p>
+    </div>
+    <div class="flex flex-col items-center">
+      <a href="https://tecnico.ulisboa.pt/en/" target="_blank" class="mb-4">
+        <img src="{% static 'images/technico.png' %}" class="h-24 w-auto bg-slate-100 p-2 rounded-lg shadow-md" alt="Instituto Superior Técnico Logo" />
+      </a>
+      <p class="text-center">
+        Initial development on Mexer was made possible with a grant from 
+        Instituto Superior Técnico in Lisbon, Portugal.
+      </p>
+    </div>
+      </div>
+    </div>
+  </article>
 
 {% endblock %}

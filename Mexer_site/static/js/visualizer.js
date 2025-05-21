@@ -29,39 +29,57 @@ const initialize = () => {
             document.getElementById("version-dropdown").disabled = false;
         }
     });
-
+    
+    assertion_message_instruction = " -- ensure this failed input has its id field set properly";
+    const menu_input_assert = (input_element, input_name) => console.assert(input_element, input_name + assertion_message_instruction);
     // main metadata
     countryDropdown = document.getElementById("country-dropdown");
+    menu_input_assert(countryDropdown, "countryDropdown");
     
     menuInputs = []; // collection to keep track of all the items that can be toggled in the menus
 
     // specific metadata
     singleYearInput = document.getElementById("single-year-input");
+    menu_input_assert(singleYearInput, "singleYearInput");
     menuInputs.push(singleYearInput);
     fromYearInput = document.getElementById("from-year-input");
+    menu_input_assert(fromYearInput, "fromYearInput");
     menuInputs.push(fromYearInput);
     toYearInput = document.getElementById("to-year-input");
+    menu_input_assert(toYearInput, "toYearInput");
     menuInputs.push(toYearInput);
     efficiencyDropdown = document.getElementById('efficiency-dropdown');
+    menu_input_assert(efficiencyDropdown, "efficiencyDropdown");
     menuInputs.push(efficiencyDropdown);
     matnameDropdown = document.getElementById("matname-dropdown");
+    menu_input_assert(matnameDropdown, "matnameDropdown");
     menuInputs.push(matnameDropdown);
 
     colorBy = document.getElementById("color-by");
+    menu_input_assert(colorBy, "colorBy");
     menuInputs.push(colorBy);
     lineBy = document.getElementById("line-by");
+    menu_input_assert(lineBy, "lineBy");
     menuInputs.push(lineBy);
     facetColBy = document.getElementById("facet-col-by");
+    menu_input_assert(facetColBy, "facetColBy");
     menuInputs.push(facetColBy);
     facetRowBy = document.getElementById("facet-row-by");
+    menu_input_assert(facetRowBy, "facetRowBy");
     menuInputs.push(facetRowBy);
+
     grossNet = document.getElementById("grossnet_radio");
+    menu_input_assert(grossNet, "grossNet");
+    
     coloringMethod = document.getElementById("coloring-options");
+    menu_input_assert(coloringMethod, "coloringMethod");
 
     colorScale = document.getElementById("color-scale");
+    menu_input_assert(colorScale, "colorScale");
     menuInputs.push(colorScale);
 
     labelThreshold = document.getElementById("label-threshold");
+    menu_input_assert(labelThreshold, "labelThreshold");
     menuInputs.push(labelThreshold)
 
     // menu setups
@@ -106,18 +124,27 @@ const initialize = () => {
 
 /** Enables an input element and displays its container. */
 const inputOn = (element) => {
+    if (element === null)
+        return;
+
     element.disabled = false;
     element.closest('.query-choice').style.display = "block"; // the closest ancestor has the associated text and input itself
 }
 
 /** Disables an input element and hides its container. */
 const inputOff = (element) => {
+    if (element === null)
+        return;
+
     element.disabled = true;
     element.closest('.query-choice').style.display = "none"; // the closest ancestor has the associated text and input itself
 }
 
 /** Enables all radio buttons within an element and displays the container */
 const inputRadioOn = (element) => {
+    if (element === null)
+        return;
+
     const radioButtons = element.querySelectorAll('input[type="radio"]');
     radioButtons.forEach(radio => {
         radio.disabled = false;
@@ -127,6 +154,9 @@ const inputRadioOn = (element) => {
 
 /** Disables all radio buttons within an element and displays the container */
 const inputRadioOff = (element) => {
+    if (element === null)
+        return;
+
     const radioButtons = element.querySelectorAll('input[type="radio"]');
     radioButtons.forEach(radio => {
         radio.disabled = true;
