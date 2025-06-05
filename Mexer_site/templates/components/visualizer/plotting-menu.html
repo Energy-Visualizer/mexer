@@ -1,0 +1,569 @@
+<div class="flex gap-5 max-w-[80%] max-h-[80%] mx-auto right-16 fixed z-10 transition-transform duration-300" id="plot-params-panel" data-open="true"> 
+    <button type="button" id="plot-params-toggle-button" class="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-4 py-2 rounded-full shadow-lg  focus:outline-none focus:ring-2 focus:ring-blue-300 transform hover:scale-110 opacity-55 hover:opacity-100">&gt;</button>
+    <script> 
+        const openPlotMenu = (menu, toggleBtn) => { 
+            if (menu.dataset.open === 'true') 
+                return; 
+            menu.classList.remove("translate-x-full");
+            menu.classList.add("translate-x-0"); toggleBtn.textContent = '>';
+            menu.dataset.open = 'true';
+        };
+        const closePlotMenu = (menu, toggleBtn) => {
+            if (menu.dataset.open === 'false')
+                return;
+
+            menu.classList.remove("translate-x-0");
+            menu.classList.add("translate-x-full");
+            toggleBtn.textContent = '<';
+            menu.dataset.open = 'false';
+        };
+
+        const ppTglButton = document.getElementById("plot-params-toggle-button");
+        const plotParamsMenu = document.getElementById("plot-params-panel");
+
+        ppTglButton.addEventListener("click", () => {
+            if (plotParamsMenu.dataset.open === 'true') {
+                closePlotMenu(plotParamsMenu, ppTglButton);
+            } else {
+                openPlotMenu(plotParamsMenu, ppTglButton);
+            }
+        });
+
+        document.addEventListener("keydown", function(event) {
+            if (event.key === "Escape") {
+                closePlotMenu(plotParamsMenu, ppTglButton);
+            }
+        });
+    </script>
+
+    <!-- Query panel -->
+    <div class="w-3/4 bg-gray-100 text-gray-800 p-6 shadow-lg flex flex-col opacity-70 hover:opacity-100 overflow-scroll">
+        <h2 class="text-2xl font-bold text-cyan-500 mb-4 text-center">Query</h2>
+        
+        <!-- Dataset selection -->
+        <div>
+            <div class="flex items-center space-x-2">
+                <div class="group relaitve">
+                    <span class="text-blue-500">&#9432;</span>
+                    <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
+                        Choose the dataset of interest. <a href="{% url 'data-info' %}" class="text-blue-400 underline">Read more.</a>
+                    </span>
+                    <span class="font-semibold">From dataset</span>
+                </div>
+            </div>
+            <div class="mt-2">
+            <select name="dataset" id="dataset-dropdown" class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
+            {% for dataset in datasets %}
+                <option value="{{ dataset }}" {% if dataset == default_dataset %}selected{% endif %}>{{ dataset }}</option>
+            {% endfor %}
+            </select>
+            </div>
+        </div>
+
+        <!-- Version selection -->
+        <div>
+            <div class="flex items-center space-x-2">
+                <div class="group relaitve">
+                    <span class="text-blue-500">&#9432;</span>
+                    <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
+                        Choose the version of interest.
+                    </span>
+                    <span class="font-semibold">Version</span>
+                </div>
+            </div>
+            <div class="mt-2">
+                <select name="version" id="version-dropdown" class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
+                    {% for version in versions %}
+                        <option value="{{ version }}" {% if version == default_version %}selected{% endif %}>{{ version }}</option>
+                    {% endfor %}
+                </select>
+                <select name="version" id="sandbox-version-dropdown" class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" disabled hidden required>
+                    {% for version in sandbox_versions %}
+                        <option value="{{ version }}" {% if version == default_sandbox_version %}selected{% endif %}>{{ version }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Country selection -->
+        <div>
+            <div class="flex items-center space-x-2">
+                <div class="group relaitve">
+                    <span class="text-blue-500">&#9432;</span>
+                    <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
+                        Choose the region(s) of interest. Click "Add Country" to enable additional countries.
+                    </span>
+                    <span class="font-semibold">Region(s)</span>
+                </div>
+            </div>
+            <div class="mt-2">
+                <select name="country" id="country-dropdown" class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
+                    {% for country in countries %}
+                        <option value="{{ country }}" {% if country == default_country %}selected{% endif %}>{{ country }}</option>
+                    {% endfor %}
+                </select>
+                <button class="add-dropdown-button" onclick="showDropdown('country')" type="button">Add Country</button>
+            </div>
+        </div>
+
+        <!-- Method selection -->
+        <div>
+            <div class="flex items-center space-x-2">
+                <div class="group relaitve">
+                    <span class="text-blue-500">&#9432;</span>
+                    <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
+                        Choose the method of accounting for the primary equivalent of renewable electricity.
+                    </span>
+                    <span class="font-semibold">Method</span>
+                </div>
+            </div>
+            <div class="mt-2">
+                {% for method in methods %}
+                <label class="flex items-center space-x-3 cursor-pointer group">
+                    <input type="checkbox" value="{{ method }}" class="hidden peer" name="method" {% if method == default_method %}checked{% endif %}>
+                    <span class="w-5 h-5 inline-block border-2 border-gray-300 rounded-md peer-checked:bg-blue-500 peer-checked:border-blue-500 transition group-hover:scale-110"></span>
+                    <span class="text-gray-800 peer-checked:text-blue-500 font-medium group-hover:text-blue-400 transition">{{ method }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Energy Type selection -->
+        <div>
+            <div class="flex items-center space-x-2">
+                <div class="group relaitve">
+                    <span class="text-blue-500">&#9432;</span>
+                    <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
+                        Choose one of energy or exergy. Energy is a heat quantification of energy. Exergy is a work quantification of energy.
+                    </span>
+                    <span class="font-semibold">Energy Type</span>
+                </div>
+            </div>
+            <div class="mt-2">
+                {% for energy_type in energy_types %}
+                    <label class="flex items-center space-x-3 cursor-pointer group">
+                        <input type="checkbox" value="{{ energy_type }}" class="hidden peer" name="energy_type" {% if energy_type == default_energy_type %}checked{% endif %}>
+                        <span class="w-5 h-5 inline-block border-2 border-gray-300 rounded-md peer-checked:bg-blue-500 peer-checked:border-blue-500 transition group-hover:scale-110"></span>
+                        <span class="text-gray-800 peer-checked:text-blue-500 font-medium group-hover:text-blue-400 transition">{{ energy_type }}</span>
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Last Stage selection -->
+        <div>
+            <div class="flex items-center space-x-2">
+                <div class="group relaitve">
+                    <span class="text-blue-500">&#9432;</span>
+                    <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
+                        Choose the last stage of the energy conversion chain, either final or useful.
+                    </span>
+                    <span class="font-semibold">Last Stage</span>
+                </div>
+            </div>
+            <div class="mt-2">
+                <div class="flex flex-col space-y-2">
+                    {% for last_stage in last_stages %}
+                        <label class="flex items-center space-x-3 cursor-pointer group">
+                            <input type="radio" value="{{ last_stage }}" name="last_stage" class="hidden peer" required {% if last_stage == default_last_stage %}checked{% endif %}>
+                            <span class="w-5 h-5 inline-block border-2 border-gray-300 rounded-full peer-checked:bg-blue-500 peer-checked:border-blue-500 transition group-hover:scale-110"></span>
+                            <span class="text-gray-800 peer-checked:text-blue-500 font-medium group-hover:text-blue-400 transition">{{ last_stage }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Include NEU selection -->
+        <div>
+            <div class="flex items-center space-x-2">
+                <div class="group relaitve">
+                    <span class="text-blue-500">&#9432;</span>
+                    <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
+                        Choose whether to include non-energy uses (NEU) of energy carriers in final demand.
+                    </span>
+                    <span class="font-semibold">Include NEU</span>
+                </div>
+            </div>
+            <div class="mt-2">
+                <div class="flex flex-col space-y-2">
+                    <label class="flex items-center space-x-3 cursor-pointer group">
+                        <input type="checkbox" value="true" name="including_neu" class="hidden peer" checked>
+                        <span class="w-5 h-5 inline-block border-2 border-gray-300 rounded-md peer-checked:bg-blue-500 peer-checked:border-blue-500 transition group-hover:scale-110"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Aggregation selection -->
+        <div>
+            <div class="flex items-center space-x-2">
+                <div class="group relaitve">
+                    <span class="text-blue-500">&#9432;</span>
+                    <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
+                        Choose the deisired Product Aggregation
+                    </span>
+                    <span class="font-semibold">Product Aggregation</span>
+                </div>
+            </div>
+            <div class="mt-2">
+                {% for product_aggregation in product_aggregations %}
+                    <label class="flex items-center space-x-3 cursor-pointer group">
+                        <input type="radio" value="{{ product_aggregation }}" name="product_aggregation" class="hidden peer" required {% if product_aggregation == default_product_aggregation %}checked{% endif %}>
+                        <span class="w-5 h-5 inline-block border-2 border-gray-300 rounded-full peer-checked:bg-blue-500 peer-checked:border-blue-500 transition group-hover:scale-110"></span>
+                        <span class="text-gray-800 peer-checked:text-blue-500 font-medium group-hover:text-blue-400 transition">{{ product_aggregation }}</span>
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Sector Aggregation selection -->
+        <div>
+            <div class="flex items-center space-x-2">
+                <div class="group relaitve">
+                    <span class="text-blue-500">&#9432;</span>
+                    <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
+                        Choose the deisired Sector Aggregation
+                    </span>
+                    <span class="font-semibold">Sector Aggregation</span>
+                </div>
+            </div>
+            <div class="mt-2">
+                {% for industry_aggregation in industry_aggregations %}
+                    <label class="flex items-center space-x-3 cursor-pointer group">
+                        <input type="radio" value="{{ industry_aggregation }}" name="industry_aggregation" class="hidden peer" required {% if industry_aggregation == default_industry_aggregation %}checked{% endif %}>
+                        <span class="w-5 h-5 inline-block border-2 border-gray-300 rounded-full peer-checked:bg-blue-500 peer-checked:border-blue-500 transition group-hover:scale-110"></span>
+                        <span class="text-gray-800 peer-checked:text-blue-500 font-medium group-hover:text-blue-400 transition">{{ industry_aggregation }}</span>
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <!-- end Query panel -->
+
+    <!-- Plotting panel -->
+    <div class="w-3/4 bg-gray-100 text-gray-800 p-6 shadow-lg opacity-70 hover:opacity-100 overflow-scroll">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Plot</h2>
+
+        <!-- Visualization selection -->
+        <div>
+            <div class="flex items-center space-x-2">
+                <div class="group relaitve">
+                    <span class="text-blue-500">&#9432;</span>
+                    <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
+                        Select the type of plot you want to display.
+                    </span>
+                    <span class="font-semibold">Visualization</span>
+                </div>
+            </div>
+            <div class="mt-2 flex justify-evenly">
+                <label class="flex items-center space-x-3 cursor-pointer group">
+                    <input name="plot_type" type="radio" value="sankey" class="hidden peer" id="plot-type-input" checked>
+                    <span class="w-5 h-5 inline-block border-2 border-gray-300 rounded-full peer-checked:bg-blue-500 peer-checked:border-blue-500 transition group-hover:scale-110"></span>
+                    <span class="text-gray-800 peer-checked:text-blue-500 font-medium group-hover:text-blue-400 transition">Sankey</span>
+                </label>
+                <label class="flex items-center space-x-3 cursor-pointer group">
+                    <input name="plot_type" type="radio" value="xy_plot" class="hidden peer" id="plot-type-input">
+                    <span class="w-5 h-5 inline-block border-2 border-gray-300 rounded-full peer-checked:bg-red-500 peer-checked:border-red-500 transition group-hover:scale-110"></span>
+                    <span class="text-gray-800 peer-checked:text-red-500 font-medium group-hover:text-red-400 transition">X-Y plot</span>
+                </label>
+                <label class="flex items-center space-x-3 cursor-pointer group">
+                    <input name="plot_type" type="radio" value="matrices" class="hidden peer" id="plot-type-input">
+                    <span class="w-5 h-5 inline-block border-2 border-gray-300 rounded-full peer-checked:bg-yellow-500 peer-checked:border-yellow-500 transition group-hover:scale-110"></span>
+                    <span class="text-gray-800 peer-checked:text-yellow-500 font-medium group-hover:text-yellow-400 transition">PSUT matrices</span>
+                </label>
+            </div>
+        </div>
+        
+        <!-- GrossNet selection -->
+        <div class="query-choice">
+            <div class="flex items-center space-x-2">
+                <div class="group relaitve">
+                    <span class="text-blue-500">&#9432;</span>
+                    <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
+                        GrossNet
+                    </span>
+                    <span class="font-semibold">GrossNet</span>
+                </div>
+            </div>
+            <div class="mt-2">
+                <div class="flex flex-col space-y-2" id="grossnet_radio">
+                    {% for grossnet in grossnets %}
+                        <label class="flex items-center space-x-3 cursor-pointer group">
+                            <input type="radio" value="{{ grossnet }}" name="grossnet" class="hidden peer" required {% if grossnet == default_grossnet %}checked{% endif %}>
+                            <span class="w-5 h-5 inline-block border-2 border-gray-300 rounded-full peer-checked:bg-blue-500 peer-checked:border-blue-500 transition group-hover:scale-110"></span>
+                            <span class="text-gray-800 peer-checked:text-blue-500 font-medium group-hover:text-blue-400 transition">{{ grossnet }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quantity selection -->
+        <div class="query-choice">
+            <div class="flex items-center space-x-2">
+                <div class="group relaitve">
+                    <span class="text-blue-500">&#9432;</span>
+                    <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
+                        Choose the Quantity of interest.
+                    </span>
+                    <span class="font-semibold">Quantity</span>
+                </div>
+            </div>
+            <div class="input-column">
+                <select name="efficiency" id="efficiency-dropdown" class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
+                    <!-- TODO: don't hardcode these -->
+                    <option value="EXp" checked>EXp</option>
+                    <option value="EXf">EXf</option>
+                    <option value="EXu">EXu</option>
+                    <option value="etapf">etapf</option>
+                    <option value="etafu">etafu</option>
+                    <option value="etapu">etapu</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Single Year selection -->
+        <div class="query-choice">
+            <div class="flex items-center space-x-2">
+                <div class="group relatve">
+                    <span class="text-blue-500">&#9432;</span>
+                    <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
+                        Choose the year of interest.
+                    </span>
+                    <span class="font-semibold">Year</span>
+                </div>
+            </div>
+            <div class="mt-2">
+                <input type="number" name="year" class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" id="single-year-input" value="1971">
+            </div>
+        </div>
+
+        <!-- Year Range selection -->
+        <div class="query-choice">
+            <div class="flex items-center space-x-2">
+                <div class="group relatve">
+                    <span class="text-blue-500">&#9432;</span>
+                    <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
+                        Start of time-range of interest.
+                    </span>
+                    <span class="font-semibold">From Year</span>
+                </div>
+            </div>
+            <div class="mt-2">
+                <input type="number" name="year" class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" id="from-year-input" value="1971">
+            </div>
+            <div class="flex items-center space-x-2">
+                <div class="group relatve">
+                    <span class="text-blue-500">&#9432;</span>
+                    <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
+                        End of time-range of interest.
+                    </span>
+                    <span class="font-semibold">To Year</span>
+                </div>
+            </div>
+            <div class="mt-2">
+                <input type="number" name="to_year" class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" id="to-year-input" value="2020">
+            </div>
+        </div>
+
+        <!-- Color by selection -->
+        <div class="query-choice">
+            <div class="flex items-center space-x-2">
+                <div class="group relaitve">
+                    <span class="text-blue-500">&#9432;</span>
+                    <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
+                        By which metric to color the plot.
+                    </span>
+                    <span class="font-semibold">Color On</span>
+                </div>
+            </div>
+            <div class="input-column">
+                <select name="color_by" id="color-by" class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
+                    <option value="country" selected>Country</option>
+                    <option value="energy_type">Energy Type</option>
+                    <option>None</option>
+                </select>
+            </div> 
+        </div>
+
+        <!-- Line by selection -->
+        <div class="query-choice">
+            <div class="flex items-center space-x-2">
+                <div class="group relaitve">
+                    <span class="text-blue-500">&#9432;</span>
+                    <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
+                        By which metric to differentiate the lines of the plot.
+                    </span>
+                    <span class="font-semibold">Line By</span>
+                </div>
+            </div>
+            <select name="line_by" id="line-by" class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                <option value="country">Country</option>
+                <option value="energy_type" selected>Energy Type</option>
+                <option value="none">None</option>
+            </select>
+        </div>
+
+        <!-- Facet Column by selection -->
+        <div class="query-choice">
+            <div class="flex items-center space-x-2">
+                <div class="group relaitve">
+                    <span class="text-blue-500">&#9432;</span>
+                    <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
+                        By which metric to facet the columns of the plot. (Have independent plots for each facet column.)
+                    </span>
+                    <span class="font-semibold">Facet Column</span>
+                </div>
+            </div>
+            <select name="facet_col_by" id="facet-col-by" class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                <option value="country">Country</option>
+                <option value="energy_type">Energy Type</option>
+                <option value="none" selected>None</option>
+            </select>
+        </div>
+
+        <!-- Facet Row by selection -->
+        <div class="query-choice">
+            <div class="flex items-center space-x-2">
+                <div class="group relaitve">
+                    <span class="text-blue-500">&#9432;</span>
+                    <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
+                        By which metric to facet the rows of the plot. (Have independent plots for each facet row.)
+                    </span>
+                    <span class="font-semibold">Facet Column</span>
+                </div>
+            </div>
+            <select name="facet_row_by" id="facet-row-by" class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                <option value="country">Country</option>
+                <option value="energy_type">Energy Type</option>
+                <option value="none" selected>None</option>
+            </select>
+        </div>
+
+        <!-- Color Scale selection -->
+        <div class="query-choice">
+            <div class="flex items-center space-x-2">
+                <div class="group relaitve">
+                    <span class="text-blue-500">&#9432;</span>
+                    <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
+                        The color pallete for differentiating larger and smaller values in the plot. 
+                    </span>
+                    <span class="font-semibold">Color Scale</span>
+                </div>
+            </div>
+            <select name="color_scale" id="color-scale" class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                <option value="viridis">Viridis</option>
+                <option value="inferno" selected>Inferno</option>
+                <option value="plasma">Plasma</option>
+                <option value="magma">Magma</option>
+                <option value="cividis">Cividis</option>
+            </select>
+        </div>
+
+        <!-- Matrix selection -->
+        <div class="query-choice">
+            <div class="flex items-center space-x-2">
+                <div class="group relaitve">
+                    <span class="text-blue-500">&#9432;</span>
+                    <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
+                        Choose the matrix of interest. Read more <a href="{% url 'matrix-info' %}" class="text-cyan-400 hover:underline">here</a>.
+                    </span>
+                    <span class="font-semibold">Matrix</span>
+                </div>
+            </div>
+            <select name="matname" id="matname-dropdown" class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                <option value="RUVY" selected>RUVY</option>
+                {% for matname in matnames %}
+                    <option value="{{ matname }}">{{ matname }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Matrix Coloring Method selection -->
+        <div class="query-choice">
+            <label class="block text-lg font-medium mb-2">
+                <div class="flex items-center space-x-2">
+                    <div class="group relaitve">
+                        <span class="text-blue-500">&#9432;</span>
+                        <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
+                            How to color the cells of the matrix. Weight is a gradient from small to large values. RUVY is discrete colors based on matrix type.
+                        </span>
+                        <span class="font-semibold">Coloring Method</span>
+                    </div>
+                </div>
+            </label>
+            <div class="flex flex-col space-y-2" id="coloring-options">
+                <label class="flex items-center space-x-3 cursor-pointer group">
+                    <input type="radio" id="weight" name="coloring_method" value="weight" class="hidden peer" checked>
+                    <span class="w-5 h-5 inline-block border-2 border-gray-300 rounded-full peer-checked:bg-blue-500 peer-checked:border-blue-500 transition group-hover:scale-110"></span>
+                    <span class="text-gray-800 peer-checked:text-blue-500 font-medium group-hover:text-blue-400 transition">Weight</span>
+                </label>
+                <label class="flex items-center space-x-3 cursor-pointer group">
+                    <input type="radio" id="ruvy" name="coloring_method" value="ruvy" class="hidden peer">
+                    <span class="w-5 h-5 inline-block border-2 border-gray-300 rounded-full peer-checked:bg-blue-500 peer-checked:border-blue-500 transition group-hover:scale-110"></span>
+                    <span class="text-gray-800 peer-checked:text-blue-500 font-medium group-hover:text-blue-400 transition">RUVY</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Number of Node Labels -->
+        <div class="query-choice">
+            <label class="block text-lg font-medium mb-2">
+                <div class="flex items-center space-x-2">
+                    <div class="group relaitve">
+                        <span class="text-blue-500">&#9432;</span>
+                        <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
+                            How big a node needs to be to have a label.
+                        </span>
+                        <span class="font-semibold">Number of Node Labels</span>
+                    </div>
+                </div>
+            </label>
+            <div class="flex items-center space-x-4">
+                <span>-</span>
+                <input type="range" id="label-threshold" min="0" max="1" step="0.05" value="0.5" class="w-full">
+                <span>+</span>
+            </div>
+        </div>
+
+        <!-- Plot in Separate Window -->
+        <div class="query-choice">
+            <label class="block text-lg font-medium mb-2">
+                <div class="flex items-center space-x-2">
+                    <div class="group relaitve">
+                        <span class="text-blue-500">&#9432;</span>
+                        <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
+                            See name.
+                        </span>
+                        <span class="font-semibold">Plot in Separate Window</span>
+                    </div>
+                </div>
+            </label>
+            <input type="checkbox" name="separate_window" class="w-5 h-5 border-2 border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" disabled>
+        </div>
+
+        <!-- Buttons for plot generation and data download -->
+        <div class="flex justify-center space-x-4 mt-6">
+            <button 
+                hx-post="/plot" 
+                hx-swap="innerHTML" 
+                hx-target="#plot-section" 
+                hx-indicator="#plot-spinner" 
+                type="button"
+                id="get" 
+                class="bg-blue-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 transform hover:scale-105 transition-transform duration-300"
+                onclick='document.getElementById("plot-section").scrollIntoView();'>
+                Make Plot
+            </button>
+            <button 
+                type="submit" 
+                id="download" 
+                class="bg-green-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 transform hover:scale-105 transition-transform duration-300"
+                onclick="return confirm('By accepting you confirm that you understand IEA data is proprietary and cannot be shared with those not authorized to see it.')">
+                Download Data
+            </button>
+        </div>
+    </div>
+    </form>
+</div>

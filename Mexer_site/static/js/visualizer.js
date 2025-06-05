@@ -233,11 +233,6 @@ const showDropdown = (name) => {
     desiredDropdown.parentNode.appendChild(wholeDropdown);
 };
 
-//Refreshes the history list using HTMX
-function refreshHistory() {
-    htmx.ajax("GET", "/history", {target:"#history-list", swap:"innerHTML"});
-}
-
 let plotWindow = null;
 let plotWindowLoaded = false;
 const plotInNewWindow = () => {

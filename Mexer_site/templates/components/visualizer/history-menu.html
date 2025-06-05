@@ -1,0 +1,56 @@
+<div>
+    <button id="history-toggle-btn" class="fixed top-4 left-4 z-10 p-2 bg-gray-800 text-white rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-transform duration-300">
+        ☰
+    </button>
+    <div id="history-pane" class="fixed top-0 left-0 z-10 h-full w-64 bg-gray-900 text-white shadow-lg transform -translate-x-full transition-transform duration-300 ease-in-out">
+        <div class="p-4 flex flex-col items-center"> 
+            <h2 class="text-lg font-bold">History</h2>
+            <hr>
+            <div id="history-list" class="mt-4 flex-col items-center"></div>
+        </div>
+    </div>
+
+    <script>
+        const toggleBtn = document.getElementById('history-toggle-btn');
+        const sidebar = document.getElementById('history-pane');
+
+        const refreshHistory = () => {
+            htmx.ajax("GET", "/history", {target:"#history-list", swap:"innerHTML"});
+        }
+
+        const openSidebar = (sidebar, toggleBtn) => {
+            if (sidebar.dataset.open === 'true')
+                return;
+
+            sidebar.classList.remove('-translate-x-full');
+            sidebar.classList.add('translate-x-0');
+            toggleBtn.style.transform = 'translateX(17rem)';
+            toggleBtn.textContent = '✖';
+            sidebar.dataset.open = 'true';
+        };
+        const closeSidebar = (sidebar, toggleBtn) => {
+            if (sidebar.dataset.open === 'false')
+                return;
+
+            sidebar.classList.remove('translate-x-0');
+            sidebar.classList.add('-translate-x-full');
+            toggleBtn.style.transform = 'translateX(1rem)';
+            toggleBtn.textContent = '☰';
+            sidebar.dataset.open = 'false';
+        };
+
+        toggleBtn.addEventListener('click', function() {
+            if (sidebar.dataset.open === 'true') {
+                closeSidebar(sidebar, toggleBtn);
+            } else {
+                openSidebar(sidebar, toggleBtn);
+            }
+        });
+
+        document.addEventListener("keydown", function(event) {
+            if (event.key === "Escape") {
+                closeSidebar(sidebar, toggleBtn);
+            }
+        });
+    </script>
+</div>
