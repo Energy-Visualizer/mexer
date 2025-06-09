@@ -127,7 +127,7 @@ def generate_sankey_html(target: DatabaseTarget, query: dict) -> str:
 
     if nodes is None:
         return "Error: No cooresponding data"
-    return f"<script>createSankey({nodes},{links},{options},\"{get_plot_title(query)}\")</script>\
+    return f"<script>createSankey({nodes},{links},{options},\"{get_plot_title(query)}\",{num_columns})</script>\
                     <button onclick='downloadSankey()' class='absolute top-2 right-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'>Download Sankey</button>"
 
 def generate_xy_html(target: DatabaseTarget, query: dict) -> str:
