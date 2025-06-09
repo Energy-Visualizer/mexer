@@ -1,176 +1,174 @@
-<!DOCTYPE html>
-<html  lang="en">
-  <head>
-    <title>Mexer: Economy Wide Energy Visualizations</title>
-    <link rel="stylesheet" href="../static/css/toolbar.css" type="text/css" />
-    <link rel="stylesheet" href="../static/css/index.css" type="text/css" />
-    <link rel="icon" type="image/x-icon" href="../static/images/favicon.png" />
-    <meta name="description"
-          content="Mexer provides materials, energy, and exergy visualizations 
-                   at the economy-wide or world scale. Mexer empowers users with 
-                   data to enable research toward sustainable energy and material 
-                   policies."
-    </meta>
-  </head>
+{% extends "bases/mexer_page_base.html" %}
 
-  <body>
-    <nav class="topbar">
-      <div class="left">
-        <a class="main" href="{% url 'home' %}">Mexer</a>
-      </div>
-      <div class="right">
-        <a class="links" href="{% url 'visualizer' %}">Vizualizer</a>
-        <a class="links" href="{% url 'about' %}">About</a>
-        <a class="links" href="{% url 'data-info' %}">Data Info</a>
-        {% if request.user.is_authenticated %}
-        <a class="links" href="{% url 'logout' %}">Sign Out</a>
-        {% else %}
-        <a class="links" href="{% url 'login' %}">Sign In</a>
-        {% endif %}
-        {% if request.user.is_authenticated %}
-        <p style="color: #33ebed">{{ request.user.username.upper }}</p>
-        {% endif %}
-      </div>
-    </nav>
+{% load static %}
 
-    <div id="heading-box">
-      <svg viewBox="0 0 500 10" preserveAspectRatio="xMinYMin meet">
-        <path
-          d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z"
-          style="stroke: none; fill: #393e46"
-        ></path>
-      </svg>
+{% block extra_head %}
+  <meta name="description"
+        content="Mexer provides materials, energy, and exergy visualizations 
+                  at the economy-wide or world scale. Mexer empowers users with 
+                  data to enable research toward sustainable energy and material 
+                  policies.">
+  </meta>
+  <link rel="stylesheet" href="{% static 'css/bg-waves.css' %}" type="text/css" />
+  <!-- components -->
+  {% include "snippets/card.html" %} <!-- include template html -->
+  <script src={% static "js/components/card.js" %} defer></script> <!-- include web component script -->
+  <!-- end components -->
+{% endblock %}
 
-      <div id="para-bg-5" class="para-bg"></div>
-      <div id="para-bg-4" class="para-bg"></div>
-      <div id="para-bg-3" class="para-bg"></div>
-      <div id="para-bg-2" class="para-bg"></div>
-      <div id="para-bg-1" class="para-bg"></div>
-      <div id="para-bg-0" class="para-bg"></div>
+{% block inner %}
+  <div id="para-bg-5" class="para-bg fixed bottom-0 w-full"></div>
+  <div id="para-bg-4" class="para-bg fixed bottom-0 w-full"></div>
+  <div id="para-bg-3" class="para-bg fixed bottom-0 w-full"></div>
+  <div id="para-bg-2" class="para-bg fixed bottom-0 w-full"></div>
+  <div id="para-bg-1" class="para-bg fixed bottom-0 w-full"></div>
+  <div id="para-bg-0" class="para-bg fixed bottom-0 w-full"></div>
 
-      <header id="title">
-        <span class="energy-effect"></span>
-        <p class="welcome-text">Welcome to</p>
-        <h1>
-          Mexer
-        </h1>
-        <h2>Materials and Energy eXERgy visualizer</h2>
-      </header>
+  <header id="title" class="text-center py-12">
+    <span class="block mx-auto w-16 h-1 bg-gradient-to-r from-blue-500 to-cyan-300 mb-4"></span>
+    <p class="text-lg font-medium text-gray-600">Welcome to</p>
+    <h1 class="text-9xl font-extrabold text-cyan-400 tracking-tight sm:text-7xl relative">
+      <span class="absolute inset-0 flex justify-center items-center pointer-events-none">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" style="filter: drop-shadow(0 0 6px rgba(0, 255, 255, 0.9)); z-index: 1;" class="max-w-xl opacity-100" viewBox="0 80 960 603.4">
+          <path d="M0 400c80-240 0 0 240 0 160 0 320 0 480 0 240 0 120 320 240 0V320c-80 240 0 69-239 69H240C0 388 120 0 0 320Z"></path>
+        </svg>
+      </span>
+      Mexer
+    </h1>
+    <h2 class="text-xl font-semibold text-gray-600 mt-2">
+      Materials and Energy eXERgy Visualizer
+    </h2>
+  </header>
 
-      <div class="center-item">
-        <a href="{% url 'visualizer' %}"
-          ><button id="get-started">Get Started</button></a
-        >
-      </div>
+  <div class="flex justify-center items-center">
+    <a href="{% url 'visualizer' %}">
+      <button id="get-started" class="px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-400 text-white text-lg font-bold rounded-lg shadow-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-cyan-500 transform hover:scale-105 transition-transform duration-300">
+        <span class="text-4xl">
+          Get Started
+        </span>
+      </button>
+    </a>
+  </div>
+
+  <article class="bg-gray-800 text-white rounded-lg shadow-lg p-6 my-8 max-w-[75%] mx-auto">
+    <div class="center-item text-center">
+      <p class="text-lg font-medium leading-relaxed">
+        Mexer enables exploration of primary, final, and useful energy,
+        exergy, and materials data across the economy.
+      </p>
     </div>
+  </article>
 
-    <div class="information">
-      <article class="highlight dark">
-        <div class="center-item">
-          <p>
-            Mexer enables exploration of primary, final, and useful energy,
-            exergy, and materials data across the economy.
-          </p>
-        </div>
-      </article>
-      <article class="highlight light papers-container">
-        <h3>Papers Related to Mexer</h3>
-        <div class="center-item citations-container">
-          <a
-            href="https://doi.org/10.1088/2753-3751/ad4e39"
-            target="_blank"
-            class="related-paper"
-          >
-            <p>
-              Paul E Brockway, Matthew Kuperus Heun, Zeke Marshall, Emmanuel
-              Aramendia, Paul Steenwyk, Thomas Relph, Michelle Widjanarko,
-              Jeonghoo (James) Kim, Anjana Sainju, Julian Irtube
-            </p>
-            <p>
-              "A country-level primary-final-useful (CL-PFU) energy and exergy
-              database: overview of its construction and 1971–2020 world-level
-              efficiency results."
-            </p>
-            <p>2024 Environmental Research: Energy 1 025005.</p>
-            <p>DOI: 10.1088/2753-3751/ad4e39</p>
-          </a>
-          <a
-            href="https://doi.org/10.1016/j.apenergy.2024.123344"
-            target="_blank"
-            class="related-paper"
-          >
-            <p>
-              Bernardo Tostes, Sofia T. Henriques, Paul E. Brockway, Matthew
-              Kuperus Heun, Tiago Domingos, Tânia Sousa
-            </p>
-            <p>
-              “On the Right Track? Energy Use, Carbon Emissions, and Intensities
-              of World Rail Transportation, 1840–2020.”
-            </p>
-            <p>Applied Energy, vol. 367, Aug. 2024, p. 123344.</p>
-            <p>DOI: 10.1016/j.apenergy.2024.123344</p>
-          </a>
-          <a
-            href="https://doi.org/10.1016/j.energy.2023.126775"
-            target="_blank"
-            class="related-paper"
-          >
-            <p>
-              Ricardo Pinto, Sofia T. Henriques, Paul E. Brockway, Matthew
-              Kuperus Heun, Tânia Sousa
-            </p>
-            <p>
-              “The Rise and Stall of World Electricity Efficiency:1900–2017,
-              Results and Insights for the Renewables Transition.”
-            </p>
-            <p>Energy, vol. 269, Apr. 2023, p. 126775.</p>
-            <p>DOI: 10.1016/j.energy.2023.126775</p>
-          </a>
-          <a
-            href="https://link.springer.com/article/10.1007/s41247-022-00096-z"
-            target="_blank"
-            class="related-paper"
-          >
-            <p>
-              Paul Steenwyk, Matthew Kuperus Heun, Paul E. Brockway, Tania
-              Sousa, and Sofia Henriques.
-            </p>
-            <p>
-              “The contributions of muscle and machine work to land and labor
-              productivity in world agriculture since 1800.”
-            </p>
-            <p>Biophysical Economics and Sustainability, 7(2):1–17, 2022.</p>
-            <p>DOI: 10.1007/s41247-022-00096-z</p>
-          </a>
-        </div>
-      </article>
-      <article class="highlight dark">
-        <div class="center-item">
-          <h2>
-            Special Thanks
-          </h2>
-          <div class="thanks-grid">
-            <div>
-              <a href="https://calvin.edu" target="_blank">
-                <img src="../static/images/calvin-logo.png" height="150px" alt="Calvin University Logo"/>
-              </a>
-              <p>
-                Mexer was developed at Calvin University by students for the STEM
-                department's summer research program.
-              </p>
-            </div>
-            <div>
-              <a href="https://tecnico.ulisboa.pt/en/" target="_blank">
-                <img src="../static/images/technico.png" height="150px" alt="Instituto Superior Técnico Logo"/>
-              </a>
-              <p>
-                Initial development on Mexer was made possible with a grant from 
-                Instituto Superior Técnico in Lisbon, Portugal.
-              </p>
-            </div>
+  <article class="bg-gray-100 text-gray-800 rounded-lg shadow-lg p-6 my-8 max-w-[75%] mx-auto">
+    <h3 class="text-2xl font-bold text-center mb-4">Papers Related to Mexer</h3>
+
+    <a
+      href="https://doi.org/10.1088/2753-3751/ad4e39"
+      target="_blank"
+    >
+      <mexer-card>
+        <span id="title">
+            A country-level primary-final-useful (CL-PFU) energy and exergy
+            database: overview of its construction and 1971–2020 world-level
+            efficiency results.
+        </span>
+        <span id="content">
+          <div>
+            Paul E Brockway, Matthew Kuperus Heun, Zeke Marshall, Emmanuel
+            Aramendia, Paul Steenwyk, Thomas Relph, Michelle Widjanarko,
+            Jeonghoo (James) Kim, Anjana Sainju, Julian Irtube
           </div>
+          <div>2024 Environmental Research: Energy 1 025005.</div>
+          <div class="text-blue-500">DOI: 10.1088/2753-3751/ad4e39</div>
+        </span>
+      </mexer-card>
+    </a>
+
+    <a
+      href="https://doi.org/10.1016/j.apenergy.2024.123344"
+      target="_blank"
+    >
+      <mexer-card>
+        <span id="title">
+          On the Right Track? Energy Use, Carbon Emissions, and Intensities
+          of World Rail Transportation, 1840–2020.
+        </span>
+        <span id="content">
+          <div>
+            Bernardo Tostes, Sofia T. Henriques, Paul E. Brockway, Matthew
+            Kuperus Heun, Tiago Domingos, Tânia Sousa
+          </div>
+          <div>Applied Energy, vol. 367, Aug. 2024, p. 123344.</div>
+          <div class="text-blue-500">DOI: 10.1016/j.apenergy.2024.123344</div>
+        </span>
+      </mexer-card>
+    </a>
+
+    <a
+      href="https://doi.org/10.1016/j.energy.2023.126775"
+      target="_blank"
+    >
+    <mexer-card>
+      <span id="title">
+        The Rise and Stall of World Electricity Efficiency:1900–2017,
+        Results and Insights for the Renewables Transition.
+      </span>
+      <span id="content">
+        <div>
+          Ricardo Pinto, Sofia T. Henriques, Paul E. Brockway, Matthew
+          Kuperus Heun, Tânia Sousa
         </div>
-      </article>
+        <div>Energy, vol. 269, Apr. 2023, p. 126775.</div>
+        <div class="text-blue-500">DOI: 10.1016/j.energy.2023.126775</div>
+      </span>
+    </mexer-card>
+    </a>
+
+    <a
+      href="https://link.springer.com/article/10.1007/s41247-022-00096-z"
+      target="_blank"
+    >
+    <mexer-card>
+      <span id="title">
+        The contributions of muscle and machine work to land and labor
+        productivity in world agriculture since 1800.
+      </span>
+      <span id="content">
+        <div>
+          Paul Steenwyk, Matthew Kuperus Heun, Paul E. Brockway, Tania
+          Sousa, and Sofia Henriques.
+        </div>
+        <div>Biophysical Economics and Sustainability, 7(2):1–17, 2022.</div>
+        <div class="text-blue-500">DOI: 10.1007/s41247-022-00096-z</div>
+      </span>
+    </mexer-card>
+    </a>
+  </article>
+
+  <article class="bg-gray-800 text-white rounded-lg shadow-lg p-6 my-8 max-w-[75%] mx-auto">
+    <div class="text-center">
+      <h2 class="text-2xl font-bold mb-6">Special Thanks</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+    <div class="flex flex-col items-center">
+      <a href="https://calvin.edu" target="_blank" class="mb-4">
+        <img src="{% static 'images/calvin-logo.png' %}" class="h-24 w-auto bg-slate-100 p-2 rounded-lg shadow-md" alt="Calvin University Logo" />
+      </a>
+      <p class="text-center">
+        Mexer was developed at Calvin University by students for the STEM
+        department's summer research program.
+      </p>
     </div>
-  </body>
-</html>
+    <div class="flex flex-col items-center">
+      <a href="https://tecnico.ulisboa.pt/en/" target="_blank" class="mb-4">
+        <img src="{% static 'images/technico.png' %}" class="h-24 w-auto bg-slate-100 p-2 rounded-lg shadow-md" alt="Instituto Superior Técnico Logo" />
+      </a>
+      <p class="text-center">
+        Initial development on Mexer was made possible with a grant from 
+        Instituto Superior Técnico in Lisbon, Portugal.
+      </p>
+    </div>
+      </div>
+    </div>
+  </article>
+
+{% endblock %}

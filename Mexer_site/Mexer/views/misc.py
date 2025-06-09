@@ -19,7 +19,6 @@ from Mexer.views.error_pages import *
 from django.http import HttpResponse
 from Mexer_meta.settings import SITE_VERSION
 
-
 @time_view
 def index(request):
     '''Render the home page.'''
@@ -95,3 +94,11 @@ def handle_static(request, filepath: str):
                 return HttpResponse(f.read(), headers = {"Content-Type": mime_type})
     except Exception as e:
         return error_404(request, e)
+    
+def __test_render_page(request, template_name: str):
+    """Render a template that matches the path name from the request."""
+    try:
+        return render(request, template_name)
+    except Exception as e:
+        print(f"Error rendering template {template_name}: {e}")
+        return error_404(request, f"Template {template_name} not found.")

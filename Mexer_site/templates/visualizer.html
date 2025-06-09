@@ -1,615 +1,78 @@
-<!DOCTYPE html>
-<html  lang="en">
+{% extends "bases/mexer_page_base.html" %}
 
-<head>
-    <title>Mexer Visualizer</title>
-    <link rel="icon" type="image/x-icon" href="../static/images/favicon.png" />
+{% load static %}
 
-    <!-- CSS stylesheets -->
-    <link rel="stylesheet" href="../static/css/toolbar.css" type="text/css" />
-    <link rel="stylesheet" href="../static/css/visualizer.css" type="text/css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+{% block extra_head %}
+  <meta name="description"
+        content="Mexer provides materials, energy, and exergy visualizations 
+                  at the economy-wide or world scale. Mexer empowers users with 
+                  data to enable research toward sustainable energy and material 
+                  policies.">
+  </meta>
 
-    <!-- External libraries -->
-    <script src="https://unpkg.com/htmx.org@1.9.12"></script> <!-- HTMX -->
-    <script src="https://cdn.plot.ly/plotly-latest.min.js" charset="utf-8"></script> <!-- Plotly -->
-    <link rel="stylesheet" href='../static/css/SanKEY_styles.css'> <!-- SanKEY css -->
+  <script>
+        document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('matname-dropdown').addEventListener('change', function() {
+            var coloringOptions = document.getElementById('coloring-options');
+            if (this.value === 'RUVY') {
+                coloringOptions.style.display = 'block';
+            } else {
+                coloringOptions.style.display = 'none';
+            }
+        });
+      });
+  </script>
 
-    <!-- External libraries: Vega -->
-    <script src="https://cdn.jsdelivr.net/npm/vega@5.21.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vega-lite@4.17.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.17.0"></script>
-    <!-- End Vega-->
+  <!-- Startup Script -->
+  <script>
+    window.onload = () => {
+        initialize(); refreshHistory();
+    };
+  </script>
 
-    <!-- Internal JS -->
-    <script src="../static/js/visualizer.js"></script>
+  <!-- CSS stylesheets -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/bg-waves.css' %}" type="text/css" />
 
-    <!-- Make the plot utility imports available throughout the window -->
-    <script type="module">
-        import {downloadSankey, createSankey} from "../static/js/plotUtil.js";
-        window.downloadSankey = downloadSankey;
-        window.createSankey = createSankey;
-    </script>
-</head>
+  <!-- External libraries -->
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script> <!-- HTMX -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js" charset="utf-8"></script> <!-- Plotly -->
+  <link rel="stylesheet" href='../static/css/SanKEY_styles.css'> <!-- SanKEY css -->
 
+  <!-- External libraries: Vega -->
+  <script src="https://cdn.jsdelivr.net/npm/vega@5.21.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@4.17.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.17.0"></script>
 
-<body onload="initialize(); refreshHistory();" class="gradient">
-    <!-- toolbar -->
-    <nav class="topbar">
-      <div class="left">
-        <a class="main" href="{% url 'home' %}">Mexer</a>
-      </div>
-      <div class="right">
-        <p class="links" href="{% url 'visualizer' %}">Vizualizer</p>
-        <a class="links" href="{% url 'about' %}">About</a>
-        <a class="links" href="{% url 'data-info' %}">Data Info</a>
-        {% if request.user.is_authenticated %}
-        <a class="links" href="{% url 'logout' %}">Sign Out</a>
-        {% else %}
-        <a class="links" href="{% url 'login' %}">Sign In</a>
-        {% endif %}
-        {% if request.user.is_authenticated %}
-        <p style="color: #33ebed">{{ request.user.username.upper }}</p>
-        {% endif %}
-      </div>
-    </nav>
+  <!-- Internal JS -->
+  <script src="../static/js/visualizer.js"></script>
 
-    <!-- SVG for decorative wave effect below toolbar -->
-    <svg viewBox="0 0 500 10" preserveAspectRatio="xMinYMin meet">
-        <path d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z" style="stroke: none; fill:#393E46;"></path>
-    </svg>
-    <!-- toolbar end -->
+  <!-- Make the plot utility imports available throughout the window -->
+  <script type="module">
+      import {downloadSankey, createSankey} from "../static/js/plotUtil.js";
+      window.downloadSankey = downloadSankey;
+      window.createSankey = createSankey;
+  </script>
+
+  <!-- components -->
+  {% include "snippets/card.html" %} <!-- include template html -->
+  <script src={% static "js/components/card.js" %} defer></script> <!-- include web component script -->
+  <!-- end components -->
+
+{% endblock %}
+
+{% block inner %}
     <!-- Sidebar for displaying history -->
-    <button id="history-toggle" class="history-toggle-btn">=</button>
-    <div  id="history-section" class="sidebar">
-        <h2>History</h2>
-        <div id="history-list"></div>
-    </div>
-    <!-- Sidebar end-->
+    {% include "components/visualizer/history-menu.html" %}
 
     <!-- main form -->
     <form method="post" action="/data" id="query-form">
     {% csrf_token %}
-    <div id="query-section" class="menu-pane bevel-left">
-        <h2>Query</h2>
 
-        <div class="query-choice">
-            <div class="info-text">
-                <span class="popup-icon">&#9432;
-                    <span class="popup-text">
-                        Choose the dataset of interest. <a href="{% url 'data-info'%}">Read more.</a>
-                    </span>
-                </span>
-                From dataset
-            </div>
-            <div class="input-column">
-                <select name="dataset" id="dataset-dropdown" class="styled-dropdown space-input" required>
-                {% for dataset in datasets %}
-                    {% if dataset == default_dataset %}
-                    <option value="{{ dataset }}" selected>{{ dataset }}</option>
-                    {% else %}
-                    <option value="{{ dataset }}">{{ dataset }}</option>
-                    {% endif %}
-                {% endfor %}
-                </select>
-            </div>
-            &#x2800
-        </div>
-
-        <div class="query-choice">
-            <div class="info-text">
-                <span class="popup-icon">&#9432;
-                    <span class="popup-text">
-                        Choose the version of interest.
-                    </span>
-                </span>
-                Version
-            </div>
-            <div class="input-column">
-                <select name = "version" id="version-dropdown" class="styled-dropdown space-input" required>
-                    {% for version in versions %}
-                        {% if version == default_version %}
-                            <option value="{{ version }}" selected>{{ version }}</option>
-                        {% else %}
-                            <option value="{{ version }}">{{ version }}</option>
-                        {% endif %}
-                    {% endfor %}
-                </select>
-                <select name = "version" id="sandbox-version-dropdown" class="styled-dropdown space-input" disabled hidden required>
-                    {% for version in sandbox_versions %}
-                        {% if version == default_sandbox_version %}
-                            <option value="{{ version }}" selected>{{ version }}</option>
-                        {% else %}
-                            <option value="{{ version }}">{{ version }}</option>
-                        {% endif %}
-                    {% endfor %}
-                </select>
-            </div>
-            &#x2800
-        </div>
-
-        <div class="query-choice">
-            <div class="info-text">
-                <span class="popup-icon">&#9432;
-                    <span class="popup-text">
-                        Choose the countries of interest. Click "Add Country" to enable additional countries.
-                    </span>
-                </span>
-                Region(s)
-            </div>
-            <div class="input-column">
-                <select name="country" id="country-dropdown" class="styled-dropdown space-input" required>
-                {% for country in countries %}
-                    {% if country == default_country %}
-                        <option value="{{ country }}" selected>{{ country }}</option>
-                    {% else %}
-                        <option value="{{ country }}">{{ country }}</option>
-                    {% endif %}
-                {% endfor %}
-                </select>
-            </div>
-            <button class="add-dropdown-button" onclick="showDropdown('country')" type="button">Add Country</button>
-
-            &#x2800
-        </div>
-        <div class="query-choice">
-            <div class="info-text">
-                <span class="popup-icon">&#9432;
-                    <span class="popup-text">
-                        Choose the method of accounting for the primary equivalent of renewable electricity.
-                    </span>
-                </span>
-                Method
-            </div>
-            <div class="input-column">
-                {% for method in methods %}
-                {% if method == default_method %}
-                    <label><input type="checkbox" value="{{ method }}" class="space-input" name="method" checked>{{ method }}</label><br>
-                {% else %}
-                    <label><input type="checkbox" value="{{ method }}" class="space-input" name="method">{{ method }}</label><br>
-                {%endif%}
-                {% endfor %}
-            </div>
-            &#x2800
-        </div>
-        <div class="query-choice">
-            <div class="info-text">
-                <span class="popup-icon">&#9432;
-                    <span class="popup-text">
-                        Choose one of energy or exergy. Energy is a heat quantification of energy. Exergy is a work quantification of energy.
-                    </span>
-                </span>
-                Energy type
-            </div>
-            <div class="input-column">
-                {% for energy_type in energy_types %}
-                {% if energy_type == default_energy_type %}
-                    <label><input type="checkbox" value="{{ energy_type }}" class="space-input" name="energy_type" checked>{{ energy_type }}</label><br>
-                {% else %}
-                    <label><input type="checkbox" value="{{ energy_type }}" class="space-input" name="energy_type">{{ energy_type }}</label><br>
-                {%endif%}
-                {% endfor %}
-            </div>
-            &#x2800
-        </div>
-        <div class="query-choice">
-            <div class="info-text">
-                <span class="popup-icon">&#9432;
-                    <span class="popup-text">
-                        Choose the last stage of the energy conversion chain, either final or useful.
-                    </span>
-                </span>
-                Last stage
-            </div>
-            <div class="input-column">
-                <div name="last_stage">
-                    {% for last_stage in last_stages %}
-                    {% if last_stage == default_last_stage %}
-                    <label><input type="radio" value="{{ last_stage }}" name="last_stage" class="space-input" required checked>{{ last_stage }}</label><br>
-                    {% else %}
-                    <label><input type="radio" value="{{ last_stage }}" name="last_stage" class="space-input" required>{{ last_stage }}</label><br>
-                    {% endif %}
-                {% endfor %}
-                </div>
-            </div>
-            &#x2800
-        </div>
-        
-        <div class="query-choice">
-            <div class="info-text">
-                <span class="popup-icon">&#9432;
-                    <span class="popup-text">
-                        Choose whether to include non-energy uses (NEU) of energy carriers in final demand.
-                    </span>
-                </span>
-                Include NEU
-            </div>
-            <div class="input-column">
-                <input type="checkbox" value="true" name="including_neu" class="space-input" checked>
-            </div>
-            &#x2800
-        </div>
-
-        <div class="query-choice">
-            <div class="info-text">
-                <span class="popup-icon">&#9432;
-                    <span class="popup-text">
-                        Choose the deisired Product Aggregation
-                    </span>
-                </span>
-                Product Aggregation
-            </div>
-            <div class="input-column">
-                {% for product_aggregation in product_aggregations %}
-                {% if product_aggregation == default_product_aggregation %}
-                    <label><input type="radio" value="{{ product_aggregation }}" class="space-input" name="product_aggregation" checked>{{ product_aggregation }}</label><br>
-                {% else %}
-                    <label><input type="radio" value="{{ product_aggregation }}" class="space-input" name="product_aggregation">{{ product_aggregation }}</label><br>
-                {%endif%}
-                {% endfor %}
-            </div>
-            &#x2800
-        </div>
-
-        <div class="query-choice">
-            <div class="info-text">
-                <span class="popup-icon">&#9432;
-                    <span class="popup-text">
-                        Choose the deisired Sector Aggregation
-                    </span>
-                </span>
-                Sector Aggregation
-            </div>
-            <div class="input-column">
-                {% for industry_aggregation in industry_aggregations %}
-                {% if industry_aggregation == default_industry_aggregation %}
-                    <label><input type="radio" value="{{ industry_aggregation }}" class="space-input" name="industry_aggregation" checked>{{ industry_aggregation }}</label><br>
-                {% else %}
-                    <label><input type="radio" value="{{ industry_aggregation }}" class="space-input" name="industry_aggregation">{{ industry_aggregation }}</label><br>
-                {%endif%}
-                {% endfor %}
-            </div>
-            &#x2800
-        </div>
-    </div>
-
-    <div style="width: 3%;"></div> <!-- Small break in between menus -->
-
-    <div id="plot-setting-section" class="menu-pane bevel-right">
-        <h2>Plot</h2>
-        <!-- Various form elements for selecting visulaization toold-->
-        <!-- Each div with class "query-choice" represents a form field or group of related fields -->
-        <!-- ... (form fields for plot type, dataset, country, method, energy type, etc.) ... -->
-        <div class="query-choice">
-            <div class="column info-text">
-                <span class="popup-icon">&#9432;
-                    <span class="popup-text">
-                        Select the type of plot you want to display.
-                    </span>
-                </span>
-                Visualization
-            </div>
-            <div class="input-column">
-                <label>
-                    <input name="plot_type" type="radio" value="sankey" class="space-input" id="plot-type-input" checked>
-                    Sankey
-                </label><br>
-                <label>
-                    <input name="plot_type" type="radio" value="xy_plot" class="space-input" id="plot-type-input">
-                    X-Y plot
-                </label><br>
-                <label>
-                    <input name="plot_type" type="radio" value="matrices" class="space-input" id="plot-type-input">
-                    PSUT matrices
-                </label><br>
-            </div>
-            &#x2800
-        </div>
-
-        <div class="query-choice">
-            <div class="info-text">
-                GrossNet
-            </div>
-            <div id="grossnet_radio" class="input-column">
-                {% for grossnet in grossnets %}
-                {%if grossnet == default_grossnet%}
-                <label><input type="radio" value="{{ grossnet }}" name="grossnet" class="space-input" checked>{{ grossnet }}</label><br>
-                {%else%}
-                <label><input type="radio" value="{{ grossnet }}" name="grossnet" class="space-input" required>{{ grossnet }}</label><br>
-                {%endif%}
-                {% endfor %}
-            </div>
-            &#x2800
-        </div>
-
-        <!-- quantity dropdown -->
-        <div class="query-choice">
-            <div class="info-text">
-                <span class="popup-icon">&#9432;
-                    <span class="popup-text">
-                        Choose the Quantity of interest.
-                    </span>
-                </span>
-                Quantity
-            </div>
-            <div class="input-column">
-                <select name="efficiency" class="styled-dropdown space-input" id="efficiency-dropdown">
-                    <!-- TODO: don't hardcode these -->
-                    <option value="EXp">EXp</option>
-                    <option value="EXf">EXf</option>
-                    <option value="EXu">EXu</option>
-                    <option value="etapf">etapf</option>
-                    <option value="etafu">etafu</option>
-                    <option value="etapu">etapu</option>
-                </select>
-            </div>
-            &#x2800
-        </div>
-        <!-- quantity dropdown end -->
-
-        <!-- single year input -->
-        <div class="query-choice">
-            <div class="info-text">
-                Year
-            </div>
-            <div class="input-column">
-                <input type="number" name="year" class="styled-dropdown space-input" id="single-year-input" value="1971">
-            </div>
-            &#x2800
-        </div>
-        <!-- single year input -->
-
-        <!-- year range input -->
-        <div class="query-choice">
-            <div class="info-text">
-                From year
-            </div>
-            <div class="input-column">
-                <input name="year" type="number" class="styled-dropdown space-input" id="from-year-input" value="1971">
-            </div>
-            <div class="info-text">
-                to year
-            </div>
-            <div class="input-column">
-                <input name="to_year" type="number" class="styled-dropdown space-input" id="to-year-input" value="2020">
-            </div>
-            &#x2800
-        </div>
-        <!-- year range input end-->
-        <div class="query-choice">
-            <div class="info-text">
-                Color by: 
-            </div>
-        <div class="input-column">
-                <select name="color_by" id="color-by" class="styled-dropdown space-input">
-                    <option value="country" selected>Country</option>
-                    <option value="energy_type">Energy Type</option>
-                    <option>None</option>
-                </select>
-        </div> 
-        &#x2800
-    </div>
-
-
-        <div class="query-choice">
-            <div class="info-text">
-            Line by:
-        </div>
-        <div class="input-column">
-                <select name="line_by" id="line-by" class="styled-dropdown space-input">
-                    <option value="country">Country</option>
-                    <option value="energy_type" selected>Energy Type</option>
-                    <option>None</option>
-                </select>
-            </div>
-            &#x2800
-        </div>
-
-
-            <div class="query-choice">
-                <div class="info-text">
-                Facet col by:
-            </div>
-            <div class="input-column">
-                <select name="facet-col-by" id="facet-col-by" class="styled-dropdown space-input">
-                    <option value="country">Country</option>
-                    <option value="energy_type">Energy Type</option>
-                    <option selected>None</option>
-                </select>
-            </div>
-            &#x2800 
-        </div>
-
-
-        <div class="query-choice">
-            <div class="info-text">
-            Facet row by:
-        </div>
-        <div class="input-column">
-            <select name="facet-row-by" id="facet-row-by" class="styled-dropdown space-input">
-                <option value="country">Country</option>
-                <option value="energy_type">Energy Type</option>
-                <option selected>None</option>
-            </select>
-        </div>
-        &#x2800 
-    </div>
-
-
-        <div class="query-choice">
-            <div class="info-text">
-                <span class="popup-icon">&#9432;
-                    <span class="popup-text">
-                        Choose the color scale for the matrix visualization.
-                    </span>
-                </span>
-                Color Scale
-            </div>
-            <div class="input-column">
-                <select name="color_scale" id="color-scale" class="styled-dropdown space-input">
-                    <option value="viridis">Viridis</option>
-                    <option value="inferno" selected>Inferno</option>
-                    <option value="plasma">Plasma</option>
-                    <option value="magma">Magma</option>
-                    <option value="cividis">Cividis</option>
-                </select>
-            </div>
-            &#x2800
-        </div>
-
-
-        <!-- matrix dropdown -->
-        <div class="query-choice">
-            <div class="info-text">
-                <span class="popup-icon">&#9432;
-                    <span class="popup-text">
-                        Choose the matrix of interest. Read more <a href="{% url 'matrix-info'%}">here</a>.
-                    </span>
-                </span>
-                Matrix
-            </div>
-            <div class="input-column">
-                <select name="matname" id="matname-dropdown" class="styled-dropdown space-input" class="space-input" >
-                    <option value="RUVY" selected >RUVY</option>
-                    {% for matname in matnames %}
-                    <option value="{{ matname }}">{{ matname }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            &#x2800
-        </div>
-
-
-        <div class="query-choice" id="coloring-options">
-            <div class="info-text">
-                <span class="popup-icon">&#9432;
-                    <span class="popup-text">
-                        Choose the coloring method.
-                    </span>
-                </span>
-                Coloring Method
-            </div>
-            <div class="input-column">
-                <label><input type="radio" id="weight" name="coloring_method" value="weight" class="space-input" checked>Weight</label>
-                <label><input type="radio" id="ruvy" name="coloring_method" value="ruvy" class="space-input">RUVY</label>
-            </div>
-            &#x2800
-        </div>
-
-        <!-- matrix dropdown end -->
-        <!-- metadata specifics inputs end -->
-        
-        <div class="query-choice">
-            <div class="info-text">
-                <span class="popup-icon">&#9432;
-                    <span class="popup-text">
-                        How many nodes get labels on the sankey diagram. 
-                        This is based on the size of the node.
-                    </span>
-                </span>
-                Number of Node Labels
-            </div>
-            <div class="input-column">
-                <!--This input has no name because we don't care about it in an actual plot query-->
-                <!--Important to sankey's but they are rendered *client* side-->
-                <p class="space-input">
-                <span>-</span>
-                <input type="range" id="label-threshold" min="0" max="1" step="0.05" value="0.5">
-                <span>+</span>
-                </p>
-            </div>
-            &#x2800
-        </div>
-
-        <div class="query-choice">
-            <div class="info-text">
-                <span class="popup-icon">&#9432;
-                    <span class="popup-text">
-                        If you want the plot to show up in a different window, select this.
-                    </span>
-                </span>
-                Plot in Separate Window
-            </div>
-            <div class="input-column">
-                <input disabled type="checkbox" name="separate_window" class="space-input" >
-            </div>
-            &#x2800
-        </div>
-
-        <!-- Buttons for plot generation and data download -->
-        <div class="button-container">
-            <button hx-post="/plot" hx-swap="innerHTML" hx-target="#plot-section" hx-indicator="#plot-spinner" type="button"
-                id="get" class="main-button" onclick='document.getElementById("plot-section").scrollIntoView();'>
-                <!-- onclick for bringing user to plot area -->
-                Make Plot
-            </button>
-            <div id="download-area" class="main-button">
-                <div id="download-buttons">
-                    <button type="button" id="download-options-button" class="main-button">
-                        Download Data
-                    </button>
-                </div>
-                <div id="download-options" class="hidden">
-                    <!-- buttons to control what the user downloads -->
-                    <ul>
-                        <li><button type="submit" id="download-csv-option" name="returnDataType" value="csv"
-                                    onclick="return confirm('By accepting you confirm that you understand IEA data is proprietary and cannot be shared with those not authorized to see it.')">CSV</button></li>
-                        <li><button type="submit" id="download-excel-option" name="returnDataType" value="excel"
-                                    onclick="return confirm('By accepting you confirm that you understand IEA data is proprietary and cannot be shared with those not authorized to see it.')">Excel</button></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-    </form>
-    <div class="arrow-section" onclick='document.getElementById("plot-section").scrollIntoView();'>
-        <h2>Mexer Version {{site_version}}</h2>
-        <h3> Plotting Area Below </h3>
-        <div class="arrow">
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
-    </div>
-    
-    <!-- main form end -->
+    <!-- Plot parameters section -->
+    {% include "components/visualizer/plotting-menu.html" %}
 
     <!-- Area for displaying the generated plot -->
-    <div id="plot-with-extra">
-        <div id="plot-section" style="overflow: scroll;">
-            <!-- This will be replaced with the plot from HTMX -->
-        </div>
-        <div id="spinner-container"><span id="plot-spinner" class="loader htmx-indicator"></span></div>
-    </div>
-    <!-- plotting area end -->
+    {% include "components/visualizer/plotting-area.html" %}
 
-</body>
-
-</html>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const toggleBtn = document.getElementById('history-toggle');
-        const sidebar = document.getElementById('history-section');
-    
-        toggleBtn.addEventListener('click', function() {
-            sidebar.classList.toggle('open');
-            toggleBtn.classList.toggle('open');
-            
-            if (sidebar.classList.contains('open')) {
-                toggleBtn.textContent = 'x';
-            } else {
-                toggleBtn.textContent = '=';
-            }
-        });
-    });
-    
-    document.getElementById('matname-dropdown').addEventListener('change', function() {
-        var coloringOptions = document.getElementById('coloring-options');
-        if (this.value === 'RUVY') {
-            coloringOptions.style.display = 'block';
-        } else {
-            coloringOptions.style.display = 'none';
-        }
-    });
-</script>
-    
+{% endblock %}

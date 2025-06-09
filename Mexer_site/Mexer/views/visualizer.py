@@ -127,8 +127,8 @@ def generate_sankey_html(target: DatabaseTarget, query: dict) -> str:
 
     if nodes is None:
         return "Error: No cooresponding data"
-    return f"<script>createSankey({nodes},{links},{options},\"{get_plot_title(query)}\",{num_columns})</script>\
-                    <button onclick='downloadSankey()' class='sankey-download-button'>Download Sankey</button>"
+    return f"<script>createSankey({nodes},{links},{options},\"{get_plot_title(query)}\")</script>\
+                    <button onclick='downloadSankey()' class='absolute top-2 right-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'>Download Sankey</button>"
 
 def generate_xy_html(target: DatabaseTarget, query: dict) -> str:
     # Extract specific parameters for xy_plot
@@ -152,7 +152,8 @@ def generate_xy_html(target: DatabaseTarget, query: dict) -> str:
         title=get_plot_title(query, exclude=[color_by, line_by, facet_col_by, facet_row_by, energy_type])
     )
     LOGGER.info("XY plot made")
-    return plot(xy, output_type="div", include_plotlyjs=False)
+    # Remove the <div> wrapper for consistency with other plot types
+    return plot(xy, output_type="div", include_plotlyjs=False).removeprefix("<div>").removesuffix("</div>")
 
 def generate_matrix_html(target: DatabaseTarget, query: dict) -> str:
     # Extract specific parameters for matrices

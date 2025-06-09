@@ -1,103 +1,102 @@
-<!DOCTYPE html>
-<html  lang="en">
-  <head>
-    <title>Signup</title>
-    <link rel="stylesheet" href="../static/css/toolbar.css" type="text/css" />
-    <link rel="stylesheet" href="../static/css/signup.css" type="text/css" />
-    <link rel="icon" type="image/x-icon" href="../static/images/favicon.png" />
-  </head>
+{% extends "bases/authentication_page_base.html" %}
 
-  <body class="gradient">
-    <nav class="topbar">
-      <div class="left">
-        <a class="main" href="{% url 'home' %}">Mexer</a>
-      </div>
-      <div class="right">
-        <a class="links" href="{% url 'visualizer' %}">Vizualizer</a>
-        <a class="links" href="{% url 'about' %}">About</a>
-        <a class="links" href="{% url 'data-info' %}">Data Info</a>
-        {% if request.user.is_authenticated %}
-        <p class="links" href="{% url 'logout' %}">Sign Out</p>
-        {% else %}
-        <p class="links" href="{% url 'login' %}">Sign In</p>
-        {% endif %}
-        {% if request.user.is_authenticated %}
-        <p style="color: #33ebed">{{ request.user.username.upper }}</p>
-        {% endif %}
-      </div>
-    </nav>
+{% block title %}Signup{% endblock %}
 
-    <svg viewBox="0 0 500 10" preserveAspectRatio="xMinYMin meet">
-      <path
-        d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z"
-        style="stroke: none; fill: #393e46"
-      ></path>
-    </svg>
+{% block hero_title %}Signup{% endblock %}
 
-    <div class="content">
-      <div class="energy-visulizer">
-        <h1>Material, Energy and Exergy Visualization</h1>
-        <p>
-          Discover how energy flows and transforms with our powerful
-          visualization tools.
-        </p>
-      </div>
-      <div class="login-box">
-        <h1>Sign up</h1>
-        <form method="POST">
-          {% csrf_token %}
-          {% for error_message in form.errors.values %} {{ error_message }} {% endfor %}
-          <div class="form-group">
-            {{ form.username.label_tag }} {{ form.username }}
-          </div>
-          <div class="form-group">
-            {{ form.email.label_tag }} {{ form.email }}
-          </div>
-          <div class="form-group">
-            {{ form.institution_type.label_tag }} {{ form.institution_type }}
-          </div>
-          <div class="form-group">
-            {{ form.institution_name.label_tag }} {{ form.institution_name }}
-          </div>
-          <div class="form-group">
-            {{ form.country.label_tag }} {{ form.country }}
-          </div>
-          <div class="form-group">
-            {{ form.password1.label_tag }} {{ form.password1 }}
-          </div>
-          <div class="form-group">
-            {{ form.password2.label_tag }} {{ form.password2 }}
-          </div>
-          <div class="form-group" style="display: flex;">
-            <input type="checkbox" id="terms-conditions" required style="width:20%"/>
-            <label for="terms-conditions">
-              I agree to the <a href={% url 'terms_and_conditions' %}>terms and conditions</a>.
-            </label>
-          </div>
-          <div class="form-group">
-            <label for="id_captcha_1">Please type the word below</label><br>
-            {{ form.captcha }}
-          </div>
-          <button type="submit">Sign up</button>
-          <p>
-            Already have an account?
-            <a class="link" style="color: #00adb5" href="{% url 'login' %}"
-              >Log In</a
-            >
-          </p>
+{% block blurb %}
+  <div>
+    <h2 class="text-4xl text-cyan-400 font-bold mb-5">Material, Energy and Exergy Visualization</h2>
+    <p class="text-2xl">
+      Discover how energy flows and transforms with our powerful visualization
+      tools.
+    </p>
+  </div>
+{% endblock %}
 
-          <div class="validation-user-password-credential">
-            {{ form.validation_user_password_credential.label_tag }} {{ form.validation_user_password_credential }}
-          </div>
-        </form>
-      </div>
+{% block form %}
+  <form method="POST" class="text-white flex flex-col gap-3">
+    {% csrf_token %}
+
+    <mexer-form-input>
+      <label for="{{ form.username.id_for_label }}">
+        {{ form.username.label }}
+      </label>
+        {{ form.username }}
+    </mexer-form-input>
+
+    <mexer-form-input>
+      <label for="{{ form.email.id_for_label }}">
+        {{ form.email.label }}
+      </label>
+        {{ form.email }}
+    </mexer-form-input>
+
+    <mexer-form-input>
+      <label for="{{ form.institution_type.id_for_label }}">
+        {{ form.institution_type.label }}
+      </label>
+        {{ form.institution_type}}
+    </mexer-form-input>
+
+    <mexer-form-input>
+      <label for="{{ form.institution_name.id_for_label }}">
+        {{ form.institution_name.label }}
+      </label>
+        {{ form.institution_name }}
+    </mexer-form-input>
+
+    <mexer-form-input>
+      <label for="{{ form.country.id_for_label }}">
+        {{ form.country.label }}
+      </label>
+      {{ form.country }}
+    </mexer-form-input>
+
+    <mexer-form-input>
+      <label for="{{ form.password1.id_for_label }}">
+        {{ form.password1.label }}
+      </label>
+        {{ form.password1 }}
+    </mexer-form-input>
+
+    <mexer-form-input>
+      <label for="{{ form.password2.id_for_label }}">
+        {{ form.password2.label }}
+      </label>
+        {{ form.password2 }}
+    </mexer-form-input>
+
+    <div class="form-group flex items-center gap-2">
+      <input type="checkbox" id="terms-conditions" required class="w-5 h-5 accent-cyan-400"/>
+      <label for="terms-conditions" class="text-white text-sm">
+      I agree to the <a href="{% url 'terms_and_conditions' %}" class="text-cyan-400 underline">terms and conditions</a>.
+      </label>
     </div>
 
-    <div id="para-bg-5" class="para-bg"></div>
-    <div id="para-bg-4" class="para-bg"></div>
-    <div id="para-bg-3" class="para-bg"></div>
-    <div id="para-bg-2" class="para-bg"></div>
-    <div id="para-bg-1" class="para-bg"></div>
-    <div id="para-bg-0" class="para-bg"></div>
-  </body>
-</html>
+    <mexer-form-input>
+      <label for="{{ form.captcha.id_for_label }}">
+        {{ form.captcha.label }}
+      </label>
+      <div class="flex gap-5 w-full text-gray-900">
+        {{ form.captcha }}
+      </div>
+    </mexer-form-input>
+
+    {% if messages %}
+      {% for message in messages %}
+      <p{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %} style="color:red;"{% endif %}>{{ message }}</p>
+      {% endfor %}
+    {% endif %}
+
+    <button type="submit" class="bg-cyan-400 rounded text-2xl font-bold p-2">Signup</button>
+    <p>
+      Already have an account?
+      <a class="link" style="color: #00adb5" href="{% url 'login' %}">Log In</a>
+    </p>
+
+    <div class="hidden">
+      {{ form.validation_user_password_credential.label_tag }} {{ form.validation_user_password_credential }}
+    </div>
+  </form>
+{% endblock %}
