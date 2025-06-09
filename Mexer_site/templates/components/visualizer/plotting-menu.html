@@ -43,7 +43,7 @@
         <!-- Dataset selection -->
         <div>
             <div class="flex items-center space-x-2">
-                <div class="group relaitve">
+                <div class="group relative">
                     <span class="text-blue-500">&#9432;</span>
                     <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
                         Choose the dataset of interest. <a href="{% url 'data-info' %}" class="text-blue-400 underline">Read more.</a>
@@ -63,7 +63,7 @@
         <!-- Version selection -->
         <div>
             <div class="flex items-center space-x-2">
-                <div class="group relaitve">
+                <div class="group relative">
                     <span class="text-blue-500">&#9432;</span>
                     <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
                         Choose the version of interest.
@@ -88,7 +88,7 @@
         <!-- Country selection -->
         <div>
             <div class="flex items-center space-x-2">
-                <div class="group relaitve">
+                <div class="group relative">
                     <span class="text-blue-500">&#9432;</span>
                     <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
                         Choose the region(s) of interest. Click "Add Country" to enable additional countries.
@@ -109,7 +109,7 @@
         <!-- Method selection -->
         <div>
             <div class="flex items-center space-x-2">
-                <div class="group relaitve">
+                <div class="group relative">
                     <span class="text-blue-500">&#9432;</span>
                     <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
                         Choose the method of accounting for the primary equivalent of renewable electricity.
@@ -131,7 +131,7 @@
         <!-- Energy Type selection -->
         <div>
             <div class="flex items-center space-x-2">
-                <div class="group relaitve">
+                <div class="group relative">
                     <span class="text-blue-500">&#9432;</span>
                     <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
                         Choose one of energy or exergy. Energy is a heat quantification of energy. Exergy is a work quantification of energy.
@@ -153,7 +153,7 @@
         <!-- Last Stage selection -->
         <div>
             <div class="flex items-center space-x-2">
-                <div class="group relaitve">
+                <div class="group relative">
                     <span class="text-blue-500">&#9432;</span>
                     <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
                         Choose the last stage of the energy conversion chain, either final or useful.
@@ -177,7 +177,7 @@
         <!-- Include NEU selection -->
         <div>
             <div class="flex items-center space-x-2">
-                <div class="group relaitve">
+                <div class="group relative">
                     <span class="text-blue-500">&#9432;</span>
                     <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
                         Choose whether to include non-energy uses (NEU) of energy carriers in final demand.
@@ -198,7 +198,7 @@
         <!-- Product Aggregation selection -->
         <div>
             <div class="flex items-center space-x-2">
-                <div class="group relaitve">
+                <div class="group relative">
                     <span class="text-blue-500">&#9432;</span>
                     <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
                         Choose the deisired Product Aggregation
@@ -220,7 +220,7 @@
         <!-- Sector Aggregation selection -->
         <div>
             <div class="flex items-center space-x-2">
-                <div class="group relaitve">
+                <div class="group relative">
                     <span class="text-blue-500">&#9432;</span>
                     <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
                         Choose the deisired Sector Aggregation
@@ -248,7 +248,7 @@
         <!-- Visualization selection -->
         <div>
             <div class="flex items-center space-x-2">
-                <div class="group relaitve">
+                <div class="group relative">
                     <span class="text-blue-500">&#9432;</span>
                     <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
                         Select the type of plot you want to display.
@@ -278,7 +278,7 @@
         <!-- GrossNet selection -->
         <div class="query-choice">
             <div class="flex items-center space-x-2">
-                <div class="group relaitve">
+                <div class="group relative">
                     <span class="text-blue-500">&#9432;</span>
                     <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
                         GrossNet
@@ -302,7 +302,7 @@
         <!-- Quantity selection -->
         <div class="query-choice">
             <div class="flex items-center space-x-2">
-                <div class="group relaitve">
+                <div class="group relative">
                     <span class="text-blue-500">&#9432;</span>
                     <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
                         Choose the Quantity of interest.
@@ -342,9 +342,9 @@
         <!-- Year Range selection -->
         <div class="query-choice">
             <div class="flex items-center space-x-2">
-                <div class="group relatve">
-                    <span class="text-blue-500">&#9432;</span>
-                    <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
+                <div class="group relative">
+                    <span class="text-blue-500 z-10">&#9432;</span>
+                    <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block z-20">
                         Start of time-range of interest.
                     </span>
                     <span class="font-semibold">From Year</span>
@@ -354,7 +354,7 @@
                 <input type="number" name="year" class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" id="from-year-input" value="1971">
             </div>
             <div class="flex items-center space-x-2">
-                <div class="group relatve">
+                <div class="group relative">
                     <span class="text-blue-500">&#9432;</span>
                     <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
                         End of time-range of interest.
@@ -370,7 +370,7 @@
         <!-- Color by selection -->
         <div class="query-choice">
             <div class="flex items-center space-x-2">
-                <div class="group relaitve">
+                <div class="group relative">
                     <span class="text-blue-500">&#9432;</span>
                     <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
                         By which metric to color the plot.
@@ -390,7 +390,7 @@
         <!-- Line by selection -->
         <div class="query-choice">
             <div class="flex items-center space-x-2">
-                <div class="group relaitve">
+                <div class="group relative">
                     <span class="text-blue-500">&#9432;</span>
                     <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
                         By which metric to differentiate the lines of the plot.
@@ -408,7 +408,7 @@
         <!-- Facet Column by selection -->
         <div class="query-choice">
             <div class="flex items-center space-x-2">
-                <div class="group relaitve">
+                <div class="group relative">
                     <span class="text-blue-500">&#9432;</span>
                     <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
                         By which metric to facet the columns of the plot. (Have independent plots for each facet column.)
@@ -426,7 +426,7 @@
         <!-- Facet Row by selection -->
         <div class="query-choice">
             <div class="flex items-center space-x-2">
-                <div class="group relaitve">
+                <div class="group relative">
                     <span class="text-blue-500">&#9432;</span>
                     <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
                         By which metric to facet the rows of the plot. (Have independent plots for each facet row.)
@@ -444,7 +444,7 @@
         <!-- Color Scale selection -->
         <div class="query-choice">
             <div class="flex items-center space-x-2">
-                <div class="group relaitve">
+                <div class="group relative">
                     <span class="text-blue-500">&#9432;</span>
                     <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
                         The color pallete for differentiating larger and smaller values in the plot. 
@@ -464,7 +464,7 @@
         <!-- Matrix selection -->
         <div class="query-choice">
             <div class="flex items-center space-x-2">
-                <div class="group relaitve">
+                <div class="group relative">
                     <span class="text-blue-500">&#9432;</span>
                     <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
                         Choose the matrix of interest. Read more <a href="{% url 'matrix-info' %}" class="text-cyan-400 hover:underline">here</a>.
@@ -484,7 +484,7 @@
         <div class="query-choice">
             <label class="block text-lg font-medium mb-2">
                 <div class="flex items-center space-x-2">
-                    <div class="group relaitve">
+                    <div class="group relative">
                         <span class="text-blue-500">&#9432;</span>
                         <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
                             How to color the cells of the matrix. Weight is a gradient from small to large values. RUVY is discrete colors based on matrix type.
@@ -511,7 +511,7 @@
         <div class="query-choice">
             <label class="block text-lg font-medium mb-2">
                 <div class="flex items-center space-x-2">
-                    <div class="group relaitve">
+                    <div class="group relative">
                         <span class="text-blue-500">&#9432;</span>
                         <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
                             How big a node needs to be to have a label.
@@ -527,11 +527,11 @@
             </div>
         </div>
 
-        <!-- Plot in Separate Window -->
+        <!-- Plot in Separate Window
         <div class="query-choice">
             <label class="block text-lg font-medium mb-2">
                 <div class="flex items-center space-x-2">
-                    <div class="group relaitve">
+                    <div class="group relative">
                         <span class="text-blue-500">&#9432;</span>
                         <span class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block">
                             See name.
@@ -541,7 +541,7 @@
                 </div>
             </label>
             <input type="checkbox" name="separate_window" class="w-5 h-5 border-2 border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" disabled>
-        </div>
+        </div> -->
 
         <!-- Buttons for plot generation and data download -->
         <div class="flex justify-center space-x-4 mt-6">
