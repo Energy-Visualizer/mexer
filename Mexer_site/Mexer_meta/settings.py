@@ -24,6 +24,8 @@ SECRET_KEY = environ["django_secret_key"]
 # Example: python3 manage.py debug
 DEBUG = False
 
+SITE_VERSION = "4.1.3" # the version number of Mexer to be displayed on the about and visualizer page
+
 ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 SESSION_COOKIE_SECURE = True

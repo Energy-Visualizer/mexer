@@ -120,6 +120,7 @@ class Index(models.Model):
     IndexID = models.PositiveSmallIntegerField(primary_key=True)
     Index = models.TextField()
     Order = models.PositiveSmallIntegerField()
+    SankeyColumn = models.PositiveSmallIntegerField()
     class Meta:
         db_table = "Index"
         managed = False

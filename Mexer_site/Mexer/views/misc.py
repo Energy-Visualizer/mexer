@@ -17,6 +17,7 @@ from django.shortcuts import render
 from Mexer.models import Dataset, matname
 from Mexer.views.error_pages import *
 from django.http import HttpResponse
+from Mexer_meta.settings import SITE_VERSION
 
 @time_view
 def index(request):
@@ -28,7 +29,7 @@ def index(request):
 def about(request):
     ''' Render the 'About' page.'''
     LOGGER.info("About page visted.")
-    return render(request, 'about.html')
+    return render(request, 'about.html', context={"site_version":SITE_VERSION})
 
 def plot_stage(request):
     ''' Give the plot stage, for plotting in a separate window '''
