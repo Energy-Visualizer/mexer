@@ -10,7 +10,7 @@ scipy>=1.13.1
 
 # Interactive graphing library for Python
 # Used to create interactive plots and visualizations (Sankey, plotly and matrices)
-plotly>=5.22.0
+plotly==5.24.1
 
 # Data manipulation and analysis library
 # Used for handling and processing data efficiently (used in various parts including panda dataframes)
