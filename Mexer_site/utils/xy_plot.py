@@ -47,7 +47,6 @@ def get_xy(efficiency_metric: str, target: DatabaseTarget, query: dict,
 
     # get the respective data from the database
     df = get_translated_dataframe(target, query, fields_to_select)
-        
     
     if df.empty: return None # if no data, return as such
 
