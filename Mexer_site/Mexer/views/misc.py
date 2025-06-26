@@ -14,7 +14,7 @@
 from utils.misc import time_view
 from utils.logging import LOGGER
 from django.shortcuts import render
-from Mexer.models import Dataset, matname, Paper
+from Mexer.models import Dataset, matname, Paper, Version
 from Mexer.views.error_pages import *
 from django.http import HttpResponse
 from Mexer_meta.settings import SITE_VERSION
@@ -47,7 +47,8 @@ def data_info(request):
     LOGGER.info("Data info page visted.")
     # Retrieve all Dataset objects from the database
     datasets = Dataset.objects.all()
-    return render(request, 'data_info.html', context = {"datasets":datasets})
+    public_versions = Version.objects.filter(Public=True) 
+    return render(request, 'data_info.html', context = {"datasets":datasets, "public_versions":public_versions})
 
 def matrix_info(request):
     ''' Render the 'Matrix Information' page.'''

@@ -1,0 +1,7 @@
+#!/bin/bash
+sudo docker build -t mexer .
+sudo docker run -itp 8000:8000 --rm \
+  --env-file .env \
+  -v ./general.log:/app/general.log:rw \
+  -v /usr/share/dict/words:/usr/share/dict/words \
+  mexer

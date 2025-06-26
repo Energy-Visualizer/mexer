@@ -1,0 +1,7 @@
+#!/bin/bash
+export PGSERVICEFILE=/home/kenny/research/mexer/Mexer_site/.pg_service.conf
+export PGPASSFILE=/home/kenny/research/mexer/Mexer_site/.pgpass
+if [ -f /home/kenny/research/mexer/.env ]; then
+    export $(grep -v '^#' /home/kenny/research/mexer/.env | xargs)
+fi
+. ./mexer_venv/bin/activate
