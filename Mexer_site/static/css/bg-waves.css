@@ -3,7 +3,7 @@
     width: 100%;
     background-position: center bottom;
     background-repeat: repeat-x;
-    position: absolute;
+    position: fixed;
     bottom: 0px;
     width: calc(100% + 10px); /* to get rid of slight gap between tiled images */
     z-index: -1; /* keep the waves behind everything else*/
