@@ -17,7 +17,7 @@ from Mexer.forms import ResetRequestForm, SignupForm, LoginForm, ResetForm
 from Mexer.views.error_pages import *
 from utils.misc import new_email_code, new_reset_code
 from django.core.mail import EmailMultiAlternatives # for email verification
-from Mexer.models import EmailAuthCode, PassResetCode, EvizUser
+from Mexer.models import EmailAuthCode, Paper, PassResetCode, EvizUser
 import pickle
 from django.contrib import messages
 from django.shortcuts import render, redirect
@@ -47,7 +47,8 @@ def user_signup(request):
 
             # Check honeypot and simply stop early if tripped
             if form.cleaned_data.get("honeypot-tripped"):
-                return render(request, 'index.html')
+                related_papers = Paper.objects.all().order_by('Year')
+                return render(request, "index.html", context={"related_papers": related_papers})
             
             # Extract the email from the cleaned form data
             new_user_email = form.cleaned_data.get("email")

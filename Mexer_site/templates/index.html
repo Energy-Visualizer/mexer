@@ -62,87 +62,24 @@
   <article class="bg-gray-100 text-gray-800 rounded-lg shadow-lg p-6 my-8 max-w-[75%] mx-auto">
     <h3 class="text-2xl font-bold text-center mb-4">Papers Related to Mexer</h3>
 
-    <a
-      href="https://doi.org/10.1088/2753-3751/ad4e39"
-      target="_blank"
-    >
-      <mexer-card>
-        <span id="title">
-            A country-level primary-final-useful (CL-PFU) energy and exergy
-            database: overview of its construction and 1971–2020 world-level
-            efficiency results.
-        </span>
-        <span id="content">
-          <div>
-            Paul E Brockway, Matthew Kuperus Heun, Zeke Marshall, Emmanuel
-            Aramendia, Paul Steenwyk, Thomas Relph, Michelle Widjanarko,
-            Jeonghoo (James) Kim, Anjana Sainju, Julian Irtube
-          </div>
-          <div>2024 Environmental Research: Energy 1 025005.</div>
-          <div class="text-blue-500">DOI: 10.1088/2753-3751/ad4e39</div>
-        </span>
-      </mexer-card>
-    </a>
+    {% for paper in related_papers %}
+      <a
+        href="{{ paper.URL }}"
+        target="_blank"
+      >
+        <mexer-card>
+          <span id="title">{{ paper.Title }}</span>
+          <span id="content">
+            <div>
+              {{ paper.Authors }}
+            </div>
+            <div>{{ paper.Journal }}, {{ paper.Volume }} ({{ paper.Year }}), {{ paper.Pages }}.</div>
+            <div class="text-blue-500">DOI: {{ paper.doi }}</div>
+          </span>
+        </mexer-card>
+      </a>
+    {% endfor %}
 
-    <a
-      href="https://doi.org/10.1016/j.apenergy.2024.123344"
-      target="_blank"
-    >
-      <mexer-card>
-        <span id="title">
-          On the Right Track? Energy Use, Carbon Emissions, and Intensities
-          of World Rail Transportation, 1840–2020.
-        </span>
-        <span id="content">
-          <div>
-            Bernardo Tostes, Sofia T. Henriques, Paul E. Brockway, Matthew
-            Kuperus Heun, Tiago Domingos, Tânia Sousa
-          </div>
-          <div>Applied Energy, vol. 367, Aug. 2024, p. 123344.</div>
-          <div class="text-blue-500">DOI: 10.1016/j.apenergy.2024.123344</div>
-        </span>
-      </mexer-card>
-    </a>
-
-    <a
-      href="https://doi.org/10.1016/j.energy.2023.126775"
-      target="_blank"
-    >
-    <mexer-card>
-      <span id="title">
-        The Rise and Stall of World Electricity Efficiency:1900–2017,
-        Results and Insights for the Renewables Transition.
-      </span>
-      <span id="content">
-        <div>
-          Ricardo Pinto, Sofia T. Henriques, Paul E. Brockway, Matthew
-          Kuperus Heun, Tânia Sousa
-        </div>
-        <div>Energy, vol. 269, Apr. 2023, p. 126775.</div>
-        <div class="text-blue-500">DOI: 10.1016/j.energy.2023.126775</div>
-      </span>
-    </mexer-card>
-    </a>
-
-    <a
-      href="https://link.springer.com/article/10.1007/s41247-022-00096-z"
-      target="_blank"
-    >
-    <mexer-card>
-      <span id="title">
-        The contributions of muscle and machine work to land and labor
-        productivity in world agriculture since 1800.
-      </span>
-      <span id="content">
-        <div>
-          Paul Steenwyk, Matthew Kuperus Heun, Paul E. Brockway, Tania
-          Sousa, and Sofia Henriques.
-        </div>
-        <div>Biophysical Economics and Sustainability, 7(2):1–17, 2022.</div>
-        <div class="text-blue-500">DOI: 10.1007/s41247-022-00096-z</div>
-      </span>
-    </mexer-card>
-    </a>
   </article>
 
   <article class="bg-gray-800 text-white rounded-lg shadow-lg p-6 my-8 max-w-[75%] mx-auto">
