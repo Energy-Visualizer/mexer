@@ -66,10 +66,6 @@
     {% include "components/visualizer/history-menu.html" %}
 
     <!-- main form -->
-    <form method="post" action="/data" id="query-form">
-    {% csrf_token %}
-
-    <!-- Plot parameters section -->
     {% include "components/visualizer/plotting-menu.html" %}
 
     <!-- Area for displaying the generated plot -->
