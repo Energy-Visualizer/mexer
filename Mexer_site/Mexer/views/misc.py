@@ -14,7 +14,7 @@
 from utils.misc import time_view
 from utils.logging import LOGGER
 from django.shortcuts import render
-from Mexer.models import Dataset, matname
+from Mexer.models import Dataset, matname, Paper
 from Mexer.views.error_pages import *
 from django.http import HttpResponse
 from Mexer_meta.settings import SITE_VERSION
@@ -24,7 +24,9 @@ def index(request):
     '''Render the home page.'''
 
     LOGGER.info("Home page visted.")
-    return render(request, "index.html")
+
+    related_papers = Paper.objects.all().order_by('Year')
+    return render(request, "index.html", context={"related_papers": related_papers})
 
 def about(request):
     ''' Render the 'About' page.'''

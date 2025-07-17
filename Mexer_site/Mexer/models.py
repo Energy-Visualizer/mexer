@@ -207,3 +207,20 @@ class PassResetCode(models.Model):
     """ Model for storing password reset codes and the associated user."""
     code = models.TextField(max_length=255)
     user = models.ForeignKey(EvizUser, on_delete=models.CASCADE)
+
+class Paper(models.Model):
+    """ Model representing a paper related to Mexer."""
+    class Meta:
+        db_table = "Papers"
+        managed = False
+
+    PapersID = models.AutoField(primary_key=True)
+    Authors = models.TextField()
+    Year = models.PositiveSmallIntegerField()
+    Title = models.TextField()
+    Journal = models.TextField()
+    Volume = models.TextField()
+    Number = models.TextField()
+    Pages = models.TextField()
+    doi = models.TextField()
+    URL = models.URLField(max_length=2000)
