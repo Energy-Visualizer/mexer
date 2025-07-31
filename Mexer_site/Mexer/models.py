@@ -13,15 +13,18 @@ class Dataset(models.Model):
     class Meta:
         db_table = "Dataset"
         managed = False # Django won't manage these tables
-        
+
 class Version(models.Model):
-    """ Model representing a database table named 'Version'."""
-    VersionID = models.PositiveSmallIntegerField(primary_key=True)
-    Version = models.TextField()
-    
+    """ The versions of data available."""
     class Meta:
         db_table = "Version"
         managed = False
+
+    VersionID = models.PositiveSmallIntegerField(primary_key=True)
+    Version = models.TextField()
+    ReleaseDate = models.TextField()
+    Public = models.BooleanField()
+    ChangeNotes = models.TextField()
         
 class Country(models.Model):
     """ Model representing a database table named 'Country'."""
