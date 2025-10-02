@@ -14,17 +14,16 @@
 import json
 from utils.translator import Translator
 from utils.data import _query_database, DatabaseTarget
-from Mexer_meta.settings import SANKEY_COLORS_PATH
+from django.conf import settings
 from utils.logging import LOGGER
 from collections import Counter
-from django.db import connections
 from Mexer.models import Index
 
 INDUSTRY_COLOR = "midnightblue"
 OVERRIDE_COL = 1 # where to put energy carrier nodes
 OVERRIDE_COL_ON = False # only affects energy carrier columns
 
-with open(SANKEY_COLORS_PATH) as f:
+with open(settings.SANKEY_COLORS_PATH) as f:
     SANKEY_COLORS: dict[str, str] = json.loads(f.read())
 
 class NodeInfo:

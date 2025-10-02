@@ -33,7 +33,7 @@ from utils.misc import Silent
 import pandas.io.sql as pd_sql  # for getting data into a pandas dataframe
 from django.db import connections
 from utils.translator import Translator
-from Mexer_meta.settings import DATABASES, SANDBOX_PREFIX
+from django.conf import settings
 
 DatabaseTarget = tuple[str, models.Model]
 
@@ -46,7 +46,7 @@ def _get_database_target(query: dict) -> DatabaseTarget:
     else:
         model = IEAData if dataset == "IEAEWEB2022" else PSUT
     
-    return "sandbox" if dataset.startswith(SANDBOX_PREFIX) else "default", model
+    return "sandbox" if dataset.startswith(settings.SANDBOX_PREFIX) else "default", model
 
 def _query_database(target: DatabaseTarget, query: dict, values: list[str]):
     db = target[0]
@@ -67,7 +67,7 @@ def _query_database(target: DatabaseTarget, query: dict, values: list[str]):
     return data
 
 def _valid_database(database_name: str):
-    return database_name in DATABASES.keys()
+    return database_name in settings.DATABASES.keys()
 
 def get_dataframe(target: DatabaseTarget, query: dict, columns: list) -> pd.DataFrame:
     if not _valid_database(target[0]):
@@ -205,10 +205,10 @@ def translate_query(
         if isinstance(query[k], list):
             # if a list, remove the sandbox query for each item
             for i in range(len(query[k])):
-                query[k][i] = query[k][i].removeprefix(SANDBOX_PREFIX)
+                query[k][i] = query[k][i].removeprefix(settings.SANDBOX_PREFIX)
         else:
             # just a single entry
-            query[k] = query[k].removeprefix(SANDBOX_PREFIX)
+            query[k] = query[k].removeprefix(settings.SANDBOX_PREFIX)
 
     # common query parts
     if v := query.get("dataset"):
