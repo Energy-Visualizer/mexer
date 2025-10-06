@@ -6,8 +6,8 @@ db.sqlite3
 .pgpass
 .pg_service.conf
 
-migrations
-
 general.log
 
 mexer_venv
+
+.env
