@@ -20,7 +20,7 @@ docker rm -f postgres 2>/dev/null || true # try to remove already running contai
 docker run -d --name postgres -p 5432:5432 \
   -e POSTGRES_USER=postgres \
   -e POSTGRES_PASSWORD=postgres \
-  -v $(pwd)/mexer_schema.sql:/docker-entrypoint-initdb.d/mexer_schema.sql \
+  -v $(pwd)/postgres/mexer_schema.sql:/docker-entrypoint-initdb.d/mexer_schema.sql \
   --network mexerNetwork \
   postgres
 
@@ -42,7 +42,7 @@ echo "Running Migrations..."
 docker exec mexer python3 manage.py migrate
 
 echo "Inserting test data..."
-psql postgresql://postgres:postgres@localhost -f insert_test_data.sql
+psql postgresql://postgres:postgres@localhost -f postgres/insert_test_data.sql
 
 echo "Creating superuser..."
 docker exec -it mexer bash -c 'python3 manage.py createsuperuser --noinput \

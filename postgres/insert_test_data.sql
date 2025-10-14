@@ -58,5 +58,9 @@ INSERT INTO public."GrossNet" ("GrossNetID", "GrossNet", "FullName", "Descriptio
 INSERT INTO public."PSUT"("Dataset","ValidFromVersion","ValidToVersion","Country","Method","EnergyType","LastStage","IncludesNEU","Year","matname","i","j","value") VALUES
  (1,1,1,1,1,1,1,1,1,1,1,1,10.0),
  (1,1,1,1,1,1,1,1,1,1,1,2,5.5);
+ 
+INSERT INTO public."PSUTReAllChopAllDsAllGrAll"("Dataset","ValidFromVersion","ValidToVersion","Country","Method","EnergyType","LastStage","IncludesNEU","Year","ChoppedMat","ChoppedVar","ProductAggregation","IndustryAggregation","matname","i","j","value") VALUES
+ (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,10.0),
+ (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,5.5);
 
 COMMIT;
