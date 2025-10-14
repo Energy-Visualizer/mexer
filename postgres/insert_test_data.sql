@@ -32,10 +32,14 @@ INSERT INTO public."IncludesNEU" ("IncludesNEUID", "IncludesNEU", "FullName", "D
     (1, true, 'Includes Non-Energy Use', 'Data includes non-energy use'),
     (2, false, 'Excludes Non-Energy Use', 'Data excludes non-energy use');
 
-INSERT INTO public."Year" ("YearID", "Year") VALUES
-    (1, 2020),
-    (2, 2021),
-    (3, 2022);
+DO $$
+DECLARE
+    year_id INT;
+BEGIN
+    FOR year_id IN 1..2025 LOOP
+        INSERT INTO public."Year" ("YearID", "Year") VALUES (year_id, year_id);
+    END LOOP;
+END $$;
 
 INSERT INTO public."matname" ("matnameID", matname, "FullName", "Public", "Description", "RowFormat", "ColFormat") VALUES
     (1, 'Matrix A', 'Full Name of Matrix A', true, 'Description of Matrix A', 'Row Format A', 'Column Format A'),
@@ -60,7 +64,7 @@ INSERT INTO public."PSUT"("Dataset","ValidFromVersion","ValidToVersion","Country
  (1,1,1,1,1,1,1,1,1,1,1,2,5.5);
  
 INSERT INTO public."PSUTReAllChopAllDsAllGrAll"("Dataset","ValidFromVersion","ValidToVersion","Country","Method","EnergyType","LastStage","IncludesNEU","Year","ChoppedMat","ChoppedVar","ProductAggregation","IndustryAggregation","matname","i","j","value") VALUES
- (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,10.0),
- (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,5.5);
+ (1,1,1,1,1,1,1,1,2020,1,1,1,1,1,1,1,10.0),
+ (1,1,1,1,1,1,1,1,2021,1,1,1,1,1,1,2,5.5);
 
 COMMIT;
