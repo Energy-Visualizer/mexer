@@ -92,6 +92,13 @@ DATABASES = {
         "PASSWORD": "postgres",
         "HOST": "postgres",
         "PORT": 5432,
+        "TEST": {
+            # make the tests run against the local Postgres container
+            # which acts as an external db mocking MexerDB
+            "CREATE_DB": False,
+            "MIRROR": None,
+            "NAME": "postgres"
+        }
     }
 } if IS_LOCAL else {
     "default": {
