@@ -42,7 +42,8 @@ echo "Running Migrations..."
 docker exec mexer python3 manage.py migrate
 
 echo "Inserting test data..."
-psql postgresql://postgres:postgres@localhost -f postgres/insert_test_data.sql
+docker cp postgres/insert_test_data.sql postgres:/tmp/insert_test_data.sql
+docker exec postgres psql postgresql://postgres:postgres@localhost -f /tmp/insert_test_data.sql
 
 echo "Creating superuser..."
 docker exec -it mexer bash -c 'python3 manage.py createsuperuser --noinput \
