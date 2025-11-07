@@ -133,8 +133,6 @@ const initialize = () => {
     const makePlotButton = document.getElementById("get");
     const plotSection = document.getElementById("plot-section");
 
-    console.log(makePlotButton);
-
     makePlotButton.addEventListener("click", () => {
         plotSection.scrollIntoView();
         closePlotMenu(plotParamsMenu, ppTglButton);
