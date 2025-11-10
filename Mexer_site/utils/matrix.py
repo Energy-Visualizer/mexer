@@ -39,7 +39,7 @@ def get_matrix(target: DatabaseTarget, query: dict) -> coo_matrix:
 
     # if nothing was returned
     if not sparse_matrix:
-        return coo_matrix(None) # empty matrix
+        return coo_matrix([]) # empty matrix
 
     # Get dimensions for a matrix (rows and columns will be the same)
     # len() would evaluate the query set, so use count() instead for better performance
