@@ -35,6 +35,8 @@ CSRF_FAILURE_VIEW = "Mexer.views.error_pages.csrf_failure"
 
 CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.word_challenge'
 
+IS_LOCAL = environ.get("local", "false").lower() == "true"
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -85,12 +87,28 @@ WSGI_APPLICATION = 'Mexer_meta.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
+        "NAME": "postgres",
+        "USER": "postgres",
+        "PASSWORD": "postgres",
+        "HOST": "postgres",
+        "PORT": 5432,
+        "TEST": {
+            # make the tests run against the local Postgres container
+            # which acts as an external db mocking MexerDB
+            "CREATE_DB": False,
+            "MIRROR": None,
+            "NAME": "postgres"
+        }
+    }
+} if IS_LOCAL else {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
         "OPTIONS": {
             "service": "MexerDB",
             # All other information provided through environment variables
             # PGSERVICEFILE and PGPASSFILE
             "application_name": "Mexer Site"
-        }
+        },
     },
     "sandbox": {
         "ENGINE": "django.db.backends.postgresql",
@@ -109,7 +127,7 @@ DATABASES = {
 
 }
 
-DATABASE_ROUTERS = ["Mexer.routers.DatabaseRouter"]
+DATABASE_ROUTERS = ["Mexer.routers.LocalRouter" if IS_LOCAL else "Mexer.routers.DatabaseRouter"]
 
 
 # Password validation

@@ -19,7 +19,7 @@ from django.apps import apps
 from utils.logging import LOGGER
 from datetime import datetime, timedelta
 from Mexer.models import Dataset
-from Mexer_meta.settings import SANDBOX_PREFIX, IEA_TABLES
+from django.conf import settings
 
 # how long to cache information from the database 
 # in *hours*
@@ -199,7 +199,7 @@ class Translator:
 
         # combine them and add the sandbox prefix
         # onto the sandbox datasets to differentitate
-        return list(mexerdb_datasets.keys()) + [SANDBOX_PREFIX + ds for ds in sandboxdb_datasets.keys()]
+        return list(mexerdb_datasets.keys()) + [settings.SANDBOX_PREFIX + ds for ds in sandboxdb_datasets.keys()]
 
     @staticmethod
     def get_includesNEUs():

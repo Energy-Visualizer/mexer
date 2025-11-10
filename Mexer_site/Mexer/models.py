@@ -136,7 +136,7 @@ class PSUT(models.Model):
         db_table = "PSUTReAllChopAllDsAllGrAll"
         managed = False
 
-    Dataset = models.PositiveSmallIntegerField()
+    Dataset = models.PositiveSmallIntegerField(primary_key=True)
     ValidToVersion = models.PositiveSmallIntegerField()
     ValidFromVersion = models.PositiveSmallIntegerField()
     Country = models.PositiveSmallIntegerField()
@@ -168,7 +168,7 @@ class AggEtaPFU(models.Model):
         db_table = "AggEtaPFU"
         managed = False
 
-    Dataset = models.PositiveSmallIntegerField()
+    Dataset = models.PositiveSmallIntegerField(primary_key=True)
     ValidFromVersion = models.PositiveSmallIntegerField()
     ValidToVersion = models.PositiveSmallIntegerField()
     Country = models.PositiveSmallIntegerField()
@@ -203,12 +203,12 @@ class EvizUser(DjangoUser):
 
 class EmailAuthCode(models.Model):
     """ Model for storing email auhtentication codes and associated account information."""
-    code = models.TextField(max_length=255)
+    code = models.TextField(max_length=255, primary_key=True)
     account = models.ForeignKey(to=EvizUser, on_delete=CASCADE)
 
 class PassResetCode(models.Model):
     """ Model for storing password reset codes and the associated user."""
-    code = models.TextField(max_length=255)
+    code = models.TextField(max_length=255, primary_key=True)
     user = models.ForeignKey(EvizUser, on_delete=models.CASCADE)
 
 class Paper(models.Model):

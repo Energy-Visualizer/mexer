@@ -17,7 +17,7 @@ from django.shortcuts import render
 from Mexer.models import Dataset, matname, Paper, Version
 from Mexer.views.error_pages import *
 from django.http import HttpResponse
-from Mexer_meta.settings import SITE_VERSION
+from django.conf import settings
 
 @time_view
 def index(request):
@@ -31,7 +31,7 @@ def index(request):
 def about(request):
     ''' Render the 'About' page.'''
     LOGGER.info("About page visted.")
-    return render(request, 'about.html', context={"site_version":SITE_VERSION})
+    return render(request, 'about.html', context={"site_version":settings.SITE_VERSION})
 
 def plot_stage(request):
     ''' Give the plot stage, for plotting in a separate window '''
@@ -57,7 +57,6 @@ def matrix_info(request):
     matricies = matname.objects.all()
     return render(request, 'matrix_info.html', context = {"matricies":matricies})
 
-from Mexer_meta.settings import STATIC_BASE
 def handle_static(request, filepath: str):
     """Serve CSS static files directly from a specified directory.
 
@@ -93,7 +92,7 @@ def handle_static(request, filepath: str):
             return error_404(request, f"Couldn't figure out content type of {filepath}")
     
     try:
-        with open(f"{STATIC_BASE}/{filepath}", "rb") as f:
+        with open(f"{settings.STATIC_BASE}/{filepath}", "rb") as f:
                 return HttpResponse(f.read(), headers = {"Content-Type": mime_type})
     except Exception as e:
         return error_404(request, e)

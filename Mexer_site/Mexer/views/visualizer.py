@@ -17,7 +17,6 @@ from utils.misc import time_view, iea_valid, get_plot_title
 from utils.logging import LOGGER
 from Mexer.models import EvizUser, Version, AggEtaPFU
 from utils.translator import Translator
-from Mexer_meta.settings import SANDBOX_PREFIX
 from django.shortcuts import render
 from utils.data import *
 from django.http import HttpResponse
@@ -26,8 +25,9 @@ from utils.xy_plot import get_xy
 from utils.matrix import get_matrix, get_ruvy_matrix, visualize_matrix
 from plotly.offline import plot
 from utils.history import update_user_history
+from django.conf import settings
 from altair.utils.data import MaxRowsError # for catching with matrices are too big
-from Mexer_meta.settings import SITE_VERSION
+
 
 @login_required(login_url="/login")
 @time_view
@@ -65,7 +65,7 @@ def visualizer(request):
     countries.sort()
     versions = Translator.get_all('version')
     if admin_user:
-        sandbox_versions = [SANDBOX_PREFIX + ver for ver in Version.objects.using("sandbox").values_list("Version", flat=True)]
+        sandbox_versions = [settings.SANDBOX_PREFIX + ver for ver in Version.objects.using("sandbox").values_list("Version", flat=True)]
     else:
         sandbox_versions = []
     # methods = Translator.get_all('method')
@@ -88,7 +88,7 @@ def visualizer(request):
         "default_version": "v2.0",
 
         "sandbox_versions":sandbox_versions,
-        "default_sandbox_version": SANDBOX_PREFIX + "v2.0a7",
+        "default_sandbox_version": settings.SANDBOX_PREFIX + "v2.0a7",
 
         "countries":countries,
         "default_country": "Ghana",
@@ -116,7 +116,7 @@ def visualizer(request):
 
         "iea_user":iea_user,
 
-        "site_version":SITE_VERSION, # version of the site to be displayed to users 
+        "site_version":settings.SITE_VERSION, # version of the site to be displayed to users 
         }
 
     return render(request, "visualizer.html", context)
@@ -210,7 +210,7 @@ def get_plot(request):
         query, plot_type, target = shape_post_request(request.POST)
 
         try:
-            if query["dataset"].startswith(SANDBOX_PREFIX) != query["version"].startswith(SANDBOX_PREFIX):
+            if query["dataset"].startswith(settings.SANDBOX_PREFIX) != query["version"].startswith(settings.SANDBOX_PREFIX):
                 return HttpResponse(b"Error: Dataset and version must both be from sandbox or both not be from sandbox!")
         except:
             pass

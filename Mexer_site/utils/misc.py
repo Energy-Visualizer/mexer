@@ -74,7 +74,6 @@ class Silent():
         sys.stderr = self.real_stderr # Restore the original stderr
 
 from uuid import uuid4
-import pickle
 from Mexer.models import EmailAuthCode, PassResetCode, EvizUser
 from Mexer.forms import SignupForm
 def new_email_code(account_info: SignupForm) -> str:
@@ -110,7 +109,7 @@ def new_reset_code(user: EvizUser) -> str:
     return code
 
 from django.contrib.auth.models import User
-from Mexer_meta.settings import IEA_TABLES
+from django.conf import settings
 def iea_valid(user: User, query: dict) -> bool:
     '''Ensure that a give user's query does not give out IEA data if not authorized
 
@@ -127,7 +126,7 @@ def iea_valid(user: User, query: dict) -> bool:
     return (
         # free data
         (
-            query.get("dataset") not in IEA_TABLES
+            query.get("dataset") not in settings.IEA_TABLES
         )
         or
         # authorized to get proprietary data

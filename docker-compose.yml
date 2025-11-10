@@ -1,0 +1,52 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:latest
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres/mexer_schema.sql:/docker-entrypoint-initdb.d/mexer_schema.sql:ro
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - mexerNetwork
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  web:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: mexer
+    restart: "no"
+    depends_on:
+      - db
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - /usr/share/dict/words:/usr/share/dict/words:ro
+      - ./Mexer_site:/app:rw
+    networks:
+      - mexerNetwork
+    command: ["python3", "manage.py", "debug", "0.0.0.0:8000"]
+    post_start:
+      - command: ["python3", "manage.py", "migrate"]
+      - command: ["python3", "manage.py", "load_test_data", "--dir", "/app/postgres/seeds"]
+      - command: ["sh", "-c", "python3 manage.py createsuperuser --noinput --username \"$DJANGO_SUPERUSER_USERNAME\" --email \"$DJANGO_SUPERUSER_EMAIL\" || true"]
+
+volumes:
+  postgres_data:
+
+networks:
+  mexerNetwork:
+    driver: bridge

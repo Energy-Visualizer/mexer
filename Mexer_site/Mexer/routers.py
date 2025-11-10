@@ -19,12 +19,10 @@ class DatabaseRouter:
 
     def db_for_read(self, model, **hints):
         """ Database for read operations."""
-
         # everything for user auth
         if model._meta.app_label in self.ALL_USERS_APPS or model.__name__ in self.ALL_USERS_MODELS:
             return "users"
         return None # None will go to default db
-
 
     def db_for_write(self, model, **hints):
 
@@ -38,3 +36,13 @@ class DatabaseRouter:
 
     def allow_migrate(self, db, app_label, model_name=None, **hints):
         return db != "default"
+
+class LocalRouter:
+    def db_for_read(self, model, **hints):
+        return "default"
+
+    def db_for_write(self, model, **hints):
+        return "default"
+
+    def allow_migrate(self, db, app_label=None, model_name=None, **hints):
+        return True
