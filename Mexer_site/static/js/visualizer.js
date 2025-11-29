@@ -3,13 +3,13 @@
  * This function is called when the page loads.
  */
 const initialize = () => {
-    
+
     // let htmx give a general error response when something goes wrong with 
     // some data
     document.body.addEventListener("htmx:responseError", (error) => {
         error.detail.target.innerHTML = `Error creating plot! Status code ${error.detail.xhr.status}.\nPlease try again later. Contact information on the about page.`;
     });
-    
+
     document.body.addEventListener("htmx:sendError", (error) => {
         error.detail.target.innerHTML = `Error creating plot! Status code ${error.detail.xhr.status}.\nPlease try again later. Contact information on the about page.`;
     });
@@ -29,13 +29,13 @@ const initialize = () => {
             document.getElementById("version-dropdown").disabled = false;
         }
     });
-    
+
     assertion_message_instruction = " -- ensure this failed input has its id field set properly";
     const menu_input_assert = (input_element, input_name) => console.assert(input_element, input_name + assertion_message_instruction);
     // main metadata
     countryDropdown = document.getElementById("country-dropdown");
     menu_input_assert(countryDropdown, "countryDropdown");
-    
+
     menuInputs = []; // collection to keep track of all the items that can be toggled in the menus
 
     // specific metadata
@@ -70,7 +70,7 @@ const initialize = () => {
 
     grossNet = document.getElementById("grossnet_radio");
     menu_input_assert(grossNet, "grossNet");
-    
+
     coloringMethod = document.getElementById("coloring-options");
     menu_input_assert(coloringMethod, "coloringMethod");
 
@@ -90,12 +90,12 @@ const initialize = () => {
     // have specifics show differently for different plots
     let selectedValue = null; // to be filled in the following loop
     const plotTypeButtons = document.querySelectorAll('#plot-type-input');
-    plotTypeButtons.forEach( (plotTypeButton) => {
+    plotTypeButtons.forEach((plotTypeButton) => {
 
         // Add approptiate event listener based on plot type
         if (plotTypeButton.checked)
             selectedValue = plotTypeButton.value; // if a button is already selected, remember its value
-        
+
         if (plotTypeButton.value === 'xy_plot')
             plotTypeButton.addEventListener('change', handleXYPlot);
 
@@ -123,9 +123,19 @@ const initialize = () => {
 
 
     // Let users select what form of data they would like to download
-    document.getElementById('download-options-button').addEventListener('click', function() {
-        var downloadOptions = document.getElementById('download-options');
-        downloadOptions.classList.toggle('hidden');
+    // No download options present in HTML
+    // document.getElementById('download-options-button').addEventListener('click', function () {
+    //     var downloadOptions = document.getElementById('download-options');
+    //     downloadOptions.classList.toggle('hidden');
+    // });
+
+    // Auto-close settings when plot is generated.
+    const makePlotButton = document.getElementById("get");
+    const plotSection = document.getElementById("plot-section");
+
+    makePlotButton.addEventListener("click", () => {
+        plotSection.scrollIntoView();
+        closePlotMenu(plotParamsMenu, ppTglButton);
     });
 }
 
