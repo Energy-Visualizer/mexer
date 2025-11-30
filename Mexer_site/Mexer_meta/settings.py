@@ -158,15 +158,11 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# NOT used in the Django way...
-# see Mexer/views/misc.py for how statics are handled
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
-    BASE_DIR / "static/css",
-    BASE_DIR / "static/js",
 ]
-STATIC_BASE = BASE_DIR / "static"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

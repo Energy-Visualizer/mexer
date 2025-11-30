@@ -19,9 +19,9 @@ Blocks:
 {% block extra_head %}
   <!-- components -->
   {% include "snippets/card.html" %} <!-- include template html -->
-  <script src={% static "js/components/card.js" %} defer></script> <!-- include web component script -->
+  <script src="{% static 'js/components/card.js' %}" defer></script> <!-- include web component script -->
   {% include "snippets/form-input.html" %}
-  <script src={% static "js/components/formInput.js" %} defer></script>
+  <script src="{% static 'js/components/formInput.js' %}" defer></script>
   <!-- end components -->
 
   <!-- for use with para-bg elements below -->

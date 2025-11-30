@@ -56,46 +56,6 @@ def matrix_info(request):
     # Retrieve all Dataset objects from the database
     matricies = matname.objects.all()
     return render(request, 'matrix_info.html', context = {"matricies":matricies})
-
-def handle_static(request, filepath: str):
-    """Serve CSS static files directly from a specified directory.
-
-    This function reads a CSS file from a static files directory
-    and serves it as an HTTP response with the appropriate content type.
-
-    Inputs:
-        request: The HTTP request object (not used in this function, but typically included for view functions)
-        filepath: The path to the CSS file relative to the static files directory
-
-    Outputs:
-        HttpResponse containing the contents of the CSS file
-    """
-    # example filepath: css/toolbar.css OR admin/css/toolbar.css
-    
-    # the type of static file to serve is used in the match case
-    # so that the correct mime type is attached
-    # other than that, the whole filepath asked for (besides static/) is used to find the file
-    file_type = filepath.split("/")[0] if filepath.split("/")[0] != "admin" else filepath.split("/")[1]
-    match(file_type):
-        case "css":
-            mime_type = "text/css"
-        
-        case "images" | "img":
-            # filepath.split(".")[-1] is the last part of the file, i.e. the handle like jpeg, png, etc.
-            # if the handle is svg, the mime must be image/svg+xml
-            mime_type = f"image/{filepath.split('.')[-1] if not filepath.endswith('svg') else 'svg+xml'}"
-            
-        case "js":
-            mime_type = "text/javascript"
-        
-        case _:
-            return error_404(request, f"Couldn't figure out content type of {filepath}")
-    
-    try:
-        with open(f"{settings.STATIC_BASE}/{filepath}", "rb") as f:
-                return HttpResponse(f.read(), headers = {"Content-Type": mime_type})
-    except Exception as e:
-        return error_404(request, e)
     
 def __test_render_page(request, template_name: str):
     """Render a template that matches the path name from the request."""
