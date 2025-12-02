@@ -124,7 +124,6 @@ DATABASES = {
             "application_name": "Mexer Site"
         }
     }
-
 }
 
 DATABASE_ROUTERS = ["Mexer.routers.LocalRouter" if IS_LOCAL else "Mexer.routers.DatabaseRouter"]
