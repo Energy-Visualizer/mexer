@@ -38,13 +38,15 @@ from django.conf import settings
 DatabaseTarget = tuple[str, models.Model]
 
 def _get_database_target(query: dict) -> DatabaseTarget:
-    dataset = query.get("dataset")
+    dataset: str = query.get("dataset")
+    if dataset:
+        table_name = dataset.removeprefix(settings.SANDBOX_PREFIX)
 
     plot_type = query.get("plot_type")
     if plot_type == "xy_plot":
         model = AggEtaPFU
     else:
-        model = IEAData if dataset == "IEAEWEB2022" else PSUT
+        model = IEAData if table_name == "IEAEWEB2022" else PSUT
     
     return "sandbox" if dataset.startswith(settings.SANDBOX_PREFIX) else "default", model
 
