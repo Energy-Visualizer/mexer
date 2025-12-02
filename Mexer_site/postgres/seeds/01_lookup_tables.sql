@@ -27,8 +27,8 @@ ON CONFLICT DO NOTHING;
 
 -- EnergyType
 INSERT INTO public."EnergyType" ("EnergyTypeID", "EnergyType", "FullName", "Description") VALUES
-    (1, 'Electricity', 'Electricity Energy Type', 'Energy type related to electricity'),
-    (2, 'Fossil Fuels', 'Fossil Fuels Energy Type', 'Energy type related to fossil fuels')
+    (1, 'Energy', 'Energy', 'Energy type related to electricity'),
+    (2, 'Exergy', 'Exergy', 'Energy type related to fossil fuels')
 ON CONFLICT DO NOTHING;
 
 -- ECCStage
