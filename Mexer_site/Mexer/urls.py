@@ -41,11 +41,11 @@ __urlpatterns = [
 if settings.DEBUG:
     __urlpatterns.append(re_path(r"test_render/(.*)", misc_views.__test_render_page))
 
-    # Static files should only be directly accessible when debugging.
-    __urlpatterns += static(
-        settings.STATIC_URL,
-        document_root=settings.STATICFILES_DIRS[0],
-    )
+# TODO: configure a static route in Nginx and hide this in production.
+__urlpatterns += static(
+    settings.STATIC_URL,
+    document_root=settings.STATICFILES_DIRS[0],
+)
 
 # apply, "urlpatterns" is what Django will be given
 urlpatterns = __urlpatterns
