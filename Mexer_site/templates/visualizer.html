@@ -37,7 +37,7 @@
   <!-- External libraries -->
   <script src="https://unpkg.com/htmx.org@1.9.12"></script> <!-- HTMX -->
   <script src="https://cdn.plot.ly/plotly-latest.min.js" charset="utf-8"></script> <!-- Plotly -->
-  <link rel="stylesheet" href='../static/css/SanKEY_styles.css'> <!-- SanKEY css -->
+  <link rel="stylesheet" href="{% static 'css/SanKEY_styles.css' %"> <!-- SanKEY css -->
 
   <!-- External libraries: Vega -->
   <script src="https://cdn.jsdelivr.net/npm/vega@5.21.0"></script>
@@ -45,18 +45,18 @@
   <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.17.0"></script>
 
   <!-- Internal JS -->
-  <script src="../static/js/visualizer.js"></script>
+  <script src="{% static 'js/visualizer.js' %}"></script>
 
   <!-- Make the plot utility imports available throughout the window -->
   <script type="module">
-      import {downloadSankey, createSankey} from "../static/js/plotUtil.js";
+      import {downloadSankey, createSankey} from "{% static 'js/plotUtil.js' %}";
       window.downloadSankey = downloadSankey;
       window.createSankey = createSankey;
   </script>
 
   <!-- components -->
   {% include "snippets/card.html" %} <!-- include template html -->
-  <script src={% static "js/components/card.js" %} defer></script> <!-- include web component script -->
+  <script src="{% static 'js/components/card.js' %}" defer></script> <!-- include web component script -->
   <!-- end components -->
 
 {% endblock %}

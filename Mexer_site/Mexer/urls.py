@@ -1,4 +1,6 @@
 from django.urls import path, re_path
+from django.conf import settings
+from django.conf.urls.static import static
 import Mexer.views.history as history_views
 import Mexer.views.misc as misc_views
 import Mexer.views.user_accounts as accounts_views
@@ -32,13 +34,18 @@ __urlpatterns = [
     path('terms_and_conditions/', misc_views.terms_and_conditions, name='terms_and_conditions'),
     path('data-info/', misc_views.data_info, name="data-info"),
     path('matrix-info/', misc_views.matrix_info, name="matrix-info"),
-    re_path(r"static/(.*/[^(\.)]*\..*)", misc_views.handle_static),
     path("plot-stage/", misc_views.plot_stage),
 ]
 
 # append testing routes
 if settings.DEBUG:
     __urlpatterns.append(re_path(r"test_render/(.*)", misc_views.__test_render_page))
+
+# TODO: configure a static route in Nginx and hide this in production.
+__urlpatterns += static(
+    settings.STATIC_URL,
+    document_root=settings.STATICFILES_DIRS[0],
+)
 
 # apply, "urlpatterns" is what Django will be given
 urlpatterns = __urlpatterns
