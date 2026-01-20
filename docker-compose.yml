@@ -18,6 +18,19 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
+  
+  tailwind:
+    build:
+      context: .
+      dockerfile: dockerfile.tailwind
+    container_name: mexer_tailwind
+    restart: unless-stopped
+    volumes:
+      - ./Mexer_site/static:/app/static
+      - ./Mexer_site/templates:/app/templates
+      - ./tailwind.config.js:/app/tailwind.config.js
+    networks:
+      - mexerNetwork
 
   web:
     build:

@@ -11,3 +11,6 @@ general.log
 mexer_venv
 
 .env
+
+# tailwind
+Mexer_site/static/dist
