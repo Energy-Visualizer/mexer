@@ -1,5 +1,6 @@
 services:
   db:
+    profiles: [local]
     image: postgres:latest
     container_name: postgres
     restart: unless-stopped
@@ -20,6 +21,7 @@ services:
       retries: 20
 
   web:
+    profiles: [local]
     build:
       context: .
       dockerfile: dockerfile
@@ -30,6 +32,8 @@ services:
         condition: service_healthy
     env_file:
       - .env
+    environment:
+      local: "true"
     ports:
       - "8000:8000"
     volumes:
@@ -42,6 +46,27 @@ services:
       - command: ["python3", "manage.py", "migrate"]
       - command: ["python3", "manage.py", "load_test_data", "--dir", "/app/postgres/seeds"]
       - command: ["sh", "-c", "python3 manage.py createsuperuser --noinput --username \"$DJANGO_SUPERUSER_USERNAME\" --email \"$DJANGO_SUPERUSER_EMAIL\" || true"]
+
+  production:
+    profiles: [production]
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: mexer_production
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PGSERVICEFILE: /app/.pg_service.conf
+      PGPASSFILE: /app/.pgpass
+      local: "false"
+    ports:
+      - "8000:8000"
+    volumes:
+      - /usr/share/dict/words:/usr/share/dict/words:ro
+      - ./Mexer_site/general.log:/app/general.log:rw
+    command: ["python3", "manage.py", "runserver", "0.0.0.0:8000"]
+
 volumes:
   postgres_data:
 
