@@ -10,8 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
-from pathlib import Path
 from os import environ
+from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,11 +20,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = environ["django_secret_key"]
 
 # WARNING: don't run with debug turned on in production!
-# Do NOT set this to true! Instead use the custom debug command with manage.py 
+# Do NOT set this to true! Instead use the custom debug command with manage.py
 # Example: python3 manage.py debug
 DEBUG = False
 
-SITE_VERSION = "4.1.3" # the version number of Mexer to be displayed on the about and visualizer page
+SITE_VERSION = "4.1.3"  # the version number of Mexer to be displayed on the about and visualizer page
 
 ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
@@ -33,100 +33,101 @@ CSRF_COOKIE_SECURE = True
 
 CSRF_FAILURE_VIEW = "Mexer.views.error_pages.csrf_failure"
 
-CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.word_challenge'
+CAPTCHA_CHALLENGE_FUNCT = "captcha.helpers.word_challenge"
 
 IS_LOCAL = environ.get("local", "false").lower() == "true"
 
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
     "Mexer",
-    "captcha"
+    "captcha",
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = 'Mexer_meta.urls'
+ROOT_URLCONF = "Mexer_meta.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [ Path(__file__).resolve().parent.parent / "templates" ],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [Path(__file__).resolve().parent.parent / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'Mexer_meta.wsgi.application'
+WSGI_APPLICATION = "Mexer_meta.wsgi.application"
 
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "postgres",
-        "USER": "postgres",
-        "PASSWORD": "postgres",
-        "HOST": "postgres",
-        "PORT": 5432,
-        "TEST": {
-            # make the tests run against the local Postgres container
-            # which acts as an external db mocking MexerDB
-            "CREATE_DB": False,
-            "MIRROR": None,
-            "NAME": "postgres"
+DATABASES = (
+    {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": "postgres",
+            "USER": "postgres",
+            "PASSWORD": "postgres",
+            "HOST": "postgres",
+            "PORT": 5432,
+            "TEST": {
+                # make the tests run against the local Postgres container
+                # which acts as an external db mocking MexerDB
+                "CREATE_DB": False,
+                "MIRROR": None,
+                "NAME": "postgres",
+            },
         }
     }
-} if IS_LOCAL else {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "OPTIONS": {
-            "service": "MexerDB",
-            # All other information provided through environment variables
-            # PGSERVICEFILE and PGPASSFILE
-            "application_name": "Mexer Site"
+    if IS_LOCAL
+    else {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "OPTIONS": {
+                "service": "MexerDB",
+                # All other information provided through environment variables
+                # PGSERVICEFILE and PGPASSFILE
+                "application_name": "Mexer Site",
+            },
         },
-    },
-    "sandbox": {
-        "ENGINE": "django.db.backends.postgresql",
-        "OPTIONS": {
-            "service": "SandboxDB",
-            "application_name": "Mexer Site"
-        }
-    },
-    'users': {
-        'ENGINE': 'django.db.backends.postgresql',
-        "OPTIONS":{
-            "service": "users",
-            "application_name": "Mexer Site"
-        }
+        "sandbox": {
+            "ENGINE": "django.db.backends.postgresql",
+            "OPTIONS": {"service": "SandboxDB", "application_name": "Mexer Site"},
+        },
+        "users": {
+            "ENGINE": "django.db.backends.postgresql",
+            "OPTIONS": {"service": "users", "application_name": "Mexer Site"},
+        },
     }
-}
+)
 
-DATABASE_ROUTERS = ["Mexer.routers.LocalRouter" if IS_LOCAL else "Mexer.routers.DatabaseRouter"]
+DATABASE_ROUTERS = [
+    "Mexer.routers.LocalRouter" if IS_LOCAL else "Mexer.routers.DatabaseRouter"
+]
 
 
 # Password validation
@@ -134,31 +135,31 @@ DATABASE_ROUTERS = ["Mexer.routers.LocalRouter" if IS_LOCAL else "Mexer.routers.
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'America/Detroit'
+LANGUAGE_CODE = "en-us"
+TIME_ZONE = "America/Detroit"
 USE_I18N = True
 USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
@@ -166,12 +167,12 @@ STATICFILES_DIRS = [
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CSRF_TRUSTED_ORIGINS = ["https://*.mexer.site"]
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 # EMAIL_HOST = "sandbox.smtp.mailtrap.io" # email host for the test smtp server
 EMAIL_HOST = "live.smtp.mailtrap.io"
 EMAIL_PORT = 587
@@ -185,22 +186,17 @@ LOGGING = {
     "formatters": {
         "default": {
             "format": "[{asctime}] {levelname} (File:{filename} Function:{funcName} Line:{lineno}) {message}",
-            "style": "{" # '{' to format above string
+            "style": "{",  # '{' to format above string
         }
     },
     "handlers": {
         "file": {
             "class": "logging.FileHandler",
             "filename": "general.log",
-            "formatter": "default"
+            "formatter": "default",
         }
     },
-    "loggers": {
-        "Mexer_default": {
-            "level": "DEBUG",
-            "handlers": ["file"]
-        } 
-    }
+    "loggers": {"Mexer_default": {"level": "DEBUG", "handlers": ["file"]}},
 }
 
 SANKEY_COLORS_PATH = BASE_DIR / "internal_resources" / "sankey_color_categories.json"
@@ -208,3 +204,9 @@ SANKEY_COLORS_PATH = BASE_DIR / "internal_resources" / "sankey_color_categories.
 SANDBOX_PREFIX = "sDB:"
 
 IEA_TABLES = ["IEA EWEB", "CL-PFU IEA", "CL-PFU IEA+MW"]
+
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
