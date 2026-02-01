@@ -45,8 +45,10 @@ ON CONFLICT DO NOTHING;
 
 -- matname, Index, AggLevel, GrossNet
 INSERT INTO public."matname" ("matnameID", matname, "FullName", "Public", "Description", "RowFormat", "ColFormat") VALUES
-    (1, 'Matrix A', 'Full Name of Matrix A', true, 'Description of Matrix A', 'Row Format A', 'Column Format A'),
-    (2, 'Matrix B', 'Full Name of Matrix B', false, 'Description of Matrix B', 'Row Format B', 'Column Format B')
+    (1, 'R', 'R', true, 'Description of Matrix R', '', ''),
+    (2, 'U', 'U', false, 'Description of Matrix U', '', ''),
+    (3, 'V', 'V', false, 'Description of Matrix V', '', ''),
+    (4, 'Y', 'Y', false, 'Description of Matrix Y', '', '')
 ON CONFLICT DO NOTHING;
 
 INSERT INTO public."Index" ("IndexID", "Index", "Order", "SankeyColumn") VALUES

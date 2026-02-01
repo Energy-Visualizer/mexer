@@ -69,7 +69,7 @@ def _get_node_info(name: str, node_info_by_name: dict) -> NodeInfo:
         raise KeyError("Node info not found for " + name)
     return node_info
 
-def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str] | tuple[None, None, None]:
+def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str, int]:
     ''' Gets a sankey diagram for a query
 
     Input:
@@ -103,7 +103,7 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str] | tu
     # if no cooresponding data, return as such
     # TODO: would probably be better to raise an exception
     if not data:
-        return (None, None, None, None)
+        return (None, None, None, None) # TODO: change this to returning empty strings, etc.
 
     # get rid of any duplicate i,j,x combinations (many exist)
     data = set(data)
