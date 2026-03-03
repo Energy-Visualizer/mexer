@@ -46,7 +46,6 @@ services:
       - command: ["python3", "manage.py", "migrate"]
       - command: ["python3", "manage.py", "load_test_data", "--dir", "/app/postgres/seeds"]
       - command: ["sh", "-c", "python3 manage.py createsuperuser --noinput --username \"$DJANGO_SUPERUSER_USERNAME\" --email \"$DJANGO_SUPERUSER_EMAIL\" || true"]
-      - command: ["python3", "manage.py", "collectstatic"]
 
   production:
     profiles: [production]
@@ -68,7 +67,7 @@ services:
       - ./Mexer_site/general.log:/app/general.log:rw
     command: ["python3", "manage.py", "runserver", "0.0.0.0:8000"]
     post_start:
-      - command: ["python3", "manage.py", "collectstatic"]
+      - command: ["python3", "manage.py", "collectstatic", "--noinput"]
 
 volumes:
   postgres_data:

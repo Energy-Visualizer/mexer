@@ -29,10 +29,10 @@ jobs:
           EOF
 
       - name: Build and start services
-        run: docker compose up -d --build
+        run: docker compose --profile local up -d --build
 
       - name: Run tests
         run: docker compose run --rm web python3 manage.py test --keepdb --verbosity=2
 
       - name: Tear down
-        run: docker compose down --volumes --remove-orphans
+        run: docker compose --profile local down --volumes --remove-orphans
