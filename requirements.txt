@@ -33,4 +33,4 @@ openpyxl>=3.1.2
 factory_boy>=3.3.3
 
 # Whitenoise for static file serving.
-whitenoise
+whitenoise>=6.12.0
