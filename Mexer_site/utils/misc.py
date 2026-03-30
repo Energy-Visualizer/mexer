@@ -12,7 +12,15 @@
 #          Edom Maru - eam43@calvin.edu
 #####################
 
+import sys
+from os import devnull
 from time import time
+from uuid import uuid4
+
+from django.conf import settings
+from django.contrib.auth.models import User
+from Mexer.forms import SignupForm
+from Mexer.models import EmailAuthCode, EvizUser, PassResetCode
 
 
 def time_view(v):
@@ -35,10 +43,6 @@ def time_view(v):
     return wrap
 
 
-import sys
-from os import devnull
-
-
 class Silent:
     """Used as a context manager to silence anything in its block"""
 
@@ -52,7 +56,7 @@ class Silent:
         Outputs:
             Silent: The single instance of the Silent class.
         """
-        if cls.instance == None:
+        if cls.instance is None:
             cls.instance = super().__new__(cls)
         return cls.instance
 
@@ -77,12 +81,6 @@ class Silent:
         self.dn.close()  # Close the /dev/null file
         sys.stdout = self.real_stdout  # Restore the original stdout
         sys.stderr = self.real_stderr  # Restore the original stderr
-
-
-from uuid import uuid4
-
-from Mexer.forms import SignupForm
-from Mexer.models import EmailAuthCode, EvizUser, PassResetCode
 
 
 def new_email_code(account_info: SignupForm) -> str:
@@ -119,10 +117,6 @@ def new_reset_code(user: EvizUser) -> str:
     code = str(uuid4())  # Generate a unique code using UUID
     PassResetCode(code=code, user=user).save()  # save code and user to database
     return code
-
-
-from django.conf import settings
-from django.contrib.auth.models import User
 
 
 def iea_valid(user: User, query: dict) -> bool:
@@ -199,7 +193,7 @@ def get_plot_title(query: dict, exclude: list[str] = []) -> str:
             ),
             # last stage
             (
-                "to stage " + information.get("last_stage")
+                "to stage " + str(information.get("last_stage"))
                 if information.get("last_stage")
                 else ""
             ),

@@ -37,11 +37,12 @@ from utils.logging import LOGGER
 from utils.misc import Silent
 from utils.translator import Translator
 
-DatabaseTarget = tuple[str, models.Model]
+DatabaseTarget = tuple[str, type[models.Model]]
 
 
 def _get_database_target(query: dict) -> DatabaseTarget:
-    dataset: str = query.get("dataset")
+    dataset: str | None = query.get("dataset")
+    table_name = None
     if dataset:
         table_name = dataset.removeprefix(settings.SANDBOX_PREFIX)
 
@@ -51,7 +52,7 @@ def _get_database_target(query: dict) -> DatabaseTarget:
     else:
         model = IEAData if table_name == "IEAEWEB2022" else PSUT
 
-    return "sandbox" if dataset.startswith(
+    return "sandbox" if dataset and dataset.startswith(
         settings.SANDBOX_PREFIX
     ) else "default", model
 

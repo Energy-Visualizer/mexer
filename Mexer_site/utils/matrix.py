@@ -10,9 +10,6 @@
 #       Kenny Howes - kmh67@calvin.edu
 #       Edom Maru - eam43@calvin.edu
 #####################
-from pickle import TUPLE
-from typing import Any
-
 import altair as alt
 import pandas as pd
 from altair.vegalite.v6.schema.core import ColorScheme_T

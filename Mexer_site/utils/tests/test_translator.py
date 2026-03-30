@@ -27,4 +27,4 @@ class TranslatorTests(TestCase):
         translator = Translator("default")
 
         with self.assertRaises(KeyError):
-            invalid_translation = translator.energytype_translate("InvalidType")
+            _ = translator.energytype_translate("InvalidType")

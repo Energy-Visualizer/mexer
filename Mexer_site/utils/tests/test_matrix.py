@@ -37,9 +37,10 @@ class MatrixTests(TransactionTestCase):
                 MockIndex.objects.all.return_value.count.return_value = 3
 
                 mat, names = get_ruvy_matrix(("default", PSUT), {"Year": 2020})
+                assert mat is not None
 
                 # names should be the tuple of matname values
-                self.assertEqual(tuple(names), ("A", "B"))
+                self.assertEqual(names, ("A", "B"))
                 self.assertEqual(mat.shape, (3, 3))
                 arr = mat.toarray()
                 self.assertEqual(arr[0, 1], 2.5)
@@ -63,6 +64,6 @@ class MatrixTests(TransactionTestCase):
                 self.assertIsInstance(heatmap, alt.Chart)
 
                 heatmap_ruvy = visualize_matrix(
-                    ("default", PSUT), mat, matnames=["A", "B"], coloring_method="ruvy"
+                    ("default", PSUT), mat, matnames=("A", "B"), coloring_method="ruvy"
                 )
                 self.assertIsInstance(heatmap_ruvy, alt.Chart)

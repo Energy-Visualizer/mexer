@@ -14,7 +14,8 @@
 #       Kenny Howes - kmh67@calvin.edu
 #       Edom Maru - eam43@calvin.edu
 #####################
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
+from typing import Any
 
 from bidict import bidict
 from django.apps import apps
@@ -33,11 +34,11 @@ class Translator:
     # values are tuples of date times and bidict objects
     # the date times mark when the entry was cached
     # the bidict has the translation information
-    __translations: dict[str : tuple[datetime, bidict]] = {}
+    __translations: dict[str, tuple[date, bidict[Any, Any]]] = {}
 
     # A tuple of a datetime of when this entry was cached
     # and a list of strings for all the public datasets
-    __public_datasets: tuple[datetime, list[str]] = (None, [])
+    __public_datasets: tuple[date, list[str]] | None = None
 
     # how long entries are allowed to exist before getting refreshed
     __cache_ttl = timedelta(hours=TRANSLATOR_CACHE_TTL)
@@ -193,7 +194,7 @@ class Translator:
     def __fetch_public_datasets():
         if (
             # the list is empty and needs to be filled
-            len(Translator.__public_datasets[1]) == 0
+            Translator.__public_datasets is None
             # the entry needs to be recached
             or (datetime.today().date() - Translator.__public_datasets[0])
             > Translator.__cache_ttl
@@ -258,7 +259,9 @@ class Translator:
             raise ValueError(f"Unknown attribute: {attribute}")
 
         model_name, id_field, name_field = model_mappings[attribute]
-        translations = Translator.__load_bidict(model_name, id_field, name_field)
+        _translations = Translator.__load_bidict(
+            model_name, id_field, name_field, ""
+        )  # TODO... which database?
 
         # Print distinct values for the attribute from the PSUT model
         # print(PSUT.objects.order_by().values_list(model_name, flat=True).distinct())

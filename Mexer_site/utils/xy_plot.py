@@ -9,6 +9,8 @@
 #       Kenny Howes - kmh67@calvin.edu
 #       Edom Maru - eam43@calvin.edu
 #####################
+from typing import cast
+
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -22,10 +24,10 @@ def get_xy(
     query: dict,
     color_by: str,
     line_by: str,
-    facet_col_by: str = None,
-    facet_row_by: str = None,
-    energy_type: str = None,
-) -> go.Figure:
+    facet_col_by: str | None = None,
+    facet_row_by: str | None = None,
+    energy_type: str | None = None,
+) -> go.Figure | None:
     """Generate a line plot based on the given efficiency metric and query parameters.
 
     Inputs:
@@ -45,7 +47,7 @@ def get_xy(
     fields_to_select = ["Year", efficiency_metric]
 
     # Map the names to the actual database field names
-    field_mapping = {"country": "Country", "energy_type": "EnergyType"}
+    field_mapping = {"country": "Country", "energy_type": "EnergyType", None: None}
 
     # Add color_by, line_by, facet_col_by, and facet_row_by fields to the selection list
     for field in {color_by, line_by, facet_col_by, facet_row_by}:
@@ -78,7 +80,7 @@ def get_xy(
         )
 
         # Set the y-axis title based on the energy type
-        if "Energy" in energy_type and "Exergy" in energy_type:
+        if energy_type and "Energy" in energy_type and "Exergy" in energy_type:
             y_title = f"EX<sub>{efficiency_metric[-1]}</sub> [TJ]"
         elif energy_type == "Exergy":
             y_title = f"X<sub>{efficiency_metric[-1]}</sub> [TJ]"
@@ -123,7 +125,7 @@ def get_xy(
 
         # Remove y-axis titles for all but the first column when using facet columns
         if facet_col_by:
-            for i in range(2, len(fig.data) + 1):
+            for i in range(2, len(cast(tuple, fig.data)) + 1):
                 fig.update_yaxes(title_text="", col=i)
 
         return fig

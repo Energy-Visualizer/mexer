@@ -82,7 +82,9 @@ def _get_node_info(name: str, node_info_by_name: dict) -> NodeInfo:
     return node_info
 
 
-def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str, int]:
+def get_sankey(
+    target: DatabaseTarget, query: dict
+) -> tuple[str, str, str, int] | tuple[None, None, None, None]:
     """Gets a sankey diagram for a query
 
     Input:

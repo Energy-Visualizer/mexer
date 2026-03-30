@@ -121,7 +121,7 @@ class SankeyTests(TransactionTestCase):
         target = ("default", PSUT)
         query = {"Year": 2020}
 
-        nodes_json, links_json, options_json, max_columns = get_sankey(target, query)
+        nodes_json, *_ = get_sankey(target, query)
 
         nodes = json.loads(nodes_json)
 
@@ -142,7 +142,7 @@ class SankeyTests(TransactionTestCase):
         target = ("default", PSUT)
         query = {"Year": 2020}
 
-        nodes_json, links_json, options_json, max_columns = get_sankey(target, query)
+        _, links_json, *_ = get_sankey(target, query)
 
         links = json.loads(links_json)
 
@@ -170,7 +170,7 @@ class SankeyTests(TransactionTestCase):
         target = ("default", PSUT)
         query = {"Year": 2020}
 
-        nodes_json, links_json, options_json, max_columns = get_sankey(target, query)
+        _, _, options_json, _ = get_sankey(target, query)
 
         options = json.loads(options_json)
 

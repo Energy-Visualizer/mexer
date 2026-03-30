@@ -13,6 +13,8 @@
 import json
 import pickle
 
+from django.urls import reverse
+
 # Maximum number of items to keep in the user's history
 # Can't be too big because too many in history
 # Will overflow the cookie size limit
@@ -81,9 +83,6 @@ def update_user_history(request, plot_type, query):
     # Serialize the updated user history
     serialized_data = pickle.dumps(user_history)
     return serialized_data
-
-
-from django.urls import reverse
 
 
 def get_history_html(user_history: list[dict]) -> str:
