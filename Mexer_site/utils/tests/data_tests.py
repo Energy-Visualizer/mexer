@@ -1,16 +1,17 @@
+from django.conf import settings
 from django.test import TransactionTestCase
+from Mexer.models import PSUT, AggEtaPFU, IEAData
+
 from utils.data import (
     _get_database_target,
     _query_database,
-    get_dataframe,
-    get_translated_dataframe,
     get_csv_from_query,
+    get_dataframe,
     get_excel_from_query,
+    get_translated_dataframe,
     shape_post_request,
     translate_query,
 )
-from Mexer.models import PSUT, AggEtaPFU, IEAData
-from django.conf import settings
 
 
 class DataTests(TransactionTestCase):
@@ -76,7 +77,7 @@ class DataTests(TransactionTestCase):
         payload = {
             "csrfmiddlewaretoken": "dummy_token",
             "dataset": "IEAEWEB2022",
-            "plot_type": "xy_plot"
+            "plot_type": "xy_plot",
         }
         shaped_query, plot_type, db_target = shape_post_request(payload)
         self.assertNotIn("csrfmiddlewaretoken", shaped_query)

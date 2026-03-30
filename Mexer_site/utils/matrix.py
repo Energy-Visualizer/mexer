@@ -1,36 +1,40 @@
 ####################################################################
 # matrix.py includes all the functions related to matrices
-# 
+#
 # The functions can get a matrix, get special Mexer matix (RUVY)
 # and turn those matricies into HTML to display
 #
 # The matricies are represented by scipy's sparse coo_matrix
-# 
+#
 # Authors:
 #       Kenny Howes - kmh67@calvin.edu
-#       Edom Maru - eam43@calvin.edu 
+#       Edom Maru - eam43@calvin.edu
 #####################
-import plotly.graph_objects as pgo
+from pickle import TUPLE
+from typing import Any
+
+import altair as alt
+import pandas as pd
+from altair.vegalite.v6.schema.core import ColorScheme_T
+from Mexer.models import Index
 from scipy.sparse import coo_matrix
-from utils.data import _query_database, DatabaseTarget
-from Mexer.models import PSUT, Index
+
+from utils.data import DatabaseTarget, _query_database
 from utils.translator import Translator
 
-######### Set up altair to enable working with large datasets for matrices
-import altair as alt
 alt.data_transformers.enable("default")
-#########
+
 
 def get_matrix(target: DatabaseTarget, query: dict) -> coo_matrix:
-    '''Collects, constructs, and returns one of the RUVY matrices
+    """Collects, constructs, and returns one of the RUVY matrices
 
     Inputs:
         a query ready to hit the database, i.e. translated as neccessary (see translate_query())
 
     Outputs:
         A scipy coo_matrix containing all the values from the specified query
-        or None if the given query related to no data 
-    '''
+        or None if the given query related to no data
+    """
 
     # Get the sparse matrix representation
     # i, j, x for row, column, value
@@ -39,7 +43,7 @@ def get_matrix(target: DatabaseTarget, query: dict) -> coo_matrix:
 
     # if nothing was returned
     if not sparse_matrix:
-        return coo_matrix([]) # empty matrix
+        return coo_matrix([])  # empty matrix
 
     # Get dimensions for a matrix (rows and columns will be the same)
     # len() would evaluate the query set, so use count() instead for better performance
@@ -56,7 +60,10 @@ def get_matrix(target: DatabaseTarget, query: dict) -> coo_matrix:
         shape=(matrix_nrow, matrix_nrow),
     )
 
-def get_ruvy_matrix(target: DatabaseTarget, query: dict) -> tuple:
+
+def get_ruvy_matrix(
+    target: DatabaseTarget, query: dict
+) -> tuple[coo_matrix | None, tuple | None]:
     sparse_matrix = _query_database(target, query, ["i", "j", "value", "matname"])
     if not sparse_matrix:
         return None, None
@@ -69,9 +76,14 @@ def get_ruvy_matrix(target: DatabaseTarget, query: dict) -> tuple:
 
     return mat, matname
 
-import altair as alt
-import pandas as pd
-def visualize_matrix(target: DatabaseTarget, mat: coo_matrix, matnames: list = None ,color_scale: str = 'inferno', coloring_method: str = 'weight') -> pgo.Figure:
+
+def visualize_matrix(
+    target: DatabaseTarget,
+    mat: coo_matrix,
+    matnames: tuple | None = None,
+    color_scale: ColorScheme_T = "inferno",
+    coloring_method: str = "weight",
+) -> alt.Chart:
     """Visualize a sparse matrix as a heatmap using Plotly.
 
     Inputs:
@@ -79,40 +91,46 @@ def visualize_matrix(target: DatabaseTarget, mat: coo_matrix, matnames: list = N
         color_scale (str, optional): The color scale to use for the heatmap. Defaults to 'viridis'.
 
     Outputs:
-        pgo.Figure: A Plotly graph object Figure containing the heatmap.
+        alt.Chart A chart containing the heatmap.
     """
- 
-    translator = Translator(target[0]) # get a translator for the correct database
- 
+
+    translator = Translator(target[0])  # get a translator for the correct database
+
     # Create a dictionary mapping index IDs to their orders.
-    index_orders = {id: order for id, order in Index.objects.values_list("IndexID", "Order")}
-    
+    index_orders = {
+        id: order for id, order in Index.objects.values_list("IndexID", "Order")
+    }
+
     # columns to be used in dataframe
     # frame_columns = {
-    df = pd.DataFrame({
-        'x': [translator.index_translate(col) for col in mat.col],
-        'y': [translator.index_translate(row) for row in mat.row],
-        'value': mat.data,
-        'x_order': [index_orders[col] for col in mat.col],
-        'y_order': [index_orders[row] for row in mat.row]
-    })
+    df = pd.DataFrame(
+        {
+            "x": [translator.index_translate(col) for col in mat.col],
+            "y": [translator.index_translate(row) for row in mat.row],
+            "value": mat.data,
+            "x_order": [index_orders[col] for col in mat.col],
+            "y_order": [index_orders[row] for row in mat.row],
+        }
+    )
 
     # Create a Plotly Heatmap object
-    if coloring_method == 'ruvy' and matnames:
-        df = df.assign(matname = [translator.matname_translate(i) for i in matnames])
-        
+    if coloring_method == "ruvy" and matnames:
+        df = df.assign(matname=[translator.matname_translate(i) for i in matnames])
+
         tooltip = [
-                alt.Tooltip('y', title='From'),
-                alt.Tooltip('x', title='To'),
-                alt.Tooltip('value'),
-                alt.Tooltip('matname')]
-        colors = 'matname:N'
+            alt.Tooltip("y", title="From"),
+            alt.Tooltip("x", title="To"),
+            alt.Tooltip("value"),
+            alt.Tooltip("matname"),
+        ]
+        colors = "matname:N"
     else:
         tooltip = [
-                alt.Tooltip('y', title='From'),
-                alt.Tooltip('x', title='To'),
-                alt.Tooltip('value')]
-        colors = 'value:Q'
+            alt.Tooltip("y", title="From"),
+            alt.Tooltip("x", title="To"),
+            alt.Tooltip("value"),
+        ]
+        colors = "value:Q"
 
     # aggregate on x and y columns
     agg_functions = {"value": "sum"}
@@ -122,17 +140,32 @@ def visualize_matrix(target: DatabaseTarget, mat: coo_matrix, matnames: list = N
     # importantly, matname column should not be clobbered
     # as there should not be unique (x,y) pairs across matricies
     # but *still needs to be listed*, or else pandas will drop it
-    agg_functions.update({col:"first" for col in df.columns if col not in agg_functions and col not in ["x", "y"]})
+    agg_functions.update(
+        {
+            col: "first"
+            for col in df.columns
+            if col not in agg_functions and col not in ["x", "y"]
+        }
+    )
 
     df = df.groupby(["x", "y"]).aggregate(agg_functions).reset_index()
 
-    heatmap = alt.Chart(df).mark_rect(stroke='blue', strokeWidth=1).encode(
-            x=alt.X('x', axis=alt.Axis(orient='top', labelAngle=-45, title=""), sort=alt.EncodingSortField(field='x_order', order='ascending')),
-            y=alt.Y('y', axis=alt.Axis(title=""), sort=alt.EncodingSortField(field='y_order', order='ascending')),
-            color=alt.Color(
-                colors, 
-                scale=alt.Scale(scheme=color_scale)
+    heatmap = (
+        alt.Chart(df)
+        .mark_rect(stroke="blue", strokeWidth=1)
+        .encode(
+            x=alt.X(
+                "x",
+                axis=alt.Axis(orient="top", labelAngle=-45, title=""),
+                sort=alt.EncodingSortField(field="x_order", order="ascending"),
             ),
-            tooltip=tooltip
+            y=alt.Y(
+                "y",
+                axis=alt.Axis(title=""),
+                sort=alt.EncodingSortField(field="y_order", order="ascending"),
+            ),
+            color=alt.Color(colors, scale=alt.Scale(scheme=color_scale)),
+            tooltip=tooltip,
         )
+    )
     return heatmap

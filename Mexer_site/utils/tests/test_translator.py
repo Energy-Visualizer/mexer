@@ -1,5 +1,7 @@
 from django.test import TestCase
+
 from utils.translator import Translator
+
 
 class TranslatorTests(TestCase):
     def test_get_all(self):
@@ -8,7 +10,7 @@ class TranslatorTests(TestCase):
 
         self.assertIn("Energy", translations)
         self.assertIn("Exergy", translations)
-    
+
     def test_translations(self):
         translator = Translator("default")
         energy_translation = translator.energytype_translate("Energy")

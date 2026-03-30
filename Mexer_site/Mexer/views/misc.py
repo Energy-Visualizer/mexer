@@ -12,10 +12,9 @@
 #       Edom Maru - eam43@calvin.edu
 #####################
 from django.conf import settings
-from django.http import HttpResponse
 from django.shortcuts import render
 from Mexer.models import Dataset, Paper, Version, matname
-from Mexer.views.error_pages import *
+from Mexer.views import error_pages
 from utils.logging import LOGGER
 from utils.misc import time_view
 
@@ -76,4 +75,4 @@ def __test_render_page(request, template_name: str):
         return render(request, template_name)
     except Exception as e:
         print(f"Error rendering template {template_name}: {e}")
-        return error_404(request, f"Template {template_name} not found.")
+        return error_pages.error_404(request, f"Template {template_name} not found.")

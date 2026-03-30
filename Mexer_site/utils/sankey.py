@@ -1,6 +1,6 @@
 ####################################################################
 # sankey.py includes all the functions related to sankey diagrams
-# 
+#
 # The main point is to get the data for rendering a sankey diagram
 # Which is achieved through get_sankey()
 #
@@ -9,27 +9,31 @@
 #
 # Authors:
 #       Kenny Howes - kmh67@calvin.edu
-#       Edom Maru - eam43@calvin.edu 
+#       Edom Maru - eam43@calvin.edu
 #####################
 import json
-from utils.translator import Translator
-from utils.data import _query_database, DatabaseTarget
-from django.conf import settings
-from utils.logging import LOGGER
 from collections import Counter
+
+from django.conf import settings
 from Mexer.models import Index
 
+from utils.data import DatabaseTarget, _query_database
+from utils.logging import LOGGER
+from utils.translator import Translator
+
 INDUSTRY_COLOR = "midnightblue"
-OVERRIDE_COL = 1 # where to put energy carrier nodes
-OVERRIDE_COL_ON = False # only affects energy carrier columns
+OVERRIDE_COL = 1  # where to put energy carrier nodes
+OVERRIDE_COL_ON = False  # only affects energy carrier columns
 
 with open(settings.SANKEY_COLORS_PATH) as f:
     SANKEY_COLORS: dict[str, str] = json.loads(f.read())
+
 
 class NodeInfo:
     def __init__(self, column: int, index: int):
         self.column = column
         self.index = index
+
 
 def _get_sankey_color(node_name: str) -> str:
     carrier_name = ""
@@ -39,7 +43,10 @@ def _get_sankey_color(node_name: str) -> str:
             carrier_name = carrier_category
             break
 
-    return SANKEY_COLORS.get(carrier_name) or (LOGGER.error("Couldn't find sankey color for " + node_name) or "") # return empty string if can't find
+    return SANKEY_COLORS.get(carrier_name) or (
+        LOGGER.error("Couldn't find sankey color for " + node_name) or ""
+    )  # return empty string if can't find
+
 
 ### shape of data to be returned
 # nodes = [
@@ -51,26 +58,32 @@ def _get_sankey_color(node_name: str) -> str:
 #     ... repeated
 # ]
 ###
-def _create_new_node(name: str, node_info_by_name: dict, indexes_by_col: Counter, sankey_orders: dict) -> NodeInfo:
-    ''' Creates a new node info for a given name '''
-    node_column = sankey_orders.get(name, -1) # -1 represents an error state
+def _create_new_node(
+    name: str, node_info_by_name: dict, indexes_by_col: Counter, sankey_orders: dict
+) -> NodeInfo:
+    """Creates a new node info for a given name"""
+    node_column = sankey_orders.get(name, -1)  # -1 represents an error state
 
-    node_info = NodeInfo(node_column, indexes_by_col[node_column]) # store column and next index in column
-    indexes_by_col[node_column] += 1 # update next index in column for next node
+    node_info = NodeInfo(
+        node_column, indexes_by_col[node_column]
+    )  # store column and next index in column
+    indexes_by_col[node_column] += 1  # update next index in column for next node
 
-    node_info_by_name[name] = node_info # save node info
+    node_info_by_name[name] = node_info  # save node info
     return node_info
 
+
 def _get_node_info(name: str, node_info_by_name: dict) -> NodeInfo:
-    ''' Gets the node info for a given name. A little redundant, but it ensures proper exceptions are thrown '''
+    """Gets the node info for a given name. A little redundant, but it ensures proper exceptions are thrown"""
     # either get the node info or throw an error
     node_info = node_info_by_name.get(name)
     if not node_info:
         raise KeyError("Node info not found for " + name)
     return node_info
 
+
 def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str, int]:
-    ''' Gets a sankey diagram for a query
+    """Gets a sankey diagram for a query
 
     Input:
 
@@ -81,21 +94,25 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str, int]
         a plotly Figure with the sankey data
 
         or None if there is no cooresponding data for the query
-    '''
+    """
 
     # we do a little shaping
     if "matname" in query.keys():
         del query["matname"]
 
-    translator = Translator(target[0]) # get a translator for the correct database
-    
+    translator = Translator(target[0])  # get a translator for the correct database
+
     # have the query get a full RUVY
-    query.update({"matname__in": [
-            translator.matname_translate("R"),
-            translator.matname_translate("U"),
-            translator.matname_translate("V"),
-            translator.matname_translate("Y")
-        ]})
+    query.update(
+        {
+            "matname__in": [
+                translator.matname_translate("R"),
+                translator.matname_translate("U"),
+                translator.matname_translate("V"),
+                translator.matname_translate("Y"),
+            ]
+        }
+    )
 
     # get all four matrices to make the full RUVY matrix
     data = _query_database(target, query, ["matname", "i", "j", "value"])
@@ -103,7 +120,12 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str, int]
     # if no cooresponding data, return as such
     # TODO: would probably be better to raise an exception
     if not data:
-        return (None, None, None, None) # TODO: change this to returning empty strings, etc.
+        return (
+            None,
+            None,
+            None,
+            None,
+        )  # TODO: change this to returning empty strings, etc.
 
     # get rid of any duplicate i,j,x combinations (many exist)
     data = set(data)
@@ -112,26 +134,34 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str, int]
     foreign_keys = set(row[1] for row in data).union(row[2] for row in data)
 
     # get needed orderings from the db
-    index_records = Index.objects.filter(IndexID__in=foreign_keys).values("Index", "SankeyColumn")
-    sankey_orders = {record["Index"]: record["SankeyColumn"] for record in index_records}
+    index_records = Index.objects.filter(IndexID__in=foreign_keys).values(
+        "Index", "SankeyColumn"
+    )
+    sankey_orders = {
+        record["Index"]: record["SankeyColumn"] for record in index_records
+    }
 
     # normalize the values of sankey_orders to remove "empty" columns
     unique_columns = set(sorted(sankey_orders.values()))
     column_mapping = {old: new for new, old in enumerate(unique_columns)}
     sankey_orders = {key: column_mapping[value] for key, value in sankey_orders.items()}
-    max_columns = max(column_mapping.values()) + 1 # get how many columns the plot will have
+    max_columns = (
+        max(column_mapping.values()) + 1
+    )  # get how many columns the plot will have
 
     # these three variables are what ultimately get json dumped
     # and sent to the javascript renderer
-    nodes = [list() for _ in range(max_columns)] # n columns for the sankey diagram, found from database values
+    nodes = [
+        list() for _ in range(max_columns)
+    ]  # n columns for the sankey diagram, found from database values
     links = list()
     options = dict(
-        plot_background_color = '#f4edf7',
-        default_links_opacity = 0.8,
-        default_gradient_links_opacity = 0.8,
-        show_column_lines = False,
-        show_column_names = False,
-        linear_gradient_links = False
+        plot_background_color="#f4edf7",
+        default_links_opacity=0.8,
+        default_gradient_links_opacity=0.8,
+        show_column_lines=False,
+        show_column_names=False,
+        linear_gradient_links=False,
     )
 
     # track node information by node name
@@ -146,7 +176,7 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str, int]
 
     for matname, i, j, magnitude in data:
         readable_matname = translator.matname_translate(matname)
-        
+
         # if R or V matrix, then the destination node must be an energy carrier, while the source node must be an industry
         # j not being the carrier inherintly means i is the carrier
         j_is_carrier = readable_matname == "R" or readable_matname == "V"
@@ -159,26 +189,48 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str, int]
             from_node_info = _get_node_info(i_name, node_info_by_name)
         except KeyError:
             # if we didn't already have it, make a new node and log it in the nodes dictionary
-            from_node_info = _create_new_node(i_name, node_info_by_name, indexes_by_column, sankey_orders)
-            nodes[from_node_info.column].append(dict(label=i_name,
-                                                     color=_get_sankey_color(i_name) or "red" if not j_is_carrier else INDUSTRY_COLOR))
-            
+            from_node_info = _create_new_node(
+                i_name, node_info_by_name, indexes_by_column, sankey_orders
+            )
+            nodes[from_node_info.column].append(
+                dict(
+                    label=i_name,
+                    color=_get_sankey_color(i_name) or "red"
+                    if not j_is_carrier
+                    else INDUSTRY_COLOR,
+                )
+            )
+
         try:
             to_node_info = _get_node_info(j_name, node_info_by_name)
         except KeyError:
-            to_node_info = _create_new_node(j_name, node_info_by_name, indexes_by_column, sankey_orders)
-            nodes[to_node_info.column].append(dict(label=j_name,
-                                                   color=_get_sankey_color(j_name) or "red" if j_is_carrier else INDUSTRY_COLOR))
-        
+            to_node_info = _create_new_node(
+                j_name, node_info_by_name, indexes_by_column, sankey_orders
+            )
+            nodes[to_node_info.column].append(
+                dict(
+                    label=j_name,
+                    color=_get_sankey_color(j_name) or "red"
+                    if j_is_carrier
+                    else INDUSTRY_COLOR,
+                )
+            )
+
         # if the column values were not filled in above
         if from_node_info.column < 0 or to_node_info.column < 0:
             raise ValueError("Unknown node name processed")
 
         # set up the flow from the two labels above
-        links.append({"from": dict(column=from_node_info.column, node = from_node_info.index),
-                      "to": dict(column=to_node_info.column, node = to_node_info.index),
-                      "value": magnitude,
-                      "color": _get_sankey_color(translator.index_translate(j if j_is_carrier else i))})
+        links.append(
+            {
+                "from": dict(column=from_node_info.column, node=from_node_info.index),
+                "to": dict(column=to_node_info.column, node=to_node_info.index),
+                "value": magnitude,
+                "color": _get_sankey_color(
+                    translator.index_translate(j if j_is_carrier else i)
+                ),
+            }
+        )
 
     # convert everything to json to send it to the javascript renderer
     return json.dumps(nodes), json.dumps(links), json.dumps(options), max_columns

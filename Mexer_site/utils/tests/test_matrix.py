@@ -1,10 +1,11 @@
-from django.test import TransactionTestCase
-from scipy.sparse import coo_matrix
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 import altair as alt
+from django.test import TransactionTestCase
+from Mexer.models import PSUT
+from scipy.sparse import coo_matrix
 
 from utils.matrix import get_matrix, get_ruvy_matrix, visualize_matrix
-from Mexer.models import PSUT
 
 
 class MatrixTests(TransactionTestCase):
@@ -56,8 +57,12 @@ class MatrixTests(TransactionTestCase):
             translator_instance.matname_translate.side_effect = lambda x: f"MAT{x}"
 
             with patch("utils.matrix.Translator", return_value=translator_instance):
-                heatmap = visualize_matrix(("default", PSUT), mat, color_scale="viridis")
+                heatmap = visualize_matrix(
+                    ("default", PSUT), mat, color_scale="viridis"
+                )
                 self.assertIsInstance(heatmap, alt.Chart)
 
-                heatmap_ruvy = visualize_matrix(("default", PSUT), mat, matnames=["A", "B"], coloring_method="ruvy")
+                heatmap_ruvy = visualize_matrix(
+                    ("default", PSUT), mat, matnames=["A", "B"], coloring_method="ruvy"
+                )
                 self.assertIsInstance(heatmap_ruvy, alt.Chart)
