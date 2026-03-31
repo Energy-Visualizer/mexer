@@ -21,15 +21,7 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from Mexer.models import AggEtaPFU, EvizUser, Version
 from plotly.offline import plot
-from utils.history import update_user_history
-from utils.logging import LOGGER
-from utils.matrix import get_matrix, get_ruvy_matrix, visualize_matrix
-from utils.misc import get_plot_title, iea_valid, time_view
-from utils.sankey import get_sankey
-from utils.translator import Translator
-from utils.xy_plot import get_xy
-
-from Mexer_site.utils.data import (
+from utils.data import (
     AGGETA_COLUMNS,
     META_COLUMNS,
     PSUT_COLUMNS,
@@ -39,6 +31,13 @@ from Mexer_site.utils.data import (
     shape_post_request,
     translate_query,
 )
+from utils.history import update_user_history
+from utils.logging import LOGGER
+from utils.matrix import get_matrix, get_ruvy_matrix, visualize_matrix
+from utils.misc import get_plot_title, iea_valid, time_view
+from utils.sankey import get_sankey
+from utils.translator import Translator
+from utils.xy_plot import get_xy
 
 
 @login_required(login_url="/login")

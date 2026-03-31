@@ -12,7 +12,6 @@
 #####################
 import altair as alt
 import pandas as pd
-from altair.vegalite.v6.schema.core import ColorScheme_T
 from Mexer.models import Index
 from scipy.sparse import coo_matrix
 
@@ -78,7 +77,7 @@ def visualize_matrix(
     target: DatabaseTarget,
     mat: coo_matrix,
     matnames: tuple | None = None,
-    color_scale: ColorScheme_T = "inferno",
+    color_scale: str = "inferno",
     coloring_method: str = "weight",
 ) -> alt.Chart:
     """Visualize a sparse matrix as a heatmap using Plotly.
