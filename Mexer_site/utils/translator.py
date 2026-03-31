@@ -5,36 +5,40 @@
 # Since the "translation" tables in the database are fairly small,
 # it's quicker to load them as dictionaries in memory and use them
 # instead of doing foreign key translation database-side.
-# 
-# Any results from the database are globally cached for 
+#
+# Any results from the database are globally cached for
 # TRANSLATOR_CACHE_TTL number of hours. All users use the same dictionaries
 # for translations, so little memory is used for this as possible.
 #
 # Authors:
 #       Kenny Howes - kmh67@calvin.edu
-#       Edom Maru - eam43@calvin.edu 
+#       Edom Maru - eam43@calvin.edu
 #####################
+from datetime import date, datetime, timedelta
+from typing import Any
+
 from bidict import bidict
 from django.apps import apps
-from utils.logging import LOGGER
-from datetime import datetime, timedelta
-from Mexer.models import Dataset
 from django.conf import settings
+from Mexer.models import Dataset
 
-# how long to cache information from the database 
+from utils.logging import LOGGER
+
+# how long to cache information from the database
 # in *hours*
 TRANSLATOR_CACHE_TTL = 24
+
 
 class Translator:
     # A dictionary where keys are model names and
     # values are tuples of date times and bidict objects
     # the date times mark when the entry was cached
     # the bidict has the translation information
-    __translations: dict[str: tuple[datetime, bidict]] = {}
+    __translations: dict[str, tuple[date, bidict[Any, Any]]] = {}
 
     # A tuple of a datetime of when this entry was cached
     # and a list of strings for all the public datasets
-    __public_datasets: tuple[datetime, list[str]] = (None, [])
+    __public_datasets: tuple[date, list[str]] | None = None
 
     # how long entries are allowed to exist before getting refreshed
     __cache_ttl = timedelta(hours=TRANSLATOR_CACHE_TTL)
@@ -43,15 +47,17 @@ class Translator:
         self._db = database
 
     @staticmethod
-    def __load_bidict(model_name: str, id_field: str, name_field: str, database: str) -> bidict:
+    def __load_bidict(
+        model_name: str, id_field: str, name_field: str, database: str
+    ) -> bidict:
         """
         Load translations for a specific model if not already loaded.
-        
+
         Args:
             model_name (str): The name of the model to load translations for.
             id_field (str): The name of the ID field in the model.
             name_field (str): The name of the field containing the human-readable name.
-        
+
         Returns:
             bidict: A bidirectional dictionary of translations for the model.
         """
@@ -59,24 +65,28 @@ class Translator:
         # check if we have the desired information
         if (database + ":" + model_name) not in Translator.__translations:
             Translator.__load_and_cache(model_name, id_field, name_field, database)
-        
+
         model_translations = Translator.__translations[database + ":" + model_name]
-        
+
         # if the data's cache ttl is expired,
         # recache and reload
         if (datetime.today().date() - model_translations[0]) > Translator.__cache_ttl:
             Translator.__load_and_cache(model_name, id_field, name_field, database)
             model_translations = Translator.__translations[database + ":" + model_name]
-        
+
         # return the bidict of model translations
         return model_translations[1]
-    
+
     @staticmethod
-    def __load_and_cache(model_name: str, id_field: str, name_field: str, database: str):
-        LOGGER.info(f"Loading and caching {database}:{model_name} for {id_field} <-> {name_field}")
+    def __load_and_cache(
+        model_name: str, id_field: str, name_field: str, database: str
+    ):
+        LOGGER.info(
+            f"Loading and caching {database}:{model_name} for {id_field} <-> {name_field}"
+        )
 
         # Get the model class dynamically
-        model = apps.get_model(app_label='Mexer', model_name=model_name)
+        model = apps.get_model(app_label="Mexer", model_name=model_name)
 
         # Create a bidict with name:id pairs
         Translator.__translations[database + ":" + model_name] = (
@@ -84,8 +94,11 @@ class Translator:
             datetime.today().date(),
             # the bidict containing all the data information
             bidict(
-                {getattr(item, name_field): getattr(item, id_field) for item in model.objects.using(database).all()}
-            )
+                {
+                    getattr(item, name_field): getattr(item, id_field)
+                    for item in model.objects.using(database).all()
+                }
+            ),
         )
 
     def _translate(self, model_name, value, id_field, name_field):
@@ -93,57 +106,57 @@ class Translator:
         # value: The value to translate (can be either an ID or a name).
         # Returns: The translated value (either ID or name, depending on input).
         translations = self.__load_bidict(model_name, id_field, name_field, self._db)
-        
+
         # try to get the translation
         if translation := translations.get(value) or translations.inverse.get(value):
             return translation
-        
+
         # if no translation found
         raise KeyError("Unrecognized key '" + str(value) + "' for " + model_name)
 
     # The following methods are specific translation functions for different models
     # They all use the _translate method with appropriate parameters
     def index_translate(self, value):
-        return self._translate('Index', value, 'IndexID', 'Index')
+        return self._translate("Index", value, "IndexID", "Index")
 
     def dataset_translate(self, value):
-        return self._translate('Dataset', value, 'DatasetID', 'Dataset')
-    
+        return self._translate("Dataset", value, "DatasetID", "Dataset")
+
     def version_translate(self, value):
-        return self._translate('Version', value, 'VersionID', 'Version')
+        return self._translate("Version", value, "VersionID", "Version")
 
     def country_translate(self, value):
-        return self._translate('Country', value, 'CountryID', 'FullName')
+        return self._translate("Country", value, "CountryID", "FullName")
 
     def method_translate(self, value):
-        return self._translate('Method', value, 'MethodID', 'Method')
+        return self._translate("Method", value, "MethodID", "Method")
 
     def energytype_translate(self, value):
-        return self._translate('EnergyType', value, 'EnergyTypeID', 'FullName')
+        return self._translate("EnergyType", value, "EnergyTypeID", "FullName")
 
     def laststage_translate(self, value):
-        return self._translate('LastStage', value, 'ECCStageID', 'ECCStage')
+        return self._translate("LastStage", value, "ECCStageID", "ECCStage")
 
     def matname_translate(self, value):
-        return self._translate('matname', value, 'matnameID', 'matname')
-    
+        return self._translate("matname", value, "matnameID", "matname")
+
     def grossnet_translate(self, value):
-        return self._translate('GrossNet', value, 'GrossNetID', 'GrossNet')
+        return self._translate("GrossNet", value, "GrossNetID", "GrossNet")
 
     def agglevel_translate(self, value):
-        return self._translate('AggLevel', value, 'AggLevelID', 'AggLevel')
+        return self._translate("AggLevel", value, "AggLevelID", "AggLevel")
 
     def includesNEU_translate(self, value):
         return int(value) if isinstance(value, bool) else int(bool(value))
 
     @staticmethod
-    def get_all(attribute, database = "default"):
+    def get_all(attribute, database="default"):
         """
         Get all possible values for a given attribute.
-        
+
         Inputs:
             attribute (str): The name of the attribute to get values for.
-        
+
         Outputs:
             list: A list of all possible values (names) for the attribute.
         """
@@ -153,53 +166,66 @@ class Translator:
             return Translator.__fetch_public_datasets()
         if attribute == "datasets:admin":
             return Translator.__fetch_admin_datasets()
-        
+
         # Dictionary mapping attribute names to model details
         model_mappings = {
-            'dataset': ('Dataset', 'DatasetID', 'Dataset'),
-            'version': ('Version', 'VersionID', 'Version'),
-            'country': ('Country', 'CountryID', 'FullName'),
-            'method': ('Method', 'MethodID', 'Method'),
-            'energytype': ('EnergyType', 'EnergyTypeID', 'FullName'),
-            'laststage': ('LastStage', 'ECCStageID', 'ECCStage'),
-            'matname': ('matname', 'matnameID', 'matname'),
-            'agglevel': ('AggLevel', 'AggLevelID', 'AggLevel'),
-            'grossnet': ('GrossNet', 'GrossNetID', 'GrossNet'),
+            "dataset": ("Dataset", "DatasetID", "Dataset"),
+            "version": ("Version", "VersionID", "Version"),
+            "country": ("Country", "CountryID", "FullName"),
+            "method": ("Method", "MethodID", "Method"),
+            "energytype": ("EnergyType", "EnergyTypeID", "FullName"),
+            "laststage": ("LastStage", "ECCStageID", "ECCStage"),
+            "matname": ("matname", "matnameID", "matname"),
+            "agglevel": ("AggLevel", "AggLevelID", "AggLevel"),
+            "grossnet": ("GrossNet", "GrossNetID", "GrossNet"),
         }
-        
+
         if attribute not in model_mappings:
             raise ValueError(f"Unknown attribute: {attribute}")
-        
+
         # Get model details and load translations
         model_name, id_field, name_field = model_mappings[attribute]
-        translations = Translator.__load_bidict(model_name, id_field, name_field, database)
+        translations = Translator.__load_bidict(
+            model_name, id_field, name_field, database
+        )
         return list(translations.keys())
-    
+
     @staticmethod
     def __fetch_public_datasets():
         if (
             # the list is empty and needs to be filled
-            len(Translator.__public_datasets[1]) == 0
+            Translator.__public_datasets is None
             # the entry needs to be recached
-            or (datetime.today().date() - Translator.__public_datasets[0]) > Translator.__cache_ttl
+            or (datetime.today().date() - Translator.__public_datasets[0])
+            > Translator.__cache_ttl
         ):
             # reload and recache
             Translator.__public_datasets = (
                 datetime.today().date(),
-                list(Dataset.objects.filter(Public = True).values_list("Dataset", flat = True))
+                list(
+                    Dataset.objects.filter(Public=True).values_list(
+                        "Dataset", flat=True
+                    )
+                ),
             )
 
         return Translator.__public_datasets[1]
-    
+
     @staticmethod
     def __fetch_admin_datasets():
         # get all datasets from both MexerDB and SandboxDB
-        mexerdb_datasets = Translator.__load_bidict("Dataset", 'DatasetID', 'Dataset', "default")
-        sandboxdb_datasets = Translator.__load_bidict("Dataset", 'DatasetID', 'Dataset', "sandbox")
+        mexerdb_datasets = Translator.__load_bidict(
+            "Dataset", "DatasetID", "Dataset", "default"
+        )
+        sandboxdb_datasets = Translator.__load_bidict(
+            "Dataset", "DatasetID", "Dataset", "sandbox"
+        )
 
         # combine them and add the sandbox prefix
         # onto the sandbox datasets to differentitate
-        return list(mexerdb_datasets.keys()) + [settings.SANDBOX_PREFIX + ds for ds in sandboxdb_datasets.keys()]
+        return list(mexerdb_datasets.keys()) + [
+            settings.SANDBOX_PREFIX + ds for ds in sandboxdb_datasets.keys()
+        ]
 
     @staticmethod
     def get_includesNEUs():
@@ -209,31 +235,33 @@ class Translator:
     @staticmethod
     def get_all_available(attribute):
         """Get all available values for a given attribute from the PSUT model.
-        
+
         Inputs:
             attribute (str): The name of the attribute to get values for.
-        
+
         Outputs:
             A list of distinct values for the attribute from the PSUT model.
         """
         # Dictionary mapping attribute names to model details
         model_mappings = {
-            'dataset': ('Dataset', 'DatasetID', 'Dataset'),
-            'version': ('Version', 'VersionID', 'Version'),
-            'country': ('Country', 'CountryID', 'FullName'),
-            'method': ('Method', 'MethodID', 'Method'),
-            'energytype': ('EnergyType', 'EnergyTypeID', 'FullName'),
-            'laststage': ('LastStage', 'ECCStageID', 'ECCStage'),
-            'matname': ('matname', 'matnameID', 'matname'),
-            'agglevel': ('AggLevel', 'AggLevelID', 'AggLevel'),
-            'grossnet': ('GrossNet', 'GrossNetID', 'GrossNet'),
+            "dataset": ("Dataset", "DatasetID", "Dataset"),
+            "version": ("Version", "VersionID", "Version"),
+            "country": ("Country", "CountryID", "FullName"),
+            "method": ("Method", "MethodID", "Method"),
+            "energytype": ("EnergyType", "EnergyTypeID", "FullName"),
+            "laststage": ("LastStage", "ECCStageID", "ECCStage"),
+            "matname": ("matname", "matnameID", "matname"),
+            "agglevel": ("AggLevel", "AggLevelID", "AggLevel"),
+            "grossnet": ("GrossNet", "GrossNetID", "GrossNet"),
         }
-        
+
         if attribute not in model_mappings:
             raise ValueError(f"Unknown attribute: {attribute}")
-        
+
         model_name, id_field, name_field = model_mappings[attribute]
-        translations = Translator.__load_bidict(model_name, id_field, name_field)
+        _translations = Translator.__load_bidict(
+            model_name, id_field, name_field, ""
+        )  # TODO... which database?
 
         # Print distinct values for the attribute from the PSUT model
         # print(PSUT.objects.order_by().values_list(model_name, flat=True).distinct())

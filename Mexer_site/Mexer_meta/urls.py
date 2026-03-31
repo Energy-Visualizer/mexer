@@ -14,10 +14,10 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import path, include
-from django.conf.urls import handler404, handler500, handler403, handler400
+
 import Mexer.views.error_pages as error_pages
+from django.contrib import admin
+from django.urls import include, path
 
 handler400 = error_pages.error_400
 handler403 = error_pages.error_403
@@ -30,7 +30,7 @@ admin.site.site_title = "Mexer Admin Portal"
 admin.site.index_title = "Mexer Admin"
 
 urlpatterns = [
-    path('', include("Mexer.urls")),
-    path('admin/', admin.site.urls),
-    path('captcha/', include("captcha.urls")),
+    path("", include("Mexer.urls")),
+    path("admin/", admin.site.urls),
+    path("captcha/", include("captcha.urls")),
 ]

@@ -1,6 +1,6 @@
 ####################################################################
 # data.py includes all functions related to getting data from the databases
-# 
+#
 # The general flow of getting data from a query is
 #   shape_post_request(raw post request) -> cleaned_query
 #   translate_query(cleaned_query) -> translated_query
@@ -9,7 +9,7 @@
 #   OR get_translated_dataframe(translated_query)
 #   OR get_xy(translated_query)
 #   ETC.
-# 
+#
 # One of the main parts abstracted by that flow is
 # the database target. A database target is the combination
 # of the database name and which model on the database for
@@ -22,23 +22,27 @@
 #
 # Authors:
 #       Kenny Howes - kmh67@calvin.edu
-#       Edom Maru - eam43@calvin.edu 
+#       Edom Maru - eam43@calvin.edu
 #####################
 import io
-from typing import Mapping
-from Mexer.models import models, PSUT, IEAData, AggEtaPFU
+from typing import Any, Mapping
+
 import pandas as pd
+import pandas.io.sql as pd_sql  # for getting data into a pandas dataframe
+from django.conf import settings
+from django.db import connections
+from Mexer.models import PSUT, AggEtaPFU, IEAData, models
+
 from utils.logging import LOGGER
 from utils.misc import Silent
-import pandas.io.sql as pd_sql  # for getting data into a pandas dataframe
-from django.db import connections
 from utils.translator import Translator
-from django.conf import settings
 
-DatabaseTarget = tuple[str, models.Model]
+DatabaseTarget = tuple[str, type[models.Model]]
+
 
 def _get_database_target(query: dict) -> DatabaseTarget:
-    dataset: str = query.get("dataset")
+    dataset: str | None = query.get("dataset")
+    table_name = None
     if dataset:
         table_name = dataset.removeprefix(settings.SANDBOX_PREFIX)
 
@@ -47,8 +51,11 @@ def _get_database_target(query: dict) -> DatabaseTarget:
         model = AggEtaPFU
     else:
         model = IEAData if table_name == "IEAEWEB2022" else PSUT
-    
-    return "sandbox" if dataset.startswith(settings.SANDBOX_PREFIX) else "default", model
+
+    return "sandbox" if dataset and dataset.startswith(
+        settings.SANDBOX_PREFIX
+    ) else "default", model
+
 
 def _query_database(target: DatabaseTarget, query: dict, values: list[str]):
     db = target[0]
@@ -57,81 +64,104 @@ def _query_database(target: DatabaseTarget, query: dict, values: list[str]):
     if not _valid_database(db):
         raise ValueError("Unknown database specified for query")
 
-    data = (
-        model.objects
-        .using(db)
-        .values_list(*values)
-        .filter(**query)
-    )
+    data = model.objects.using(db).values_list(*values).filter(**query)
 
     LOGGER.debug(f"Query is {query}")
 
     return data
 
+
 def _valid_database(database_name: str):
     return database_name in settings.DATABASES.keys()
 
+
 def get_dataframe(target: DatabaseTarget, query: dict, columns: list) -> pd.DataFrame:
     if not _valid_database(target[0]):
-        return pd.DataFrame() # empty data frame if database is wrong
-    
+        return pd.DataFrame()  # empty data frame if database is wrong
+
     # get the data from database
     db_query = target[1].objects.filter(**query).values(*columns).query
     with Silent():
         df = pd_sql.read_sql_query(
             str(db_query),
-            con=connections[target[0]].cursor().connection # get the connection associated with the requested database
+            con=connections[target[0]]
+            .cursor()
+            .connection,  # get the connection associated with the requested database
         )
 
     return df
 
-META_COLUMNS = ["Dataset", "ValidFromVersion", "ValidToVersion", "Country", "Method", "EnergyType", "LastStage", "IncludesNEU", "Year", "ChoppedMat", "ChoppedVar", "ProductAggregation", "IndustryAggregation"]
+
+META_COLUMNS = [
+    "Dataset",
+    "ValidFromVersion",
+    "ValidToVersion",
+    "Country",
+    "Method",
+    "EnergyType",
+    "LastStage",
+    "IncludesNEU",
+    "Year",
+    "ChoppedMat",
+    "ChoppedVar",
+    "ProductAggregation",
+    "IndustryAggregation",
+]
 PSUT_COLUMNS = ["matname", "i", "j", "value"]
 AGGETA_COLUMNS = ["GrossNet", "EXp", "EXf", "EXu", "etapf", "etafu", "etapu"]
-def get_translated_dataframe(target: DatabaseTarget, query: dict, columns: list) -> pd.DataFrame:
+
+
+def get_translated_dataframe(
+    target: DatabaseTarget, query: dict, columns: list
+) -> pd.DataFrame:
     df = get_dataframe(target, query, columns)
 
     # no need to do work if dataframe is empty (no data was found for the query)
-    if df.empty: return df
+    if df.empty:
+        return df
 
-    translator = Translator(target[0]) # get a translator for the correct database
-    
+    translator = Translator(target[0])  # get a translator for the correct database
+
     # Translate the DataFrame's column names
     translate_columns = {
-        'Dataset': translator.dataset_translate,
-        'ValidFromVersion': translator.version_translate,
-        'ValidToVersion': translator.version_translate,
-        'Country': translator.country_translate,
-        'Method': translator.method_translate,
-        'EnergyType': translator.energytype_translate,
-        'LastStage': translator.laststage_translate,
-        'ChoppedMat': translator.matname_translate,
-        'ChoppedVar': translator.index_translate,
-        'ProductAggregation': translator.agglevel_translate,
-        'IndustryAggregation': translator.agglevel_translate,
-        'matname': translator.matname_translate,
-        'grossnet': translator.grossnet_translate,
-        'i': translator.index_translate,
-        'j': translator.index_translate
+        "Dataset": translator.dataset_translate,
+        "ValidFromVersion": translator.version_translate,
+        "ValidToVersion": translator.version_translate,
+        "Country": translator.country_translate,
+        "Method": translator.method_translate,
+        "EnergyType": translator.energytype_translate,
+        "LastStage": translator.laststage_translate,
+        "ChoppedMat": translator.matname_translate,
+        "ChoppedVar": translator.index_translate,
+        "ProductAggregation": translator.agglevel_translate,
+        "IndustryAggregation": translator.agglevel_translate,
+        "matname": translator.matname_translate,
+        "grossnet": translator.grossnet_translate,
+        "i": translator.index_translate,
+        "j": translator.index_translate,
     }
 
     # Apply the translation functions to each column if it exists in the DataFrame
     for col, translate_func in translate_columns.items():
         if col in df.columns:
             df[col] = df[col].apply(translate_func)
-    
+
     # Handle IncludesNEU separately as it's a boolean
-    if 'IncludesNEU' in df.columns:
-        df['IncludesNEU'] = df['IncludesNEU'].apply(lambda x: 'Yes' if x else 'No')
-    
+    if "IncludesNEU" in df.columns:
+        df["IncludesNEU"] = df["IncludesNEU"].apply(lambda x: "Yes" if x else "No")
+
     return df
+
 
 def get_csv_from_query(target: DatabaseTarget, query: dict, columns: list) -> str:
 
     # index false to not have column of row numbers
     return get_translated_dataframe(target, query, columns).to_csv(index=False)
 
-def get_excel_from_query(target: DatabaseTarget, query: dict, columns = PSUT_COLUMNS) -> bytes:
+
+def get_excel_from_query(
+    target: DatabaseTarget, query: dict, columns=PSUT_COLUMNS
+) -> bytes:
 
     # index false to not have column of row numbers
     buffer = io.BytesIO()
@@ -139,12 +169,15 @@ def get_excel_from_query(target: DatabaseTarget, query: dict, columns = PSUT_COL
         get_translated_dataframe(target, query, columns).to_excel(writer, index=False)
     return buffer.getvalue()
 
-def shape_post_request(payload: Mapping) -> tuple[dict, str | None, DatabaseTarget]:
-    '''Turn a POST request payload into a ready to use query in a dictionary
+
+def shape_post_request(
+    payload: Mapping,
+) -> tuple[dict[str, Any], str | None, DatabaseTarget]:
+    """Turn a POST request payload into a ready to use query in a dictionary
 
     Input:
 
-        payload, some dict-like (used with Django HttpRequest POST attributes): 
+        payload, some dict-like (used with Django HttpRequest POST attributes):
         the POST payload to shape into a query dictionary
 
         get_plot_type, bool: whether or not to get and give the plot type in the payload
@@ -160,7 +193,7 @@ def shape_post_request(payload: Mapping) -> tuple[dict, str | None, DatabaseTarg
                 a string telling the plot type requested
 
                 a dictionary containing all the associations of a query parts and their values
-    '''
+    """
 
     shaped_query = dict(payload)
 
@@ -171,19 +204,17 @@ def shape_post_request(payload: Mapping) -> tuple[dict, str | None, DatabaseTarg
         # convert from list (if just one item in list)
         if len(v) == 1:
             shaped_query[k] = v[0]
-    
+
     plot_type = shaped_query.get("plot_type")
 
     db_target = _get_database_target(shaped_query)
 
     return shaped_query, plot_type, db_target
 
+
 # TODO: rewrite this to use a for loop instead
-def translate_query(
-    target: DatabaseTarget,
-    query: dict
-) -> dict:
-    '''Turn a query of human readable values from a form into a query read to hit the dataset
+def translate_query(target: DatabaseTarget, query: dict) -> dict:
+    """Turn a query of human readable values from a form into a query read to hit the dataset
 
     Input:
 
@@ -192,14 +223,14 @@ def translate_query(
     Output:
 
         a dictionary of a query ready to hit the database
-    '''
+    """
 
     translated_query = dict()  # set up to build and return at the end
 
     if not _valid_database(target[0]):
         raise ValueError("Unknown database specified for translating query")
-    
-    translator = Translator(target[0]) # get a translator for the correct database
+
+    translator = Translator(target[0])  # get a translator for the correct database
 
     # get rid of sandbox prefix on the query parameter
     # or else it won't be recognized for translation
@@ -221,26 +252,30 @@ def translate_query(
     if v := query.get("country"):
         if isinstance(v, list):
             translated_query["Country__in"] = [
-                translator.country_translate(country) for country in v]
+                translator.country_translate(country) for country in v
+            ]
         else:
             translated_query["Country"] = translator.country_translate(v)
     if v := query.get("method"):
         if isinstance(v, list):
             translated_query["Method__in"] = [
-                translator.method_translate(method) for method in v]
+                translator.method_translate(method) for method in v
+            ]
         else:
             translated_query["Method"] = translator.method_translate(v)
     if v := query.get("energy_type"):
         if isinstance(v, list):
             translated_query["EnergyType__in"] = [
-                translator.energytype_translate(energy_type) for energy_type in v]
+                translator.energytype_translate(energy_type) for energy_type in v
+            ]
         else:
             translated_query["EnergyType"] = translator.energytype_translate(v)
     if v := query.get("last_stage"):
         translated_query["LastStage"] = translator.laststage_translate(v)
     # includes neu either is in the query or not, it's value does need to be more than empty string, though
     translated_query["IncludesNEU"] = translator.includesNEU_translate(
-        bool(query.get("including_neu")))
+        bool(query.get("including_neu"))
+    )
     if v := query.get("chopped_mat"):
         translated_query["ChoppedMat"] = translator.matname_translate(v)
     if v := query.get("chopped_var"):
@@ -267,7 +302,7 @@ def translate_query(
                 translator.matname_translate("R"),
                 translator.matname_translate("U"),
                 translator.matname_translate("V"),
-                translator.matname_translate("Y")
+                translator.matname_translate("Y"),
             ]
         else:
             translated_query["matname"] = translator.matname_translate(v)

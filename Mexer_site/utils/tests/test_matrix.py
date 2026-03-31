@@ -1,10 +1,11 @@
-from django.test import TransactionTestCase
-from scipy.sparse import coo_matrix
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 import altair as alt
+from django.test import TransactionTestCase
+from Mexer.models import PSUT
+from scipy.sparse import coo_matrix
 
 from utils.matrix import get_matrix, get_ruvy_matrix, visualize_matrix
-from Mexer.models import PSUT
 
 
 class MatrixTests(TransactionTestCase):
@@ -36,9 +37,10 @@ class MatrixTests(TransactionTestCase):
                 MockIndex.objects.all.return_value.count.return_value = 3
 
                 mat, names = get_ruvy_matrix(("default", PSUT), {"Year": 2020})
+                assert mat is not None
 
                 # names should be the tuple of matname values
-                self.assertEqual(tuple(names), ("A", "B"))
+                self.assertEqual(names, ("A", "B"))
                 self.assertEqual(mat.shape, (3, 3))
                 arr = mat.toarray()
                 self.assertEqual(arr[0, 1], 2.5)
@@ -56,8 +58,12 @@ class MatrixTests(TransactionTestCase):
             translator_instance.matname_translate.side_effect = lambda x: f"MAT{x}"
 
             with patch("utils.matrix.Translator", return_value=translator_instance):
-                heatmap = visualize_matrix(("default", PSUT), mat, color_scale="viridis")
+                heatmap = visualize_matrix(
+                    ("default", PSUT), mat, color_scale="viridis"
+                )
                 self.assertIsInstance(heatmap, alt.Chart)
 
-                heatmap_ruvy = visualize_matrix(("default", PSUT), mat, matnames=["A", "B"], coloring_method="ruvy")
+                heatmap_ruvy = visualize_matrix(
+                    ("default", PSUT), mat, matnames=("A", "B"), coloring_method="ruvy"
+                )
                 self.assertIsInstance(heatmap_ruvy, alt.Chart)

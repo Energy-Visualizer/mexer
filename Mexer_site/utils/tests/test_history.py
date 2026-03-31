@@ -1,14 +1,15 @@
-import pickle
 import json
-from django.test import TransactionTestCase
-from django.http import HttpRequest
+import pickle
 from unittest.mock import patch
 
+from django.http import HttpRequest
+from django.test import TransactionTestCase
+
 from utils.history import (
+    MAX_HISTORY,
+    get_history_html,
     get_user_history,
     update_user_history,
-    get_history_html,
-    MAX_HISTORY,
 )
 
 
@@ -26,7 +27,9 @@ class HistoryTests(TransactionTestCase):
 
     def test_update_user_history_empty(self):
         req = HttpRequest()
-        serialized = update_user_history(req, "xy_plot", {"dataset": "D", "country": "C"})
+        serialized = update_user_history(
+            req, "xy_plot", {"dataset": "D", "country": "C"}
+        )
         history = pickle.loads(serialized)
         self.assertEqual(len(history), 1)
         self.assertEqual(history[0]["plot_type"], "xy_plot")
@@ -44,7 +47,11 @@ class HistoryTests(TransactionTestCase):
 
         # Duplicate the middle item (bar) by sending same plot_type + fields
         duplicate = initial[1]
-        serialized = update_user_history(req, duplicate["plot_type"], {"dataset": duplicate["dataset"], "country": duplicate["country"]})
+        serialized = update_user_history(
+            req,
+            duplicate["plot_type"],
+            {"dataset": duplicate["dataset"], "country": duplicate["country"]},
+        )
         updated = pickle.loads(serialized)
 
         # The duplicated item should now be first and present only once
@@ -56,7 +63,8 @@ class HistoryTests(TransactionTestCase):
 
     def test_update_user_history_trims_when_exceeding_max(self):
         initial = [
-            {"plot_type": f"p{i}", "dataset": f"D{i}", "country": "C"} for i in range(MAX_HISTORY)
+            {"plot_type": f"p{i}", "dataset": f"D{i}", "country": "C"}
+            for i in range(MAX_HISTORY)
         ]
         req = HttpRequest()
         req.COOKIES["user_history"] = pickle.dumps(initial).hex()
