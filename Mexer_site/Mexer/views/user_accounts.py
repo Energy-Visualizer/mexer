@@ -11,8 +11,10 @@
 #       Kenny Howes - kmh67@calvin.edu
 #       Edom Maru - eam43@calvin.edu
 #####################
+import os
 from typing import cast
 
+import mailtrap as mt
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.core.mail import EmailMultiAlternatives  # for email verification
@@ -23,6 +25,8 @@ from Mexer.models import EmailAuthCode, EvizUser, Paper, PassResetCode
 from Mexer.views import error_pages
 from utils.logging import LOGGER
 from utils.misc import new_email_code, new_reset_code
+
+MAILTRAP_API_TOKEN = os.environ["email_password"]
 
 
 def user_signup(request):
@@ -61,24 +65,29 @@ def user_signup(request):
                 f"{form.cleaned_data['username']} signed up for account w/ email {new_user_email}."
             )
 
-            # handle the email construction and sending
             code = new_email_code(account_info=form)
             url = f"https://mexer.site/verify?code={code}"
-            msg = EmailMultiAlternatives(
-                subject="New Mexer Account",
-                body=f"Please visit the following link to verify your account:\n{url}",
-                from_email="signup@mexer.site",
-                to=[new_user_email],
+            text_body = (
+                f"Please visit the following link to verify your account:\n{url}"
             )
-            # HTML message
-            msg.attach_alternative(
-                content=f"<p>Please <a href='{url}'>click here</a> to verify your new Mexer account!</p>",
-                mimetype="text/html",
-            )
+            html_body = f"<p>Please <a href='{url}'>click here</a> to verify your new Mexer account!</p>"
 
-            # send the email and make sure it was successful
-            # 0 is failure
-            if msg.send() == 0:
+            client = mt.MailtrapClient(token=MAILTRAP_API_TOKEN)
+            mail = mt.Mail(
+                sender=mt.Address(email="signup@mexer.site", name="Mexer noreply"),
+                to=[mt.Address(email=new_user_email)],
+                subject="Verify your Mexer account",
+                text=text_body,
+                html=html_body,
+            )
+            send_result = client.send(mail)
+            send_success = "success" in send_result and send_result["success"]
+
+            if send_success:
+                LOGGER.info(f"Signup email sent to {new_user_email}.")
+                # send the user to a page explaining what to do next (check email)
+                return render(request, "verify_explain.html")
+            else:
                 LOGGER.error(f"Couldn't send signup email to {new_user_email}")
                 messages.add_message(
                     request,
@@ -86,11 +95,7 @@ def user_signup(request):
                     "Couldn't send verification email. Please try again later.",
                 )
                 return redirect("signup")
-            else:
-                LOGGER.info(f"Signup email sent to {new_user_email}.")
 
-            # send the user to a page explaining what to do next (check email)
-            return render(request, "verify_explain.html")
     else:
         # If it's a GET request, create an empty form
         form = SignupForm()

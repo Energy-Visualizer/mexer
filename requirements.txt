@@ -15,7 +15,7 @@ plotly==5.24.1
 # Data manipulation and analysis library
 # Used for handling and processing data efficiently (used in various parts including panda dataframes)
 pandas>=2.2.2
-    
+
 # Bidirectional dictionary implementation
 # Useful for creating two-way mappings between keys and values (used for translating queries)
 bidict>=0.1.5
@@ -27,6 +27,9 @@ altair>=5.3.0
 # CAPTCHA library
 # For security on email sending pages
 django-simple-captcha>=0.6.1
+
+# Mail server SDK
+mailtrap>=2.5.0
 
 openpyxl>=3.1.2
 
