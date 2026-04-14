@@ -44,8 +44,20 @@ services:
     command: ["python3", "manage.py", "debug", "0.0.0.0:8000"]
     post_start:
       - command: ["python3", "manage.py", "migrate"]
-      - command: ["python3", "manage.py", "load_test_data", "--dir", "/app/postgres/seeds"]
-      - command: ["sh", "-c", "python3 manage.py createsuperuser --noinput --username \"$DJANGO_SUPERUSER_USERNAME\" --email \"$DJANGO_SUPERUSER_EMAIL\" || true"]
+      - command:
+          [
+            "python3",
+            "manage.py",
+            "load_test_data",
+            "--dir",
+            "/app/postgres/seeds",
+          ]
+      - command:
+          [
+            "sh",
+            "-c",
+            'python3 manage.py createsuperuser --noinput --username "$DJANGO_SUPERUSER_USERNAME" --email "$DJANGO_SUPERUSER_EMAIL" || true',
+          ]
 
   production:
     profiles: [production]
@@ -60,6 +72,7 @@ services:
       PGSERVICEFILE: /app/.pg_service.conf
       PGPASSFILE: /app/.pgpass
       local: "false"
+      PYTHONUNBUFFERED: "1"
     ports:
       - "8000:8000"
     volumes:
