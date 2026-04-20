@@ -25,7 +25,7 @@ def index(request):
 
     LOGGER.info("Home page visted.")
 
-    related_papers = Paper.objects.all().order_by("Year")
+    related_papers = Paper.objects.all().order_by("-Year")
     return render(request, "index.html", context={"related_papers": related_papers})
 
 

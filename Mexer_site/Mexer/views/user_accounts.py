@@ -51,7 +51,7 @@ def user_signup(request):
         if form.is_valid():
             # Check honeypot and simply stop early if tripped
             if form.cleaned_data.get("honeypot-tripped"):
-                related_papers = Paper.objects.all().order_by("Year")
+                related_papers = Paper.objects.all().order_by("-Year")
                 return render(
                     request, "index.html", context={"related_papers": related_papers}
                 )
