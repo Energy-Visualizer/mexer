@@ -206,8 +206,8 @@ class AggEtaPFU(models.Model):
         managed = False
 
     Dataset = models.PositiveSmallIntegerField(primary_key=True)
-    ValidFromVersion = models.PositiveSmallIntegerField()
-    ValidToVersion = models.PositiveSmallIntegerField()
+    ValidFromVersion = models.PositiveIntegerField()
+    ValidToVersion = models.PositiveIntegerField()
     Country = models.PositiveSmallIntegerField()
     Method = models.PositiveSmallIntegerField()
     EnergyType = models.PositiveSmallIntegerField()

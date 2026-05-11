@@ -16,7 +16,7 @@ from typing import Any  # for timestamp in data file name
 from altair.utils.data import MaxRowsError  # for catching with matrices are too big
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from Mexer.models import AggEtaPFU, EvizUser, Version
@@ -26,6 +26,7 @@ from utils.data import (
     META_COLUMNS,
     PSUT_COLUMNS,
     DatabaseTarget,
+    ShapedQuery,
     get_csv_from_query,
     get_excel_from_query,
     shape_post_request,
@@ -126,7 +127,7 @@ def visualizer(request):
     return render(request, "visualizer.html", context)
 
 
-def generate_sankey_html(target: DatabaseTarget, query: dict) -> str:
+def generate_sankey_html(target: DatabaseTarget, query: ShapedQuery) -> str:
     translated_query = translate_query(target, query)
     nodes, links, options, num_columns = get_sankey(target, translated_query)
 
@@ -136,7 +137,7 @@ def generate_sankey_html(target: DatabaseTarget, query: dict) -> str:
                     <button onclick='downloadSankey()' class='absolute top-2 right-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'>Download Sankey</button>"
 
 
-def generate_xy_html(target: DatabaseTarget, query: dict[str, Any]) -> str:
+def generate_xy_html(target: DatabaseTarget, query: ShapedQuery) -> str:
     # Extract specific parameters for xy_plot
     efficiency_metric = str(query.get("efficiency"))
     color_by = str(query.get("color_by"))
@@ -177,13 +178,13 @@ def generate_xy_html(target: DatabaseTarget, query: dict[str, Any]) -> str:
     )
 
 
-def generate_matrix_html(target: DatabaseTarget, query: dict) -> str:
+def generate_matrix_html(target: DatabaseTarget, query: ShapedQuery) -> str:
     # Extract specific parameters for matrices
     matrix_name = str(query.get("matname"))
-    color_scale = query.get("color_scale", "inferno")
+    color_scale = str(query.get("color_scale", "inferno"))
 
     # Retrieve the matrix
-    coloring_method = query.get("coloring_method", "weight")
+    coloring_method = str(query.get("coloring_method", "weight"))
     translated_query = translate_query(target, query)
 
     matname = None
@@ -211,7 +212,7 @@ def generate_matrix_html(target: DatabaseTarget, query: dict) -> str:
 
 @csrf_exempt  # TODO: why is this exempt?
 @time_view
-def get_plot(request):
+def get_plot(request: HttpRequest):
     """Generate and return a plot based on the POST request data.
 
     This function handles different types of plot types (sankey, xy_plots, matrices) and manages
@@ -228,76 +229,72 @@ def get_plot(request):
     # mark them as anonymous in the logs
     LOGGER.info(f"Plot requested by {request.user.get_username() or 'anonymous user'}")
 
-    if request.method == "POST":
-        # Extract plot type and query parameters from the POST request
-        query, plot_type, target = shape_post_request(request.POST)
+    if request.method != "POST":
+        return HttpResponse(status=405)
 
-        try:
-            if query["dataset"].startswith(settings.SANDBOX_PREFIX) != query[
-                "version"
-            ].startswith(settings.SANDBOX_PREFIX):
-                return HttpResponse(
-                    b"Error: Dataset and version must both be from sandbox or both not be from sandbox!"
-                )
-        except Exception:
-            pass
+    query, plot_type, target = shape_post_request(request.POST)
 
-        # get boolean of if the plot should be
-        # in a separate window
-        separate_window = query.get("separate_window") == "on"
-
-        # Check if the user has access to IEA data
-        # TODO: make this work with status = 403, problem is HTMX won't show anything
-        if not iea_valid(request.user, query):
-            LOGGER.warning(
-                f"IEA data requested by unauthorized user {request.user.get_username() or 'anonymous user'}"
-            )
+    try:
+        dataset = str(query["dataset"])
+        version = str(query["version"])
+        is_dataset_sandbox = dataset.startswith(settings.SANDBOX_PREFIX)
+        is_version_sandbox = version.startswith(settings.SANDBOX_PREFIX)
+        if is_dataset_sandbox ^ is_version_sandbox:
             return HttpResponse(
-                b"You do not have access to IEA data. Please contact <a style='color: #00adb5' :visited='{color: #87CEEB}' href='mailto:matthew.heun@calvin.edu'>matthew.heun@calvin.edu</a> with questions."
-                b"You can also purchase WEB data at <a style='color: #00adb5':visited='{color: #87CEEB}' href='https://www.iea.org/data-and-statistics/data-product/world-energy-balances'> World Energy Balances</a>."
+                b"Error: Dataset and version must both be from sandbox or both not be from sandbox!"
             )
+    except Exception:
+        pass
 
-        plot_div: str  # where to store what html will be sent to the user
+    separate_window = query.get("separate_window") == "on"
 
-        # Use match-case to handle different plot types
-        match plot_type:
-            case "sankey":
-                plot_div = generate_sankey_html(target, query)
-
-            case "xy_plot":
-                plot_div = generate_xy_html(target, query)
-
-            case "matrices":
-                plot_div = generate_matrix_html(target, query)
-
-            case _:  # default
-                plot_div = "Error: Plot type not specified or supported"
-                LOGGER.warning("Unrecognized plot type requested")
-
-        # stop early if an error occured, and send error message to client
-        if plot_div.startswith("Error"):
-            return HttpResponse(plot_div.encode())
-
-        # Add functions to call on the client side
-        plot_div = plot_div + "<script>refreshHistory();</script>"
-        if separate_window:
-            plot_div = plot_div + "<script>plotInNewWindow();</script>"
-        response = HttpResponse(plot_div.encode())  # the final response to be returned
-
-        # Set ploy history cookie to expire in 7 days
-        serialized_data = update_user_history(request, plot_type, query)
-        response.set_cookie(
-            "user_history", serialized_data.hex(), max_age=7 * 24 * 60 * 60
+    # Check if the user has access to IEA data.
+    # TODO: make this work with status = 403, problem is HTMX won't show anything.
+    if not iea_valid(request.user, query):
+        LOGGER.warning(
+            f"IEA data requested by unauthorized user {request.user.get_username() or 'anonymous user'}"
+        )
+        return HttpResponse(
+            b"You do not have access to IEA data. Please contact <a style='color: #00adb5' :visited='{color: #87CEEB}' href='mailto:matthew.heun@calvin.edu'>matthew.heun@calvin.edu</a> with questions."
+            b"You can also purchase WEB data at <a style='color: #00adb5':visited='{color: #87CEEB}' href='https://www.iea.org/data-and-statistics/data-product/world-energy-balances'> World Energy Balances</a>."
         )
 
-        return response
+    plot_div: str  # Result HTML.
 
-    else:
-        return HttpResponse(status=405)
+    # Use match-case to handle different plot types
+    match plot_type:
+        case "sankey":
+            plot_div = generate_sankey_html(target, query)
+
+        case "xy_plot":
+            plot_div = generate_xy_html(target, query)
+
+        case "matrices":
+            plot_div = generate_matrix_html(target, query)
+
+        case _:  # default
+            plot_div = "Error: Plot type not specified or supported"
+            LOGGER.warning("Unrecognized plot type requested")
+
+    # stop early if an error occured, and send error message to client
+    if plot_div.startswith("Error"):
+        return HttpResponse(plot_div.encode())
+
+    # Add functions to call on the client side
+    plot_div = plot_div + "<script>refreshHistory();</script>"
+    if separate_window:
+        plot_div = plot_div + "<script>plotInNewWindow();</script>"
+    response = HttpResponse(plot_div.encode())  # the final response to be returned
+
+    # Set ploy history cookie to expire in 7 days
+    serialized_data = update_user_history(request, plot_type, query)
+    response.set_cookie("user_history", serialized_data.hex(), max_age=7 * 24 * 60 * 60)
+
+    return response
 
 
 @time_view
-def get_data(request):
+def get_data(request: HttpRequest):
     """Handle data retrieval requests and return CSV data based on the query.
 
     Inputs:
@@ -311,60 +308,54 @@ def get_data(request):
     # mark them as anonymous in the logs
     LOGGER.info(f"Data requested by {request.user.get_username() or 'anonymous user'}")
 
-    if request.method == "POST":
-        return_type = request.POST.get(
-            "returnDataType"
-        )  # get if request is for csv or request
-
-        # set up query and get csv from it
-        query, _, target = shape_post_request(request.POST)
-
-        if not iea_valid(request.user, query):
-            LOGGER.warning(
-                f"IEA data requested by unauthorized user {request.user.get_username() or 'anonymous user'}"
-            )
-            return HttpResponse(
-                "You do not have access to IEA data. Please contact <a style='color: #00adb5' :visited='{color: #87CEEB}' href='mailto:matthew.heun@calvin.edu'>matthew.heun@calvin.edu</a> with questions. \
-                                You can also purchase WEB data at <a style='color: #00adb5':visited='{color: #87CEEB}' href='https://www.iea.org/data-and-statistics/data-product/world-energy-balances'> World Energy Balances</a>.".encode()
-            )
-
-        # Translate the query to match database field names
-        query = translate_query(target, query)
-
-        # Generate CSV data based on the query
-        columns: list = []  # columns to get
-        if target[1] is AggEtaPFU:
-            # get xy info
-            columns = META_COLUMNS + AGGETA_COLUMNS
-        else:
-            # get psut (sankey and matrix) info
-            columns = META_COLUMNS + PSUT_COLUMNS
-
-        # set up the response:
-        # then give csv MIME
-        # and appropriate http content header
-        final_response = HttpResponse()
-        filename = f"mexer-data-{time.strftime('%H-%M_%d-%m-%Y')}"
-
-        if return_type == "csv":
-            final_response.write(get_csv_from_query(target, query, columns).encode())
-            final_response.headers["Content-Type"] = "text/csv"
-            final_response.headers["Content-Disposition"] = (
-                f'attachment; filename="{filename}.csv"'
-            )
-            LOGGER.info("Made CSV data")
-
-        elif return_type == "excel":
-            final_response.write(get_excel_from_query(target, query, columns))
-            final_response.headers["Content-Type"] = (
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
-            final_response.headers["Content-Disposition"] = (
-                f'attachment; filename="{filename}.xlsx"'
-            )
-            LOGGER.info("Made Excel data")
-
-        return final_response
-
-    else:
+    if request.method != "POST":
         return HttpResponse(status=405)
+
+    data_format = request.POST.get("returnDataType")
+    if data_format is None:
+        return HttpResponse("Data format unspecified", status=400)
+
+    query, _, target = shape_post_request(request.POST)
+
+    if not iea_valid(request.user, query):
+        LOGGER.warning(
+            f"IEA data requested by unauthorized user {request.user.get_username() or 'anonymous user'}"
+        )
+        return HttpResponse(
+            "You do not have access to IEA data. Please contact <a style='color: #00adb5' :visited='{color: #87CEEB}' href='mailto:matthew.heun@calvin.edu'>matthew.heun@calvin.edu</a> with questions. \
+                            You can also purchase WEB data at <a style='color: #00adb5':visited='{color: #87CEEB}' href='https://www.iea.org/data-and-statistics/data-product/world-energy-balances'> World Energy Balances</a>.".encode()
+        )
+
+    query = translate_query(target, query)
+
+    LOGGER.info(query)
+
+    columns: list[str] = []
+    if target[1] is AggEtaPFU:
+        # get xy info
+        columns = META_COLUMNS + AGGETA_COLUMNS
+    else:
+        # get psut (sankey and matrix) info
+        columns = META_COLUMNS + PSUT_COLUMNS
+
+    final_response = HttpResponse()
+    filename = f"mexer-data-{time.strftime('%H-%M_%d-%m-%Y')}"
+
+    if data_format == "csv":
+        final_response.write(get_csv_from_query(target, query, columns).encode())
+        final_response.headers["Content-Type"] = "text/csv"
+        final_response.headers["Content-Disposition"] = (
+            f'attachment; filename="{filename}.csv"'
+        )
+        LOGGER.info("Made CSV data")
+    elif data_format == "excel":
+        final_response.write(get_excel_from_query(target, query, columns))
+        final_response.headers["Content-Type"] = (
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        final_response.headers["Content-Disposition"] = (
+            f'attachment; filename="{filename}.xlsx"'
+        )
+        LOGGER.info("Made Excel data")
+
+    return final_response

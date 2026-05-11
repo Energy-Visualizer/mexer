@@ -66,6 +66,8 @@ services:
       dockerfile: dockerfile
     container_name: mexer_production
     restart: unless-stopped
+    stdin_open: true
+    tty: true
     env_file:
       - .env
     environment:
@@ -78,7 +80,7 @@ services:
     volumes:
       - /usr/share/dict/words:/usr/share/dict/words:ro
       - ./Mexer_site/general.log:/app/general.log:rw
-    command: ["python3", "manage.py", "runserver", "0.0.0.0:8000"]
+    command: ["python3", "-u", "manage.py", "runserver", "0.0.0.0:8000"]
     post_start:
       - command: ["python3", "manage.py", "collectstatic", "--noinput"]
 

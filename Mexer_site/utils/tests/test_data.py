@@ -3,12 +3,12 @@ from django.test import TransactionTestCase
 from Mexer.models import PSUT, AggEtaPFU, IEAData
 
 from utils.data import (
-    _get_database_target,
-    _query_database,
     get_csv_from_query,
+    get_database_target,
     get_dataframe,
     get_excel_from_query,
     get_translated_dataframe,
+    query_database,
     shape_post_request,
     translate_query,
 )
@@ -17,18 +17,18 @@ from utils.data import (
 class DataTests(TransactionTestCase):
     def test_get_database_target(self):
         query = {"dataset": "IEAEWEB2022", "plot_type": "xy_plot"}
-        target = _get_database_target(query)
+        target = get_database_target(query)
         self.assertEqual(target, ("default", AggEtaPFU))
 
         query = {"dataset": f"{settings.SANDBOX_PREFIX}IEAEWEB2022"}
-        target = _get_database_target(query)
+        target = get_database_target(query)
         self.assertEqual(target, ("sandbox", IEAData))
 
     def test_query_database_valid(self):
         target = ("default", PSUT)
         query = {"Year": 2020}
         values = ["Year", "value"]
-        data = _query_database(target, query, values)
+        data = query_database(target, query, values)
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0][0], 2020)
         self.assertEqual(data[0][1], 10.0)
@@ -38,7 +38,7 @@ class DataTests(TransactionTestCase):
         query = {"Year": 2021}
         values = ["Year", "value"]
         with self.assertRaises(ValueError):
-            _query_database(target, query, values)
+            query_database(target, query, values)
 
     def test_get_dataframe(self):
         target = ("default", PSUT)

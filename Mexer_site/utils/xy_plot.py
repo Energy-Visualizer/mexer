@@ -46,13 +46,12 @@ def get_xy(
     # Create a list of fields to select, always including 'Year' and the efficiency metric
     fields_to_select = ["Year", efficiency_metric]
 
-    # Map the names to the actual database field names
-    field_mapping = {"country": "Country", "energy_type": "EnergyType", None: None}
+    # Map the names to the actual database field names.
+    field_mapping = {"country": "Country", "energy_type": "EnergyType"}
 
-    # Add color_by, line_by, facet_col_by, and facet_row_by fields to the selection list
     for field in {color_by, line_by, facet_col_by, facet_row_by}:
-        if field in field_mapping:
-            fields_to_select.append(field_mapping[field])
+        if mapped := field_mapping.get(field):
+            fields_to_select.append(mapped)
 
     # get the respective data from the database
     df = get_translated_dataframe(target, query, fields_to_select)
