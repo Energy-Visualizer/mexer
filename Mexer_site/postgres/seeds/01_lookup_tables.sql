@@ -1,5 +1,7 @@
 -- Lookup tables (seed 01)
 
+BEGIN;
+
 -- Dataset
 INSERT INTO public."Dataset" ("DatasetID", "Dataset", "Public", "FullName", "Description") VALUES
     (1, 'Test Dataset', true, 'Test Dataset Full Name', 'This is a test dataset for unit testing purposes.'),
@@ -9,7 +11,8 @@ ON CONFLICT DO NOTHING;
 -- Version
 INSERT INTO public."Version" ("VersionID", "Version", "ReleaseDate", "Public", "ChangeNotes") VALUES
     (1, 1, '2023-01-01', true, 'Initial release of the test dataset.'),
-    (2, 2, '2023-06-01', false, 'Second version with minor updates.')
+    (2, 2, '2023-06-01', false, 'Second version with minor updates.'),
+    (2147483647, 2147483647, '9999-12-31', true, 'Sentinel version representing open-ended validity.')
 ON CONFLICT DO NOTHING;
 
 -- Country
@@ -65,3 +68,5 @@ INSERT INTO public."GrossNet" ("GrossNetID", "GrossNet", "FullName", "Descriptio
     (1, 'Gross', 'Gross Energy', 'Energy data measured in gross terms'),
     (2, 'Net', 'Net Energy', 'Energy data measured in net terms')
 ON CONFLICT DO NOTHING;
+
+COMMIT;
