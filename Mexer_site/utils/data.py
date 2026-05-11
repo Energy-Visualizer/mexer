@@ -44,7 +44,7 @@ type DatabaseSource = Literal["sandbox", "users", "default"]
 type DatabaseTarget = tuple[DatabaseSource, type[models.Model]]
 
 
-def _get_database_target(query: ShapedQuery) -> DatabaseTarget:
+def get_database_target(query: ShapedQuery) -> DatabaseTarget:
     dataset = query.get("dataset")
     table_name = None
     is_sandbox = False
@@ -224,7 +224,7 @@ def shape_post_request(
         if (value := shaped_value(key, params[key])) is not None
     }
     plot_type = str(shaped_query.get("plot_type"))
-    db_target = _get_database_target(shaped_query)
+    db_target = get_database_target(shaped_query)
     return shaped_query, plot_type, db_target
 
 
@@ -236,9 +236,7 @@ def _str_or_all_list[T](value: str | list[str], op: Callable[[str], T]) -> T | l
 
 
 # TODO: rewrite this to use a for loop instead
-def translate_query(
-    target: DatabaseTarget, query: dict[str, str | list[str]]
-) -> dict[str, Any]:
+def translate_query(target: DatabaseTarget, query: ShapedQuery) -> dict[str, Any]:
     """Turn a query of human readable values from a form into a query read to hit the dataset
 
     Input:
