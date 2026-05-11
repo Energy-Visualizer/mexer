@@ -10,13 +10,13 @@ from utils.matrix import get_matrix, get_ruvy_matrix, visualize_matrix
 
 class MatrixTests(TransactionTestCase):
     def test_get_matrix_empty(self):
-        with patch("utils.matrix._query_database", return_value=[]):
+        with patch("utils.matrix.query_database", return_value=[]):
             mat = get_matrix(("default", PSUT), {"Year": 2020})
             self.assertEqual(mat.nnz, 0)
 
     def test_get_matrix_with_values(self):
         sparse = [(0, 1, 2.5), (1, 0, 3.0)]
-        with patch("utils.matrix._query_database", return_value=sparse):
+        with patch("utils.matrix.query_database", return_value=sparse):
             mat = get_matrix(("default", PSUT), {"Year": 2020})
             self.assertEqual(mat.shape, (2, 2))
             arr = mat.toarray()
@@ -24,14 +24,14 @@ class MatrixTests(TransactionTestCase):
             self.assertEqual(arr[1, 0], 3.0)
 
     def test_get_ruvy_matrix_empty(self):
-        with patch("utils.matrix._query_database", return_value=[]):
+        with patch("utils.matrix.query_database", return_value=[]):
             mat, names = get_ruvy_matrix(("default", PSUT), {"Year": 2020})
             self.assertIsNone(mat)
             self.assertIsNone(names)
 
     def test_get_ruvy_matrix_with_values(self):
         sparse = [(0, 1, 2.5, "A"), (1, 0, 3.0, "B")]
-        with patch("utils.matrix._query_database", return_value=sparse):
+        with patch("utils.matrix.query_database", return_value=sparse):
             with patch("utils.matrix.Index") as MockIndex:
                 MockIndex.objects = MagicMock()
                 MockIndex.objects.all.return_value.count.return_value = 3

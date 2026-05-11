@@ -17,7 +17,7 @@ from collections import Counter
 from django.conf import settings
 from Mexer.models import Index
 
-from utils.data import DatabaseTarget, _query_database
+from utils.data import DatabaseTarget, query_database
 from utils.logging import LOGGER
 from utils.translator import Translator
 
@@ -117,7 +117,7 @@ def get_sankey(
     )
 
     # get all four matrices to make the full RUVY matrix
-    data = _query_database(target, query, ["matname", "i", "j", "value"])
+    data = query_database(target, query, ["matname", "i", "j", "value"])
 
     # if no cooresponding data, return as such
     # TODO: would probably be better to raise an exception

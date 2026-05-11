@@ -4,7 +4,7 @@ from Mexer.models import PSUT, AggEtaPFU, IEAData
 
 from utils.data import (
     _get_database_target,
-    _query_database,
+    query_database,
     get_csv_from_query,
     get_dataframe,
     get_excel_from_query,
@@ -28,7 +28,7 @@ class DataTests(TransactionTestCase):
         target = ("default", PSUT)
         query = {"Year": 2020}
         values = ["Year", "value"]
-        data = _query_database(target, query, values)
+        data = query_database(target, query, values)
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0][0], 2020)
         self.assertEqual(data[0][1], 10.0)
@@ -38,7 +38,7 @@ class DataTests(TransactionTestCase):
         query = {"Year": 2021}
         values = ["Year", "value"]
         with self.assertRaises(ValueError):
-            _query_database(target, query, values)
+            query_database(target, query, values)
 
     def test_get_dataframe(self):
         target = ("default", PSUT)

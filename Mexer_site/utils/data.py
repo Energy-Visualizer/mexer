@@ -36,14 +36,12 @@ from django.http import QueryDict
 from Mexer.models import PSUT, AggEtaPFU, IEAData, models
 
 from utils.logging import LOGGER
-from utils.misc import Silent
+from utils.misc import ShapedQuery, Silent
 from utils.translator import Translator
 
 type DatabaseSource = Literal["sandbox", "users", "default"]
 
 type DatabaseTarget = tuple[DatabaseSource, type[models.Model]]
-
-type ShapedQuery = dict[str, str | list[str]]
 
 
 def _get_database_target(query: ShapedQuery) -> DatabaseTarget:
@@ -66,6 +64,20 @@ def _get_database_target(query: ShapedQuery) -> DatabaseTarget:
 
 def _valid_database(database_name: str):
     return database_name in settings.DATABASES.keys()
+
+
+def query_database(target: DatabaseTarget, query: dict, values: list[str]):
+    db = target[0]
+    model = target[1]
+
+    if not _valid_database(db):
+        raise ValueError("Unknown database specified for query")
+
+    data = model.objects.using(db).values_list(*values).filter(**query)
+
+    LOGGER.debug(f"Query is {query}")
+
+    return data
 
 
 def get_dataframe(target: DatabaseTarget, query: dict, columns: list) -> pd.DataFrame:

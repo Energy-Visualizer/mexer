@@ -13,6 +13,7 @@
 #####################
 
 import sys
+import typing
 from os import devnull
 from time import time
 from uuid import uuid4
@@ -23,7 +24,7 @@ from django.contrib.auth.models import AnonymousUser, User
 from Mexer.forms import SignupForm
 from Mexer.models import EmailAuthCode, EvizUser, PassResetCode
 
-from Mexer_site.utils.data import ShapedQuery
+type ShapedQuery = dict[str, str | list[str]]
 
 
 def time_view(v):

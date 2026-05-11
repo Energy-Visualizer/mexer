@@ -15,7 +15,7 @@ import pandas as pd
 from Mexer.models import Index
 from scipy.sparse import coo_matrix
 
-from utils.data import DatabaseTarget, _query_database
+from utils.data import DatabaseTarget, query_database
 from utils.translator import Translator
 
 alt.data_transformers.enable("default")
@@ -35,7 +35,7 @@ def get_matrix(target: DatabaseTarget, query: dict) -> coo_matrix:
     # Get the sparse matrix representation
     # i, j, x for row, column, value
     # in 3-tuples
-    sparse_matrix = _query_database(target, query, ["i", "j", "value"])
+    sparse_matrix = query_database(target, query, ["i", "j", "value"])
 
     # if nothing was returned
     if not sparse_matrix:
@@ -60,7 +60,7 @@ def get_matrix(target: DatabaseTarget, query: dict) -> coo_matrix:
 def get_ruvy_matrix(
     target: DatabaseTarget, query: dict
 ) -> tuple[coo_matrix | None, tuple | None]:
-    sparse_matrix = _query_database(target, query, ["i", "j", "value", "matname"])
+    sparse_matrix = query_database(target, query, ["i", "j", "value", "matname"])
     if not sparse_matrix:
         return None, None
     matrix_nrow = Index.objects.all().count()
