@@ -10,9 +10,9 @@ ON CONFLICT DO NOTHING;
 
 -- Version
 INSERT INTO public."Version" ("VersionID", "Version", "ReleaseDate", "Public", "ChangeNotes") VALUES
-    (1, 1, '2023-01-01', true, 'Initial release of the test dataset.'),
-    (2, 2, '2023-06-01', false, 'Second version with minor updates.'),
-    (2147483647, 2147483647, '9999-12-31', true, 'Sentinel version representing open-ended validity.')
+    (1, "2022", '2023-01-01', true, 'Initial release of the test dataset.'),
+    (2, "v1.0", '2023-06-01', false, 'Second version with minor updates.'),
+    (2147483647, "current", '9999-12-31', true, 'Sentinel version representing open-ended validity.')
 ON CONFLICT DO NOTHING;
 
 -- Country
