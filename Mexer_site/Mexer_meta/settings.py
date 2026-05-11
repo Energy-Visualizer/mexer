@@ -194,9 +194,22 @@ LOGGING = {
             "class": "logging.FileHandler",
             "filename": "general.log",
             "formatter": "default",
-        }
+        },
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "default",
+        },
     },
-    "loggers": {"Mexer_default": {"level": "DEBUG", "handlers": ["file"]}},
+    "root": {
+        "handlers": ["console"],
+        "level": "DEBUG",
+    },
+    "loggers": {
+        "Mexer_default": {
+            "level": "DEBUG",
+            "handlers": ["file", "console"],
+        },
+    },
 }
 
 SANKEY_COLORS_PATH = BASE_DIR / "internal_resources" / "sankey_color_categories.json"

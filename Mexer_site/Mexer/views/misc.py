@@ -62,11 +62,13 @@ def data_info(request):
 
 
 def matrix_info(request):
+    print("TEST PRINT", flush=True)
+
     """Render the 'Matrix Information' page."""
     LOGGER.info("Matrix info page visted.")
     # Retrieve all Dataset objects from the database
-    matricies = matname.objects.all()
-    return render(request, "matrix_info.html", context={"matricies": matricies})
+    matrices = matname.objects.all()
+    return render(request, "matrix_info.html", context={"matrices": matrices})
 
 
 def __test_render_page(request, template_name: str):

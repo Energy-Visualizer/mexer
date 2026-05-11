@@ -25,25 +25,33 @@
 #       Edom Maru - eam43@calvin.edu
 #####################
 import io
-from typing import Any, Mapping
+from collections.abc import Callable
+from typing import Any, Literal, cast
 
 import pandas as pd
 import pandas.io.sql as pd_sql  # for getting data into a pandas dataframe
 from django.conf import settings
 from django.db import connections
+from django.http import QueryDict
 from Mexer.models import PSUT, AggEtaPFU, IEAData, models
 
 from utils.logging import LOGGER
 from utils.misc import Silent
 from utils.translator import Translator
 
-DatabaseTarget = tuple[str, type[models.Model]]
+type DatabaseSource = Literal["sandbox", "users", "default"]
+
+type DatabaseTarget = tuple[DatabaseSource, type[models.Model]]
+
+type ShapedQuery = dict[str, str | list[str]]
 
 
-def _get_database_target(query: dict) -> DatabaseTarget:
-    dataset: str | None = query.get("dataset")
+def _get_database_target(query: ShapedQuery) -> DatabaseTarget:
+    dataset = query.get("dataset")
     table_name = None
-    if dataset:
+    is_sandbox = False
+    if isinstance(dataset, str):
+        is_sandbox = dataset.startswith(settings.SANDBOX_PREFIX)
         table_name = dataset.removeprefix(settings.SANDBOX_PREFIX)
 
     plot_type = query.get("plot_type")
@@ -52,23 +60,8 @@ def _get_database_target(query: dict) -> DatabaseTarget:
     else:
         model = IEAData if table_name == "IEAEWEB2022" else PSUT
 
-    return "sandbox" if dataset and dataset.startswith(
-        settings.SANDBOX_PREFIX
-    ) else "default", model
-
-
-def _query_database(target: DatabaseTarget, query: dict, values: list[str]):
-    db = target[0]
-    model = target[1]
-
-    if not _valid_database(db):
-        raise ValueError("Unknown database specified for query")
-
-    data = model.objects.using(db).values_list(*values).filter(**query)
-
-    LOGGER.debug(f"Query is {query}")
-
-    return data
+    source = "sandbox" if is_sandbox else "default"
+    return source, model
 
 
 def _valid_database(database_name: str):
@@ -76,17 +69,20 @@ def _valid_database(database_name: str):
 
 
 def get_dataframe(target: DatabaseTarget, query: dict, columns: list) -> pd.DataFrame:
-    if not _valid_database(target[0]):
-        return pd.DataFrame()  # empty data frame if database is wrong
+    db_source, db_model = target
+    if not _valid_database(db_source):
+        # Invalid database, empty data frame.
+        return pd.DataFrame()
 
-    # get the data from database
-    db_query = target[1].objects.filter(**query).values(*columns).query
+    LOGGER.info(str(query))
+
+    db_query = db_model.objects.filter(**query).values(*columns).query
+
+    # Intercept database connection and read query to a pandas data frame.
     with Silent():
         df = pd_sql.read_sql_query(
             str(db_query),
-            con=connections[target[0]]
-            .cursor()
-            .connection,  # get the connection associated with the requested database
+            con=connections[db_source].cursor().connection,
         )
 
     return df
@@ -112,7 +108,7 @@ AGGETA_COLUMNS = ["GrossNet", "EXp", "EXf", "EXu", "etapf", "etafu", "etapu"]
 
 
 def get_translated_dataframe(
-    target: DatabaseTarget, query: dict, columns: list
+    target: DatabaseTarget, query: dict[str, Any], columns: list
 ) -> pd.DataFrame:
     df = get_dataframe(target, query, columns)
 
@@ -154,25 +150,25 @@ def get_translated_dataframe(
 
 
 def get_csv_from_query(target: DatabaseTarget, query: dict, columns: list) -> str:
-
-    # index false to not have column of row numbers
-    return get_translated_dataframe(target, query, columns).to_csv(index=False)
+    ROW_NUMS = False
+    return get_translated_dataframe(target, query, columns).to_csv(index=ROW_NUMS)
 
 
 def get_excel_from_query(
     target: DatabaseTarget, query: dict, columns=PSUT_COLUMNS
 ) -> bytes:
-
-    # index false to not have column of row numbers
+    ROW_NUMS = False
     buffer = io.BytesIO()
     with pd.ExcelWriter(buffer) as writer:
-        get_translated_dataframe(target, query, columns).to_excel(writer, index=False)
+        get_translated_dataframe(target, query, columns).to_excel(
+            writer, index=ROW_NUMS
+        )
     return buffer.getvalue()
 
 
 def shape_post_request(
-    payload: Mapping,
-) -> tuple[dict[str, Any], str | None, DatabaseTarget]:
+    params: QueryDict,
+) -> tuple[ShapedQuery, str | None, DatabaseTarget]:
     """Turn a POST request payload into a ready to use query in a dictionary
 
     Input:
@@ -195,25 +191,42 @@ def shape_post_request(
                 a dictionary containing all the associations of a query parts and their values
     """
 
-    shaped_query = dict(payload)
+    # Get rid of security token; it is not part of a query.
+    SKIP_PARAMS = ("csrfmiddlewaretoken",)
 
-    # get rid of security token, is not part of a query
-    shaped_query.pop("csrfmiddlewaretoken", None)
+    # Shaped query extracts items from lists.
+    def shaped_value(key: str, value: str | list[object]) -> str | list[str] | None:
+        if key in SKIP_PARAMS:
+            return None
+        if isinstance(value, str):
+            return value
+        if len(value) == 1 and isinstance(value[0], str):
+            return value[0]
+        if all(isinstance(item, str) for item in value):
+            return cast(list[str], value)
+        LOGGER.warning(f"Non-string POST param for key {key}")
 
-    for k, v in shaped_query.items():
-        # convert from list (if just one item in list)
-        if len(v) == 1:
-            shaped_query[k] = v[0]
-
-    plot_type = shaped_query.get("plot_type")
-
+    shaped_query = {
+        key: value
+        for key in params
+        if (value := shaped_value(key, params[key])) is not None
+    }
+    plot_type = str(shaped_query.get("plot_type"))
     db_target = _get_database_target(shaped_query)
-
     return shaped_query, plot_type, db_target
 
 
+def _str_or_all_list[T](value: str | list[str], op: Callable[[str], T]) -> T | list[T]:
+    if isinstance(value, str):
+        return op(value)
+    else:
+        return [op(item) for item in value]
+
+
 # TODO: rewrite this to use a for loop instead
-def translate_query(target: DatabaseTarget, query: dict) -> dict:
+def translate_query(
+    target: DatabaseTarget, query: dict[str, str | list[str]]
+) -> dict[str, Any]:
     """Turn a query of human readable values from a form into a query read to hit the dataset
 
     Input:
@@ -225,87 +238,84 @@ def translate_query(target: DatabaseTarget, query: dict) -> dict:
         a dictionary of a query ready to hit the database
     """
 
-    translated_query = dict()  # set up to build and return at the end
+    translated = dict()
+    db_source, _ = target
 
-    if not _valid_database(target[0]):
+    if not _valid_database(db_source):
         raise ValueError("Unknown database specified for translating query")
 
-    translator = Translator(target[0])  # get a translator for the correct database
+    translator = Translator(db_source)
 
-    # get rid of sandbox prefix on the query parameter
-    # or else it won't be recognized for translation
-    for k in query.keys():
-        if isinstance(query[k], list):
-            # if a list, remove the sandbox query for each item
-            for i in range(len(query[k])):
-                query[k][i] = query[k][i].removeprefix(settings.SANDBOX_PREFIX)
-        else:
-            # just a single entry
-            query[k] = query[k].removeprefix(settings.SANDBOX_PREFIX)
+    # Clear sandbox prefix from query parameters;
+    # translation will not recognize sandbox prefix.
+    query = {
+        k: _str_or_all_list(query[k], lambda v: v.removeprefix(settings.SANDBOX_PREFIX))
+        for k in query
+    }
 
     # common query parts
     if v := query.get("dataset"):
-        translated_query["Dataset"] = translator.dataset_translate(v)
+        translated["Dataset"] = translator.dataset_translate(v)
     if v := query.get("version"):
-        translated_query["ValidFromVersion__gte"] = translator.version_translate(v)
-        translated_query["ValidToVersion__lte"] = translator.version_translate(v)
+        translated["ValidFromVersion__lte"] = translator.version_translate(v)
+        translated["ValidToVersion__gte"] = translator.version_translate(v)
     if v := query.get("country"):
         if isinstance(v, list):
-            translated_query["Country__in"] = [
+            translated["Country__in"] = [
                 translator.country_translate(country) for country in v
             ]
         else:
-            translated_query["Country"] = translator.country_translate(v)
+            translated["Country"] = translator.country_translate(v)
     if v := query.get("method"):
         if isinstance(v, list):
-            translated_query["Method__in"] = [
+            translated["Method__in"] = [
                 translator.method_translate(method) for method in v
             ]
         else:
-            translated_query["Method"] = translator.method_translate(v)
+            translated["Method"] = translator.method_translate(v)
     if v := query.get("energy_type"):
         if isinstance(v, list):
-            translated_query["EnergyType__in"] = [
+            translated["EnergyType__in"] = [
                 translator.energytype_translate(energy_type) for energy_type in v
             ]
         else:
-            translated_query["EnergyType"] = translator.energytype_translate(v)
+            translated["EnergyType"] = translator.energytype_translate(v)
     if v := query.get("last_stage"):
-        translated_query["LastStage"] = translator.laststage_translate(v)
+        translated["LastStage"] = translator.laststage_translate(v)
     # includes neu either is in the query or not, it's value does need to be more than empty string, though
-    translated_query["IncludesNEU"] = translator.includesNEU_translate(
+    translated["IncludesNEU"] = translator.includesNEU_translate(
         bool(query.get("including_neu"))
     )
     if v := query.get("chopped_mat"):
-        translated_query["ChoppedMat"] = translator.matname_translate(v)
+        translated["ChoppedMat"] = translator.matname_translate(v)
     if v := query.get("chopped_var"):
-        translated_query["ChoppedVar"] = translator.index_translate(v)
+        translated["ChoppedVar"] = translator.index_translate(v)
     if v := query.get("product_aggregation"):
-        translated_query["ProductAggregation"] = translator.agglevel_translate(v)
+        translated["ProductAggregation"] = translator.agglevel_translate(v)
     if v := query.get("industry_aggregation"):
-        translated_query["IndustryAggregation"] = translator.agglevel_translate(v)
+        translated["IndustryAggregation"] = translator.agglevel_translate(v)
     if v := query.get("grossnet"):
-        translated_query["GrossNet"] = translator.grossnet_translate(v)
+        translated["GrossNet"] = translator.grossnet_translate(v)
     # plot-specific query parts
-    if v := query.get("to_year"):
+    if (v := query.get("to_year")) and isinstance(v, str):
         # if year part is a range of years, i.e. to_year present
         # set up query as range
-        translated_query["Year__lte"] = int(v)
-        if v := query.get("year"):
-            translated_query["Year__gte"] = int(v)
-    elif v := query.get("year"):
+        translated["Year__lte"] = int(v)
+        if (v := query.get("year")) and isinstance(v, str):
+            translated["Year__gte"] = int(v)
+    elif (v := query.get("year")) and isinstance(v, str):
         # else just have year be one year
-        translated_query["Year"] = int(v)
+        translated["Year"] = int(v)
     if v := query.get("matname"):
         if v == "RUVY":
-            translated_query["matname__in"] = [
+            translated["matname__in"] = [
                 translator.matname_translate("R"),
                 translator.matname_translate("U"),
                 translator.matname_translate("V"),
                 translator.matname_translate("Y"),
             ]
         else:
-            translated_query["matname"] = translator.matname_translate(v)
+            translated["matname"] = translator.matname_translate(v)
 
-    LOGGER.debug(f"Translated query: {translated_query}")
-    return translated_query
+    LOGGER.debug(f"Translated query: {translated}")
+    return translated

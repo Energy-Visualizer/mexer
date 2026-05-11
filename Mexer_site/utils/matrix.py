@@ -2,9 +2,9 @@
 # matrix.py includes all the functions related to matrices
 #
 # The functions can get a matrix, get special Mexer matix (RUVY)
-# and turn those matricies into HTML to display
+# and turn those matrices into HTML to display
 #
-# The matricies are represented by scipy's sparse coo_matrix
+# The matrices are represented by scipy's sparse coo_matrix
 #
 # Authors:
 #       Kenny Howes - kmh67@calvin.edu
@@ -134,7 +134,7 @@ def visualize_matrix(
     # take care of all other columns. Not pretty, but ignores columns specified
     # in agg_functions and the x, y on which we are already aggregating
     # importantly, matname column should not be clobbered
-    # as there should not be unique (x,y) pairs across matricies
+    # as there should not be unique (x,y) pairs across matrices
     # but *still needs to be listed*, or else pandas will drop it
     agg_functions.update(
         {

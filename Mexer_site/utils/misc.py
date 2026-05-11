@@ -18,9 +18,12 @@ from time import time
 from uuid import uuid4
 
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.auth.models import AnonymousUser, User
 from Mexer.forms import SignupForm
 from Mexer.models import EmailAuthCode, EvizUser, PassResetCode
+
+from Mexer_site.utils.data import ShapedQuery
 
 
 def time_view(v):
@@ -119,7 +122,7 @@ def new_reset_code(user: EvizUser) -> str:
     return code
 
 
-def iea_valid(user: User, query: dict) -> bool:
+def iea_valid(user: AbstractBaseUser | AnonymousUser, query: ShapedQuery) -> bool:
     """Ensure that a give user's query does not give out IEA data if not authorized
 
     Inputs:
@@ -130,14 +133,17 @@ def iea_valid(user: User, query: dict) -> bool:
         the boolean value of if a user's query is valid (True) or not (False)
     """
 
-    # will short curcuit if the data is free,
-    # so everything past the "or" will not be checked if not neccessary
+    # Data is free and does not require authorization.
+    dataset = query.get("dataset")
+    is_iea = dataset in settings.IEA_TABLES
+    if not is_iea:
+        return True
+
+    # User must be authorized for proprietary data.
     return (
-        # free data
-        (query.get("dataset") not in settings.IEA_TABLES)
-        or
-        # authorized to get proprietary data
-        (user.is_authenticated and user.has_perm("eviz.get_iea"))
+        isinstance(user, User)
+        and user.is_authenticated
+        and user.has_perm("eviz.get_iea")
     )
 
 

@@ -147,7 +147,7 @@ class Translator:
         return self._translate("AggLevel", value, "AggLevelID", "AggLevel")
 
     def includesNEU_translate(self, value):
-        return int(value) if isinstance(value, bool) else int(bool(value))
+        return int(bool(value))
 
     @staticmethod
     def get_all(attribute, database="default"):
