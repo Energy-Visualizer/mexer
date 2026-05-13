@@ -1,0 +1,20 @@
+<div class="relative inline-block">
+    <button
+        type="button"
+        class="info-toggle text-blue-500 focus:outline-none"
+        title="info"
+        onclick="this.nextElementSibling.classList.toggle('hidden')"
+    >
+        &#9432;
+    </button>
+    <div
+        class="hidden absolute bottom-full left-0 mb-1 w-64 bg-gray-800 text-white text-sm rounded-md p-2 shadow-lg z-20"
+    >
+        {{ tooltip }} {% if link_url %}
+        <a href="{{ link_url }}" class="text-blue-400 underline"
+            >{{ link_text }}</a
+        >
+        {% endif %}
+    </div>
+    <span class="font-semibold">{{ label }}</span>
+</div>

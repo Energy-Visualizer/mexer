@@ -13,44 +13,66 @@ Blocks:
 
 {% load static %}
 
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-    <title>{% block title %}Mexer{% endblock %}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <head>
+        <title>{% block title %}Mexer{% endblock %}</title>
+        <script src="https://cdn.tailwindcss.com"></script>
 
-    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.png' %}" />
-    {% block extra_head %}{% endblock %}
-</head>
+        <link
+            rel="icon"
+            type="image/x-icon"
+            href="{% static 'images/favicon.png' %}"
+        />
+        {% block extra_head %}{% endblock %}
+    </head>
 
-<body class="bg-gray-200 text-gray-800">
-  <nav class="bg-gray-900 text-white">
-    <div class="container mx-auto flex justify-between items-center py-4">
-      <a class="text-5xl font-bold hover:text-cyan-300" href="{% url 'home' %}">Mexer</a>
-      <div class="flex space-x-4">
-        <a class="hover:text-gray-400" href="{% url 'visualizer' %}">Visualizer</a>
-        <a class="hover:text-gray-400" href="{% url 'about' %}">About</a>
-        <a class="hover:text-gray-400" href="{% url 'data-info' %}">Data Info</a>
-        {% if request.user.is_authenticated %}
-        <a class="hover:text-gray-400" href="{% url 'logout' %}">Sign Out</a>
-        <span class="text-cyan-400">{{ request.user.username|upper }}</span>
-        {% else %}
-        <a class="hover:text-gray-400" href="{% url 'login' %}">Sign In</a>
-        {% endif %}
-      </div>
-    </div>
-  </nav>
+    <body class="bg-gray-200 text-gray-800">
+        <nav class="bg-gray-900 text-white">
+            <div class="mx-20 gap-x-40 flex justify-between items-center py-4">
+                <a
+                    class="text-5xl font-bold hover:text-cyan-300"
+                    href="{% url 'home' %}"
+                    >Mexer</a
+                >
+                <div class="flex gap-x-4 gap-y-2 flex-wrap">
+                    <a class="hover:text-gray-400" href="{% url 'visualizer' %}"
+                        >Visualizer</a
+                    >
+                    <a class="hover:text-gray-400" href="{% url 'about' %}"
+                        >About</a
+                    >
+                    <a class="hover:text-gray-400" href="{% url 'data-info' %}"
+                        >Data Info</a
+                    >
+                    {% if request.user.is_authenticated %}
+                    <a class="hover:text-gray-400" href="{% url 'logout' %}"
+                        >Sign Out</a
+                    >
+                    <span class="text-cyan-400"
+                        >{{ request.user.username|upper }}</span
+                    >
+                    {% else %}
+                    <a class="hover:text-gray-400" href="{% url 'login' %}"
+                        >Sign In</a
+                    >
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
 
-  <svg viewBox="0 0 500 10" preserveAspectRatio="xMinYMin meet" class="w-full">
-    <path
-      d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z"
-      style="stroke: none"
-      class="fill-gray-900"
-    ></path>
-  </svg>
+        <svg
+            viewBox="0 0 500 10"
+            preserveAspectRatio="xMinYMin meet"
+            class="w-full"
+        >
+            <path
+                d="M 0 0 C 113 16 352 -8 500 5 L 500 0 L 0 0 Z"
+                style="stroke: none"
+                class="fill-gray-900"
+            ></path>
+        </svg>
 
-  {% block inner %}
-    Inner content goes here.
-  {% endblock %}
-</body>
+        {% block inner %} Inner content goes here. {% endblock %}
+    </body>
 </html>
