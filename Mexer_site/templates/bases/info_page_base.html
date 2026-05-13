@@ -14,32 +14,62 @@ Blocks:
 -->
 
 {% block inner %}
-  <section class="bg-primary text-cyan-400 py-12">
+<section class="bg-primary text-cyan-400 py-12">
     <div class="container mx-auto text-center">
-      <h1 class="text-4xl font-bold">{% block hero_title %}{% endblock %}</h1>
-      <h2 class="text-xl mt-4">{% block hero_subtitle %}{% endblock %}</h2>
+        <h1 class="text-4xl font-bold">{% block hero_title %}{% endblock %}</h1>
+        <h2 class="text-xl mt-4">{% block hero_subtitle %}{% endblock %}</h2>
     </div>
-  </section>
+</section>
 
-  <section class="py-8 mb-auto">
+<section class="py-8 mb-auto">
     <div class="container mx-auto pb-24">
-      {% block content %}
-      <p>Default content goes here. Override this block in child templates.</p>
-      {% endblock %}
+        {% block content %}
+        <p>
+            Default content goes here. Override this block in child templates.
+        </p>
+        {% endblock %}
     </div>
-  </section>
+</section>
 
-  <footer class="bg-gray-900 text-white py-6 fixed w-full bottom-0">
+<footer class="bg-gray-900 text-white py-6 fixed w-full bottom-0">
     <div class="container mx-auto text-center">
-      <p>
-        <strong>Mexer</strong> by <a href="mailto:kenneth.howes53@gmail.com" class="text-cyan-400 hover:underline" target="_blank">Kenneth Howes</a> and
-        <a href="mailto:edomamaru@gmail.com" class="text-cyan-400 hover:underline" target="_blank">Edom Maru</a>. Source code on
-        <a href="https://github.com/Energy-Visualizer/eviz" class="text-cyan-400 hover:underline" target="_blank">GitHub</a>.
-      </p>
-      <p>
-        Contact us at <a href="mailto:matthew.heun@calvin.edu" class="text-cyan-400 hover:underline">matthew.heun@calvin.edu</a> or
-        <a href="https://github.com/Energy-Visualizer/eviz/issues" class="text-cyan-400 hover:underline" target="_blank">create a GitHub issue</a>.
-      </p>
+        <p>
+            <strong>Mexer</strong> by
+            <a
+                href="mailto:kenneth.howes53@gmail.com"
+                class="text-cyan-400 hover:underline"
+                target="_blank"
+                >Kenneth Howes</a
+            >
+            and
+            <a
+                href="mailto:edomamaru@gmail.com"
+                class="text-cyan-400 hover:underline"
+                target="_blank"
+                >Edom Maru</a
+            >. Source code on
+            <a
+                href="https://github.com/Energy-Visualizer/eviz"
+                class="text-cyan-400 hover:underline"
+                target="_blank"
+                >GitHub</a
+            >.
+        </p>
+        <p>
+            Contact us at
+            <a
+                href="mailto:matthew.heun@calvin.edu"
+                class="text-cyan-400 hover:underline"
+                >matthew.heun@calvin.edu</a
+            >
+            or
+            <a
+                href="https://github.com/Energy-Visualizer/eviz/issues"
+                class="text-cyan-400 hover:underline"
+                target="_blank"
+                >create a GitHub issue</a
+            >.
+        </p>
     </div>
-  </footer>
+</footer>
 {% endblock %}
