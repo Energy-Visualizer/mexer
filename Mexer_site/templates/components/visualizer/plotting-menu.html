@@ -1,14 +1,16 @@
+{% load form_helpers %}
+
 <form method="post" action="/data" id="query-form">
     {% csrf_token %}
     <div
-        class="flex gap-5 max-w-[80%] max-h-[80%] mx-auto right-16 fixed z-10 transition-transform duration-300"
+        class="flex gap-3 max-w-[80%] max-h-[80%] mx-auto right-16 fixed z-10 transition-transform duration-150"
         id="plot-params-panel"
         data-open="true"
     >
         <button
             type="button"
             id="plot-params-toggle-button"
-            class="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-4 py-2 rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-300 transform hover:scale-110 opacity-55 hover:opacity-100"
+            class="bg-sky-500 text-white px-2 shadow-lg rounded-lg hover:bg-sky-600 transition-colors duration-50"
         >
             &gt;
         </button>
@@ -60,20 +62,7 @@
             <!-- Dataset selection -->
             <div>
                 <div class="flex items-center space-x-2">
-                    <div class="group relative">
-                        <span class="text-blue-500">&#9432;</span>
-                        <span
-                            class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block z-20"
-                        >
-                            Choose the dataset of interest.
-                            <a
-                                href="{% url 'data-info' %}"
-                                class="text-blue-400 underline"
-                                >Read more.</a
-                            >
-                        </span>
-                        <span class="font-semibold">From dataset</span>
-                    </div>
+                    {% field_label "From dataset" "Choose the dataset of interest." link_url="/data-info" link_text="Read more." %}
                 </div>
                 <div class="mt-2">
                     <select
@@ -103,15 +92,7 @@
             <!-- Version selection -->
             <div>
                 <div class="flex items-center space-x-2">
-                    <div class="group relative">
-                        <span class="text-blue-500">&#9432;</span>
-                        <span
-                            class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block z-20"
-                        >
-                            Choose the version of interest.
-                        </span>
-                        <span class="font-semibold">Version</span>
-                    </div>
+                    {% field_label "Version" "Choose the version of interest." %}
                 </div>
                 <div class="mt-2">
                     <select
@@ -164,16 +145,7 @@
             <!-- Country selection -->
             <div>
                 <div class="flex items-center space-x-2">
-                    <div class="group relative">
-                        <span class="text-blue-500">&#9432;</span>
-                        <span
-                            class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block z-20"
-                        >
-                            Choose the region(s) of interest. Click "Add
-                            Country" to enable additional countries.
-                        </span>
-                        <span class="font-semibold">Region(s)</span>
-                    </div>
+                    {% field_label "Region(s)" "Choose the region(s) of interest. Click \"Add Country\" to enable additional countries." %}
                 </div>
                 <div class="mt-2">
                     <select
@@ -210,16 +182,7 @@
             <!-- Method selection -->
             <div>
                 <div class="flex items-center space-x-2">
-                    <div class="group relative">
-                        <span class="text-blue-500">&#9432;</span>
-                        <span
-                            class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block z-20"
-                        >
-                            Choose the method of accounting for the primary
-                            equivalent of renewable electricity.
-                        </span>
-                        <span class="font-semibold">Method</span>
-                    </div>
+                    {% field_label "Method" "Choose the method of accounting for the primary equivalent of renewable electricity." %}
                 </div>
                 <div class="mt-2">
                     {% for method in methods %}
@@ -254,17 +217,7 @@
             <!-- Energy Type selection -->
             <div>
                 <div class="flex items-center space-x-2">
-                    <div class="group relative">
-                        <span class="text-blue-500">&#9432;</span>
-                        <span
-                            class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block z-20"
-                        >
-                            Choose one of energy or exergy. Energy is a heat
-                            quantification of energy. Exergy is a work
-                            quantification of energy.
-                        </span>
-                        <span class="font-semibold">Energy Type</span>
-                    </div>
+                    {% field_label "Energy Type" "Choose one of energy or exergy. Energy is a heat quantification of energy. Exergy is a work quantification of energy." %}
                 </div>
                 <div class="mt-2">
                     {% for energy_type in energy_types %}
@@ -299,16 +252,7 @@
             <!-- Last Stage selection -->
             <div>
                 <div class="flex items-center space-x-2">
-                    <div class="group relative">
-                        <span class="text-blue-500">&#9432;</span>
-                        <span
-                            class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block z-20"
-                        >
-                            Choose the last stage of the energy conversion
-                            chain, either final or useful.
-                        </span>
-                        <span class="font-semibold">Last Stage</span>
-                    </div>
+                    {% field_label "Last Stage" "Choose the last stage of the energy conversion chain, either final or useful." %}
                 </div>
                 <div class="mt-2">
                     <div class="flex flex-col space-y-2">
@@ -346,16 +290,7 @@
             <!-- Include NEU selection -->
             <div>
                 <div class="flex items-center space-x-2">
-                    <div class="group relative">
-                        <span class="text-blue-500">&#9432;</span>
-                        <span
-                            class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block z-20"
-                        >
-                            Choose whether to include non-energy uses (NEU) of
-                            energy carriers in final demand.
-                        </span>
-                        <span class="font-semibold">Include NEU</span>
-                    </div>
+                    {% field_label "Include NEU" "Choose whether to include non-energy uses (NEU) of energy carriers in final demand." %}
                 </div>
                 <div class="mt-2">
                     <div class="flex flex-col space-y-2">
@@ -380,15 +315,7 @@
             <!-- Product Aggregation selection -->
             <div>
                 <div class="flex items-center space-x-2">
-                    <div class="group relative">
-                        <span class="text-blue-500">&#9432;</span>
-                        <span
-                            class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block z-20"
-                        >
-                            Choose the deisired Product Aggregation
-                        </span>
-                        <span class="font-semibold">Product Aggregation</span>
-                    </div>
+                    {% field_label "Product Aggregation" "Choose the desired Product Aggregation." %}
                 </div>
                 <div class="mt-2">
                     {% for product_aggregation in product_aggregations %}
@@ -424,15 +351,7 @@
             <!-- Sector Aggregation selection -->
             <div>
                 <div class="flex items-center space-x-2">
-                    <div class="group relative">
-                        <span class="text-blue-500">&#9432;</span>
-                        <span
-                            class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block z-20"
-                        >
-                            Choose the deisired Sector Aggregation
-                        </span>
-                        <span class="font-semibold">Sector Aggregation</span>
-                    </div>
+                    {% field_label "Sector Aggregation" "Choose the desired Sector Aggregation." %}
                 </div>
                 <div class="mt-2">
                     {% for industry_aggregation in industry_aggregations %}
@@ -478,15 +397,7 @@
             <!-- Visualization selection -->
             <div>
                 <div class="flex items-center space-x-2">
-                    <div class="group relative">
-                        <span class="text-blue-500">&#9432;</span>
-                        <span
-                            class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block z-20"
-                        >
-                            Select the type of plot you want to display.
-                        </span>
-                        <span class="font-semibold">Visualization</span>
-                    </div>
+                    {% field_label "Visualization" "Select the type of plot you want to display." %}
                 </div>
                 <div class="mt-2 flex justify-evenly">
                     <label
@@ -550,15 +461,7 @@
             <!-- GrossNet selection -->
             <div class="query-choice">
                 <div class="flex items-center space-x-2">
-                    <div class="group relative">
-                        <span class="text-blue-500">&#9432;</span>
-                        <span
-                            class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block z-20"
-                        >
-                            GrossNet
-                        </span>
-                        <span class="font-semibold">GrossNet</span>
-                    </div>
+                    {% field_label "GrossNet" "GrossNet" %}
                 </div>
                 <div class="mt-2">
                     <div class="flex flex-col space-y-2" id="grossnet_radio">
@@ -596,15 +499,7 @@
             <!-- Quantity selection -->
             <div class="query-choice">
                 <div class="flex items-center space-x-2">
-                    <div class="group relative">
-                        <span class="text-blue-500">&#9432;</span>
-                        <span
-                            class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block z-20"
-                        >
-                            Choose the Quantity of interest.
-                        </span>
-                        <span class="font-semibold">Quantity</span>
-                    </div>
+                    {% field_label "Quantity" "Choose the Quantity of interest." %}
                 </div>
                 <div class="input-column">
                     <select
@@ -627,15 +522,7 @@
             <!-- Single Year selection -->
             <div class="query-choice">
                 <div class="flex items-center space-x-2">
-                    <div class="group relatve">
-                        <span class="text-blue-500">&#9432;</span>
-                        <span
-                            class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block z-20"
-                        >
-                            Choose the year of interest.
-                        </span>
-                        <span class="font-semibold">Year</span>
-                    </div>
+                    {% field_label "Year" "Choose the year of interest." %}
                 </div>
                 <div class="mt-2">
                     <input
@@ -651,15 +538,7 @@
             <!-- Year Range selection -->
             <div class="query-choice">
                 <div class="flex items-center space-x-2">
-                    <div class="group relative">
-                        <span class="text-blue-500 z-10">&#9432;</span>
-                        <span
-                            class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block z-20"
-                        >
-                            Start of time-range of interest.
-                        </span>
-                        <span class="font-semibold">From Year</span>
-                    </div>
+                    {% field_label "From Year" "Start of time-range of interest." %}
                 </div>
                 <div class="mt-2">
                     <input
@@ -671,15 +550,7 @@
                     />
                 </div>
                 <div class="flex items-center space-x-2">
-                    <div class="group relative">
-                        <span class="text-blue-500">&#9432;</span>
-                        <span
-                            class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block z-20"
-                        >
-                            End of time-range of interest.
-                        </span>
-                        <span class="font-semibold">To Year</span>
-                    </div>
+                    {% field_label "To Year" "End of time-range of interest." %}
                 </div>
                 <div class="mt-2">
                     <input
@@ -695,15 +566,7 @@
             <!-- Color by selection -->
             <div class="query-choice">
                 <div class="flex items-center space-x-2">
-                    <div class="group relative">
-                        <span class="text-blue-500">&#9432;</span>
-                        <span
-                            class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block z-20"
-                        >
-                            By which metric to color the plot.
-                        </span>
-                        <span class="font-semibold">Color On</span>
-                    </div>
+                    {% field_label "Color On" "By which metric to color the plot." %}
                 </div>
                 <div class="input-column">
                     <select
@@ -722,16 +585,7 @@
             <!-- Line by selection -->
             <div class="query-choice">
                 <div class="flex items-center space-x-2">
-                    <div class="group relative">
-                        <span class="text-blue-500">&#9432;</span>
-                        <span
-                            class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block z-20"
-                        >
-                            By which metric to differentiate the lines of the
-                            plot.
-                        </span>
-                        <span class="font-semibold">Line By</span>
-                    </div>
+                    {% field_label "Line By" "By which metric to differentiate the lines of the plot." %}
                 </div>
                 <select
                     name="line_by"
@@ -747,16 +601,7 @@
             <!-- Facet Column by selection -->
             <div class="query-choice">
                 <div class="flex items-center space-x-2">
-                    <div class="group relative">
-                        <span class="text-blue-500">&#9432;</span>
-                        <span
-                            class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block z-20"
-                        >
-                            By which metric to facet the columns of the plot.
-                            (Have independent plots for each facet column.)
-                        </span>
-                        <span class="font-semibold">Facet Column</span>
-                    </div>
+                    {% field_label "Facet Column" "By which metric to facet the columns of the plot. (Have independent plots for each facet column.)" %}
                 </div>
                 <select
                     name="facet-col-by"
@@ -772,16 +617,7 @@
             <!-- Facet Row by selection -->
             <div class="query-choice">
                 <div class="flex items-center space-x-2">
-                    <div class="group relative">
-                        <span class="text-blue-500">&#9432;</span>
-                        <span
-                            class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block z-20"
-                        >
-                            By which metric to facet the rows of the plot. (Have
-                            independent plots for each facet row.)
-                        </span>
-                        <span class="font-semibold">Facet Row</span>
-                    </div>
+                    {% field_label "Facet Row" "By which metric to facet the rows of the plot. (Have independent plots for each facet row.)" %}
                 </div>
                 <select
                     name="facet-row-by"
@@ -797,16 +633,7 @@
             <!-- Color Scale selection -->
             <div class="query-choice">
                 <div class="flex items-center space-x-2">
-                    <div class="group relative">
-                        <span class="text-blue-500">&#9432;</span>
-                        <span
-                            class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block z-20"
-                        >
-                            The color pallete for differentiating larger and
-                            smaller values in the plot.
-                        </span>
-                        <span class="font-semibold">Color Scale</span>
-                    </div>
+                    {% field_label "Color Scale" "The color palette for differentiating larger and smaller values in the plot." %}
                 </div>
                 <select
                     name="color_scale"
@@ -824,20 +651,7 @@
             <!-- Matrix selection -->
             <div class="query-choice">
                 <div class="flex items-center space-x-2">
-                    <div class="group relative">
-                        <span class="text-blue-500">&#9432;</span>
-                        <span
-                            class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block z-20"
-                        >
-                            Choose the matrix of interest. Read more
-                            <a
-                                href="{% url 'matrix-info' %}"
-                                class="text-cyan-400 hover:underline"
-                                >here</a
-                            >.
-                        </span>
-                        <span class="font-semibold">Matrix</span>
-                    </div>
+                    {% field_label "Matrix" "Choose the matrix of interest." link_url="/matrix-info" link_text="here" %}
                 </div>
                 <select
                     name="matname"
@@ -854,19 +668,9 @@
             <!-- Matrix Coloring Method selection -->
             <div class="query-choice">
                 <label class="block text-lg font-medium mb-2">
-                    <div class="flex items-center space-x-2">
-                        <div class="group relative">
-                            <span class="text-blue-500">&#9432;</span>
-                            <span
-                                class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block z-20"
-                            >
-                                How to color the cells of the matrix. Weight is
-                                a gradient from small to large values. RUVY is
-                                discrete colors based on matrix type.
-                            </span>
-                            <span class="font-semibold">Coloring Method</span>
-                        </div>
-                    </div>
+                <div class="flex items-center space-x-2">
+                    {% field_label "Coloring Method" "How to color the cells of the matrix. Weight is a gradient from small to large values. RUVY is discrete colors based on matrix type." %}
+                </div>
                 </label>
                 <div class="flex flex-col space-y-2" id="coloring-options">
                     <label
@@ -913,17 +717,7 @@
             <div class="query-choice">
                 <label class="block text-lg font-medium mb-2">
                     <div class="flex items-center space-x-2">
-                        <div class="group relative">
-                            <span class="text-blue-500">&#9432;</span>
-                            <span
-                                class="bg-gray-800 text-white text-sm absolute rounded-md p-2 shadow-lg hidden group-hover:block z-20"
-                            >
-                                How big a node needs to be to have a label.
-                            </span>
-                            <span class="font-semibold"
-                                >Number of Node Labels</span
-                            >
-                        </div>
+                        {% field_label "Number of Node Labels" "How big a node needs to be to have a label." %}
                     </div>
                 </label>
                 <div class="flex items-center space-x-4">

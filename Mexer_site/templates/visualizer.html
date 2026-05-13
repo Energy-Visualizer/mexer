@@ -3,61 +3,70 @@
 {% load static %}
 
 {% block extra_head %}
-  <meta name="description"
+    <meta name="description"
         content="Mexer provides materials, energy, and exergy visualizations
-                  at the economy-wide or world scale. Mexer empowers users with
-                  data to enable research toward sustainable energy and material
-                  policies.">
-  </meta>
+                    at the economy-wide or world scale. Mexer empowers users with
+                    data to enable research toward sustainable energy and material
+                    policies.">
+    </meta>
 
-  <script>
+    <script>
         document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('matname-dropdown').addEventListener('change', function() {
-            var coloringOptions = document.getElementById('coloring-options');
-            if (this.value === 'RUVY') {
-                coloringOptions.style.display = 'block';
-            } else {
-                coloringOptions.style.display = 'none';
+            document.getElementById('matname-dropdown').addEventListener('change', function() {
+                var coloringOptions = document.getElementById('coloring-options');
+                if (this.value === 'RUVY') {
+                    coloringOptions.style.display = 'block';
+                } else {
+                    coloringOptions.style.display = 'none';
+                }
+            });
+        });
+    </script>
+    <script>
+        document.addEventListener('click', function(e) {
+            if (!e.target.classList.contains('info-toggle')) {
+                document.querySelectorAll('.info-toggle + div').forEach(el => {
+                    el.classList.add('hidden');
+                });
             }
         });
-      });
-  </script>
+    </script>
 
-  <!-- Startup Script -->
-  <script>
+    <!-- Startup Script -->
+    <script>
     window.onload = () => {
         initialize(); refreshHistory();
     };
-  </script>
+    </script>
 
-  <!-- CSS stylesheets -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-  <link rel="stylesheet" href="{% static 'css/bg-waves.css' %}" type="text/css" />
+    <!-- CSS stylesheets -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/bg-waves.css' %}" type="text/css" />
 
-  <!-- External libraries -->
-  <script src="https://unpkg.com/htmx.org@1.9.12"></script> <!-- HTMX -->
-  <script src="https://cdn.plot.ly/plotly-latest.min.js" charset="utf-8"></script> <!-- Plotly -->
-  <link rel="stylesheet" href="{% static 'css/SanKEY_styles.css' %"> <!-- SanKEY css -->
+    <!-- External libraries -->
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script> <!-- HTMX -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js" charset="utf-8"></script> <!-- Plotly -->
+    <link rel="stylesheet" href="{% static 'css/SanKEY_styles.css' %"> <!-- SanKEY css -->
 
-  <!-- External libraries: Vega -->
-  <script src="https://cdn.jsdelivr.net/npm/vega@5.21.0"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vega-lite@4.17.0"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.17.0"></script>
+    <!-- External libraries: Vega -->
+    <script src="https://cdn.jsdelivr.net/npm/vega@5.21.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@4.17.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.17.0"></script>
 
-  <!-- Internal JS -->
-  <script src="{% static 'js/visualizer.js' %}"></script>
+    <!-- Internal JS -->
+    <script src="{% static 'js/visualizer.js' %}"></script>
 
-  <!-- Make the plot utility imports available throughout the window -->
-  <script type="module">
-      import {downloadSankey, createSankey} from "{% static 'js/plotUtil.js' %}";
-      window.downloadSankey = downloadSankey;
-      window.createSankey = createSankey;
-  </script>
+    <!-- Make the plot utility imports available throughout the window -->
+    <script type="module">
+        import {downloadSankey, createSankey} from "{% static 'js/plotUtil.js' %}";
+        window.downloadSankey = downloadSankey;
+        window.createSankey = createSankey;
+    </script>
 
-  <!-- components -->
-  {% include "snippets/card.html" %} <!-- include template html -->
-  <script src="{% static 'js/components/card.js' %}" defer></script> <!-- include web component script -->
-  <!-- end components -->
+    <!-- components -->
+    {% include "snippets/card.html" %} <!-- include template html -->
+    <script src="{% static 'js/components/card.js' %}" defer></script> <!-- include web component script -->
+    <!-- end components -->
 
 {% endblock %}
 
