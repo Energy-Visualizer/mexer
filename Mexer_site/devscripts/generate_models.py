@@ -61,8 +61,8 @@ def _table_class_name(name: str) -> str:
 
 
 def _column_field_name(name: str) -> str:
-    # Snake-case.
-    s = re.sub(r"(?<=[A-Z])([A-Z])(?=[a-z])", r"_\1", name)
+    s = re.sub(r"([A-Z]+)([A-Z][a-z]{2,})", r"\1_\2", name)
+    s = re.sub(r"([A-Z]{2,})([a-z])", r"\1_\2", s)
     s = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", s)
     return s.lower()
 
