@@ -94,7 +94,7 @@ def visualizer(request):
     product_aggregations = Translator.get_all("agglevel")
     industry_aggregations = Translator.get_all("agglevel")
     matnames = Translator.get_all("matname")
-    matnames.sort(key=len)  # sort matrix names by how long they are... seems reasonable
+    matnames.sort()
 
     # Prepare the context dictionary for the template
     context = {
