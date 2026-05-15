@@ -45,7 +45,7 @@ def generate_models(
     code = (
         base_code
         + "\n"
-        + "\n\n".join(
+        + "\n\n\n".join(
             _format_model(table, columns) for table, columns in tables.items()
         )
     )
@@ -107,15 +107,15 @@ def _format_model(table_name: str, columns: dict[str, Column]) -> str:
     return f"""class {class_name}(models.Model):
     \"\"\"{docs}\"\"\"
 
-    {"\n    ".join(_format_column(name, data) for name, data in columns.items())}
-
     class Meta:
         db_table = "{table_name}"
-        managed = False"""
+        managed = False
+
+    {"\n    ".join(_format_column(name, data) for name, data in columns.items())}"""
 
 
 if __name__ == "__main__":
     SRC = "./Mexer_site/internal_resources/SchemaAndFKTables.xlsx"
-    DEST = "test.py"
+    DEST = "./Mexer_site/Mexer/models.py"
     BASE_MODELS = "./Mexer_site/internal_resources/base_models.py"
     generate_models(src=SRC, dest=DEST, base_models=BASE_MODELS, output=print)
