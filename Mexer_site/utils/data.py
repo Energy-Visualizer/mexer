@@ -100,23 +100,26 @@ def get_dataframe(target: DatabaseTarget, query: dict, columns: list) -> pd.Data
     return df
 
 
+# TODO: We need to "discover" these columns, not
+# hardcode them.
+
 META_COLUMNS = [
-    "Dataset",
-    "ValidFromVersion",
-    "ValidToVersion",
-    "Country",
-    "Method",
-    "EnergyType",
-    "LastStage",
-    "IncludesNEU",
-    "Year",
-    "ChoppedMat",
-    "ChoppedVar",
-    "ProductAggregation",
-    "IndustryAggregation",
+    "dataset",
+    "valid_from_version",
+    "valid_to_version",
+    "country",
+    "method",
+    "entry_type",
+    "last_stage",
+    "includes_neu",
+    "year",
+    "chopped_mat",
+    "chopped_var",
+    "product_aggregation",
+    "industry_aggregation",
 ]
 PSUT_COLUMNS = ["matname", "i", "j", "value"]
-AGGETA_COLUMNS = ["GrossNet", "EXp", "EXf", "EXu", "etapf", "etafu", "etapu"]
+AGGETA_COLUMNS = ["gross_net", "ex_p", "ex_f", "ex_u", "etapf", "etafu", "etapu"]
 
 
 def get_translated_dataframe(
@@ -132,19 +135,19 @@ def get_translated_dataframe(
 
     # Translate the DataFrame's column names
     translate_columns = {
-        "Dataset": translator.dataset_translate,
-        "ValidFromVersion": translator.version_translate,
-        "ValidToVersion": translator.version_translate,
-        "Country": translator.country_translate,
-        "Method": translator.method_translate,
-        "EnergyType": translator.energytype_translate,
-        "LastStage": translator.laststage_translate,
-        "ChoppedMat": translator.matname_translate,
-        "ChoppedVar": translator.index_translate,
-        "ProductAggregation": translator.agglevel_translate,
-        "IndustryAggregation": translator.agglevel_translate,
+        "dataset": translator.dataset_translate,
+        "valid_from_version": translator.version_translate,
+        "valid_to_version": translator.version_translate,
+        "country": translator.country_translate,
+        "method": translator.method_translate,
+        "entry_type": translator.energytype_translate,
+        "last_stage": translator.laststage_translate,
+        "chopped_mat": translator.matname_translate,
+        "chopped_var": translator.index_translate,
+        "product_aggregation": translator.agglevel_translate,
+        "industry_aggregation": translator.agglevel_translate,
         "matname": translator.matname_translate,
-        "grossnet": translator.grossnet_translate,
+        "gross_net": translator.grossnet_translate,
         "i": translator.index_translate,
         "j": translator.index_translate,
     }
@@ -155,8 +158,8 @@ def get_translated_dataframe(
             df[col] = df[col].apply(translate_func)
 
     # Handle IncludesNEU separately as it's a boolean
-    if "IncludesNEU" in df.columns:
-        df["IncludesNEU"] = df["IncludesNEU"].apply(lambda x: "Yes" if x else "No")
+    if "includes_neu" in df.columns:
+        df["includes_neu"] = df["includes_neu"].apply(lambda x: "Yes" if x else "No")
 
     return df
 

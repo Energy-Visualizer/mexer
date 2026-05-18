@@ -11,7 +11,7 @@
     <!-- end components -->
 {% endblock %}
 {% block content %}
-    Mexer allows for the investigation of data from multiple sources and versions thereof. 
+    Mexer allows for the investigation of data from multiple sources and versions thereof.
     Currently, the following <a class="text-cyan-500" href="#versions">versions</a> and <a class="text-cyan-500" href="#datasets">datasets</a> are available.
     <p class="text-red-500">
         Please note International Energy Agency (IEA) data is proprietary.
@@ -25,12 +25,12 @@
         version.Version is the name
         {% endcomment %}
         <mexer-card>
-            <span id="title">{{ version.Version }}</span>
+            <span id="title">{{ version.version }}</span>
             <span id="content">
-                <em>Released {{ version.ReleaseDate }}</em>
+                <em>Released {{ version.release_date }}</em>
                 <p>
                     <ul class="list-disc px-5">
-                    {% for note in version.ChangeNotes|split:"\.\s+|\.$"|slice:-1 %}
+                    {% for note in version.change_notes|split:"\.\s+|\.$"|slice:-1 %}
                         <li>{{ note }}</li>
                     {% endfor %}
                     </ul>
@@ -42,14 +42,14 @@
     <h2 class="text-2xl mt-4" id="datasets">Datasets</h2>
     {% for dataset in datasets %}
         {% comment %}
-        dataset.Dataset is the shortened name  
+        dataset.dataset is the shortened name
         {% endcomment %}
         <mexer-card>
-            <span id="title">{{ dataset.Dataset }}</span>
+            <span id="title">{{ dataset.dataset }}</span>
             <span id="content">
-                <em>{{ dataset.FullName }}</em>
+                <em>{{ dataset.full_name }}</em>
                 <p>
-                    {{ dataset.Description }}
+                    {{ dataset.description }}
                 </p>
             </span>
         </mexer-card>

@@ -11,7 +11,6 @@
 #       Edom Maru - eam43@calvin.edu
 #####################
 import time
-from typing import Any  # for timestamp in data file name
 
 from altair.utils.data import MaxRowsError  # for catching with matrices are too big
 from django.conf import settings
