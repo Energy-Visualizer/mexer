@@ -19,7 +19,7 @@ from Mexer.models import Index
 
 from utils.data import DatabaseTarget, query_database
 from utils.logging import LOGGER
-from utils.translator import Translator
+from utils.lookup import LookupManager
 
 INDUSTRY_COLOR = "midnightblue"
 OVERRIDE_COL = 1  # where to put energy carrier nodes
@@ -102,7 +102,7 @@ def get_sankey(
     if "matname" in query.keys():
         del query["matname"]
 
-    translator = Translator(target[0])  # get a translator for the correct database
+    translator = LookupManager(target[0])  # get a translator for the correct database
 
     # have the query get a full RUVY
     query.update(

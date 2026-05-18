@@ -33,10 +33,10 @@ from utils.data import (
 )
 from utils.history import update_user_history
 from utils.logging import LOGGER
+from utils.lookup import LookupManager
 from utils.matrix import get_matrix, get_ruvy_matrix, visualize_matrix
 from utils.misc import get_plot_title, iea_valid, time_view
 from utils.sankey import get_sankey
-from utils.translator import Translator
 from utils.xy_plot import get_xy
 
 
@@ -68,13 +68,13 @@ def visualizer(request):
 
     # Fetch all available options for various parameters from the Translator
     if admin_user:
-        datasets = Translator.get_translations("datasets:admin")
+        datasets = LookupManager.attribute("datasets:admin")
     else:
-        datasets = Translator.get_translations("datasets:public")
+        datasets = LookupManager.attribute("datasets:public")
 
-    countries = Translator.get_translations("country")
+    countries = LookupManager.attribute("country")
     countries.sort()
-    versions = Translator.get_translations("version")
+    versions = LookupManager.attribute("version")
     if admin_user:
         sandbox_versions = [
             settings.SANDBOX_PREFIX + ver
@@ -86,13 +86,13 @@ def visualizer(request):
         sandbox_versions = []
     # methods = Translator.get_all('method')
     methods = ["PCM"]  # override, we don't show all the options
-    energy_types = Translator.get_translations("energytype")
+    energy_types = LookupManager.attribute("energytype")
     # last_stages = Translator.get_all('laststage')
     last_stages = ["Final", "Useful"]  # override, we don't show all the options
-    grossnets = Translator.get_translations("grossnet")
-    product_aggregations = Translator.get_translations("agglevel")
-    industry_aggregations = Translator.get_translations("agglevel")
-    matnames = Translator.get_translations("matname")
+    grossnets = LookupManager.attribute("grossnet")
+    product_aggregations = LookupManager.attribute("agglevel")
+    industry_aggregations = LookupManager.attribute("agglevel")
+    matnames = LookupManager.attribute("matname")
     matnames.sort()
 
     # Prepare the context dictionary for the template

@@ -36,8 +36,8 @@ from django.http import QueryDict
 from Mexer.models import PSUT, AggEtaPFU, IEAData, models
 
 from utils.logging import LOGGER
+from utils.lookup import LookupManager
 from utils.misc import ShapedQuery, Silent
-from utils.translator import Translator
 
 type DatabaseSource = Literal["sandbox", "users", "default"]
 
@@ -131,7 +131,7 @@ def get_translated_dataframe(
     if df.empty:
         return df
 
-    translator = Translator(target[0])  # get a translator for the correct database
+    translator = LookupManager(target[0])  # get a translator for the correct database
 
     # Translate the DataFrame's column names
     translate_columns = {
@@ -257,7 +257,7 @@ def translate_query(target: DatabaseTarget, query: ShapedQuery) -> dict[str, Any
     if not _valid_database(db_source):
         raise ValueError("Unknown database specified for translating query")
 
-    translator = Translator(db_source)
+    translator = LookupManager(db_source)
 
     # Clear sandbox prefix from query parameters;
     # translation will not recognize sandbox prefix.

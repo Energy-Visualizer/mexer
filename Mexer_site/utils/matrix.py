@@ -16,7 +16,7 @@ from Mexer.models import Index
 from scipy.sparse import coo_matrix
 
 from utils.data import DatabaseTarget, query_database
-from utils.translator import Translator
+from utils.lookup import LookupManager
 
 alt.data_transformers.enable("default")
 
@@ -90,7 +90,7 @@ def visualize_matrix(
         alt.Chart A chart containing the heatmap.
     """
 
-    translator = Translator(target[0])  # get a translator for the correct database
+    translator = LookupManager(target[0])  # get a translator for the correct database
 
     # Create a dictionary mapping index IDs to their orders.
     index_orders = {

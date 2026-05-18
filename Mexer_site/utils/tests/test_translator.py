@@ -1,18 +1,18 @@
 from django.test import TestCase
 
-from utils.translator import Translator
+from utils.lookup import LookupManager
 
 
 class TranslatorTests(TestCase):
     def test_get_all(self):
-        translator = Translator("default")
-        translations = translator.get_translations("energytype")
+        translator = LookupManager("default")
+        translations = translator.attribute("energytype")
 
         self.assertIn("Energy", translations)
         self.assertIn("Exergy", translations)
 
     def test_translations(self):
-        translator = Translator("default")
+        translator = LookupManager("default")
         energy_translation = translator.energytype_translate("Energy")
         exergy_translation = translator.energytype_translate("Exergy")
 
@@ -24,7 +24,7 @@ class TranslatorTests(TestCase):
         self.assertEqual(reverse_energy_translation, "Energy")
 
     def test_invalid_translation(self):
-        translator = Translator("default")
+        translator = LookupManager("default")
 
         with self.assertRaises(KeyError):
             _ = translator.energytype_translate("InvalidType")
