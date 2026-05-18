@@ -8,7 +8,3 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Bring in all the source code
 COPY --chmod=0600 Mexer_site/ .
-
-# Set environment variables
-ENV PGSERVICEFILE=/app/.pg_service.conf
-ENV PGPASSFILE=/app/.pgpass

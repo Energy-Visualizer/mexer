@@ -6,18 +6,15 @@
 {% block extra_head %}
     <!-- components -->
     {% include "snippets/card.html" %} <!-- include template html -->
-    <script src={% static "js/components/card.js" %} defer></script> <!-- include web component script -->
+    <script src="{% static 'js/components/card.js' %}" defer></script> <!-- include web component script -->
     <!-- end components -->
 {% endblock %}
 
 {% block content %}
     <p>
-        Mexer allows for the investigation of data using multiple different PSUT matricies. Information on these matricies can be found below.
+        Mexer allows for the investigation of data using multiple different PSUT matrices. Information on these matrices can be found below.
     </p>
-    {% for matrix in matricies %}
-        {% comment %}
-        matrix.matname is the short name
-        {% endcomment %}
+    {% for matrix in matrices %}
         <mexer-card>
             <span id="title">{{ matrix.matname }}</span>
             <span id="content">

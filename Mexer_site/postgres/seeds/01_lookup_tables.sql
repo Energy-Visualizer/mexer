@@ -1,5 +1,7 @@
 -- Lookup tables (seed 01)
 
+BEGIN;
+
 -- Dataset
 INSERT INTO public."Dataset" ("DatasetID", "Dataset", "Public", "FullName", "Description") VALUES
     (1, 'Test Dataset', true, 'Test Dataset Full Name', 'This is a test dataset for unit testing purposes.'),
@@ -8,8 +10,9 @@ ON CONFLICT DO NOTHING;
 
 -- Version
 INSERT INTO public."Version" ("VersionID", "Version", "ReleaseDate", "Public", "ChangeNotes") VALUES
-    (1, 1, '2023-01-01', true, 'Initial release of the test dataset.'),
-    (2, 2, '2023-06-01', false, 'Second version with minor updates.')
+    (1, '2022', '2023-01-01', true, 'Initial release of the test dataset.'),
+    (2, 'v1.0', '2023-06-01', false, 'Second version with minor updates.'),
+    (2147483647, 'current', '9999-12-31', true, 'Sentinel version representing open-ended validity.')
 ON CONFLICT DO NOTHING;
 
 -- Country
@@ -27,8 +30,8 @@ ON CONFLICT DO NOTHING;
 
 -- EnergyType
 INSERT INTO public."EnergyType" ("EnergyTypeID", "EnergyType", "FullName", "Description") VALUES
-    (1, 'Electricity', 'Electricity Energy Type', 'Energy type related to electricity'),
-    (2, 'Fossil Fuels', 'Fossil Fuels Energy Type', 'Energy type related to fossil fuels')
+    (1, 'Energy', 'Energy', 'Energy type related to electricity'),
+    (2, 'Exergy', 'Exergy', 'Energy type related to fossil fuels')
 ON CONFLICT DO NOTHING;
 
 -- ECCStage
@@ -45,8 +48,10 @@ ON CONFLICT DO NOTHING;
 
 -- matname, Index, AggLevel, GrossNet
 INSERT INTO public."matname" ("matnameID", matname, "FullName", "Public", "Description", "RowFormat", "ColFormat") VALUES
-    (1, 'Matrix A', 'Full Name of Matrix A', true, 'Description of Matrix A', 'Row Format A', 'Column Format A'),
-    (2, 'Matrix B', 'Full Name of Matrix B', false, 'Description of Matrix B', 'Row Format B', 'Column Format B')
+    (1, 'R', 'R', true, 'Description of Matrix R', '', ''),
+    (2, 'U', 'U', false, 'Description of Matrix U', '', ''),
+    (3, 'V', 'V', false, 'Description of Matrix V', '', ''),
+    (4, 'Y', 'Y', false, 'Description of Matrix Y', '', '')
 ON CONFLICT DO NOTHING;
 
 INSERT INTO public."Index" ("IndexID", "Index", "Order", "SankeyColumn") VALUES
@@ -63,3 +68,5 @@ INSERT INTO public."GrossNet" ("GrossNetID", "GrossNet", "FullName", "Descriptio
     (1, 'Gross', 'Gross Energy', 'Energy data measured in gross terms'),
     (2, 'Net', 'Net Energy', 'Energy data measured in net terms')
 ON CONFLICT DO NOTHING;
+
+COMMIT;

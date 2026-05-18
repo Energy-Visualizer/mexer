@@ -1,7 +1,6 @@
-version: "3.8"
-
 services:
   db:
+    profiles: [local]
     image: postgres:latest
     container_name: postgres
     restart: unless-stopped
@@ -12,7 +11,7 @@ services:
       - "5432:5432"
     volumes:
       - ./postgres/mexer_schema.sql:/docker-entrypoint-initdb.d/mexer_schema.sql:ro
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     networks:
       - mexerNetwork
     healthcheck:
@@ -22,15 +21,19 @@ services:
       retries: 20
 
   web:
+    profiles: [local]
     build:
       context: .
       dockerfile: dockerfile
     container_name: mexer
     restart: "no"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     env_file:
       - .env
+    environment:
+      local: "true"
     ports:
       - "8000:8000"
     volumes:
@@ -41,8 +44,45 @@ services:
     command: ["python3", "manage.py", "debug", "0.0.0.0:8000"]
     post_start:
       - command: ["python3", "manage.py", "migrate"]
-      - command: ["python3", "manage.py", "load_test_data", "--dir", "/app/postgres/seeds"]
-      - command: ["sh", "-c", "python3 manage.py createsuperuser --noinput --username \"$DJANGO_SUPERUSER_USERNAME\" --email \"$DJANGO_SUPERUSER_EMAIL\" || true"]
+      - command:
+          [
+            "python3",
+            "manage.py",
+            "load_test_data",
+            "--dir",
+            "/app/postgres/seeds",
+          ]
+      - command:
+          [
+            "sh",
+            "-c",
+            'python3 manage.py createsuperuser --noinput --username "$DJANGO_SUPERUSER_USERNAME" --email "$DJANGO_SUPERUSER_EMAIL" || true',
+          ]
+
+  production:
+    profiles: [production]
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: mexer_production
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    env_file:
+      - .env
+    environment:
+      PGSERVICEFILE: /app/.pg_service.conf
+      PGPASSFILE: /app/.pgpass
+      local: "false"
+      PYTHONUNBUFFERED: "1"
+    ports:
+      - "8000:8000"
+    volumes:
+      - /usr/share/dict/words:/usr/share/dict/words:ro
+      - ./Mexer_site/general.log:/app/general.log:rw
+    command: ["python3", "-u", "manage.py", "runserver", "0.0.0.0:8000"]
+    post_start:
+      - command: ["python3", "manage.py", "collectstatic", "--noinput"]
 
 volumes:
   postgres_data:

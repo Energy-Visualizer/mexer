@@ -11,3 +11,5 @@ general.log
 mexer_venv
 
 .env
+
+.zed

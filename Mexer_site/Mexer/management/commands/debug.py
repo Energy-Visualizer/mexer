@@ -1,5 +1,6 @@
-from django.core.management.commands.runserver import Command as BaseRunServer
 from django.conf import settings
+from django.core.management.commands.runserver import Command as BaseRunServer
+
 
 # Class must be named exactly "Command"
 class Command(BaseRunServer):

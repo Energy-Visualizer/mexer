@@ -1,6 +1,6 @@
 ####################################################################
 # logging.py includes all functions related to logging
-# 
+#
 # It is 2 lines. It gives developers a logger to use called LOGGER.
 #
 # The logging format is defined in Mexer_meta/settings.py
@@ -10,7 +10,7 @@
 #
 # Authors:
 #       Kenny Howes - kmh67@calvin.edu
-#       Edom Maru - eam43@calvin.edu 
+#       Edom Maru - eam43@calvin.edu
 #####################
 import logging
 
