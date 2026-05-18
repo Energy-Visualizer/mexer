@@ -296,9 +296,7 @@ def translate_query(target: DatabaseTarget, query: ShapedQuery) -> dict[str, Any
     if v := query.get("last_stage"):
         translated["LastStage"] = translator.laststage_translate(v)
     # includes neu either is in the query or not, it's value does need to be more than empty string, though
-    translated["IncludesNEU"] = translator.includesNEU_translate(
-        bool(query.get("including_neu"))
-    )
+    translated["IncludesNEU"] = int(bool(query.get("including_neu")))
     if v := query.get("chopped_mat"):
         translated["ChoppedMat"] = translator.matname_translate(v)
     if v := query.get("chopped_var"):

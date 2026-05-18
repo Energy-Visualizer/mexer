@@ -14,19 +14,106 @@
 #       Kenny Howes - kmh67@calvin.edu
 #       Edom Maru - eam43@calvin.edu
 #####################
+from collections.abc import Callable
+from curses import keyname
 from datetime import date, datetime, timedelta
-from typing import Any
 
 from bidict import bidict
+from devscripts.generate_models import column_field_name
 from django.apps import apps
 from django.conf import settings
+from django.db.models import Model, QuerySet
+from Mexer.apps import MexerConfig
 from Mexer.models import Dataset
 
+from utils.data import DatabaseSource
 from utils.logging import LOGGER
 
-# how long to cache information from the database
-# in *hours*
-TRANSLATOR_CACHE_TTL = 24
+# App config used to get models dynamically.
+app_name = MexerConfig.name
+mexer_config = apps.get_app_config(app_name)
+
+# How long to cache information from the database.
+TRANSLATOR_CACHE_TTL = timedelta(hours=24.0)
+
+# Some models have a full_name field which represents the name half
+# of the translation.
+#
+# If this field is not present on the model, the model name itself
+# should be the name of the name field.
+FULLNAME_FIELD_NAME = "full_name"
+
+
+# Determines if a table is a candidate for translation.
+# Returns the table's name field.
+def _is_translated(model: type[Model]) -> str | None:
+    has_single_id = len(model._meta.pk_fields) == 1
+    if not has_single_id:
+        return None
+
+    model_fields = model._meta.fields
+    model_name = model._meta.object_name
+    if not model_name:
+        return None
+    model_name_column = column_field_name(model_name)
+
+    name_field_candidates = (FULLNAME_FIELD_NAME, model_name_column)
+    for candidate in name_field_candidates:
+        if any(field.name == candidate for field in model_fields):
+            return candidate
+    return None
+
+
+# Models eligible for translation are those used to narrow
+# DB queries, called "attributes", i.e. they are the targets
+# of the many foreign-key columns present in data-source tables.
+#
+# Derived programatically: all tables that have a full-name
+# column or a name column with the same name as themselves,
+# and have a single integer primary key column.
+ATTRIBUTES = {
+    model: name
+    for model in mexer_config.get_models()
+    if (name := _is_translated(model))
+}
+
+
+type _QueryOverride = Callable[[type[Model]], QuerySet]
+
+
+def _get_entry_key(
+    database: DatabaseSource, model: type[Model], key_name_override: str | None
+) -> str:
+    model_name = key_name_override if key_name_override else model._meta.object_name
+    return f"{database}:{model_name}"
+
+
+class TranslatorEntry:
+    attribute: type[Model]
+    created_at: datetime
+    translations: bidict[str, int]
+
+    def __init__(
+        self,
+        attribute: type[Model],
+        translations: bidict[str, int],
+        created_at: datetime | None = None,
+    ):
+        self.attribute = attribute
+        self.translations = translations
+        self.created_at = created_at or datetime.now()
+
+    @property
+    def age(self) -> timedelta:
+        return datetime.now() - self.created_at
+
+    @property
+    def options(self) -> list[str]:
+        """Return the valid options (names) for this attribute."""
+        return list(self.translations.keys())
+
+    def expired(self, ttl=TRANSLATOR_CACHE_TTL) -> bool:
+        return self.age > ttl
 
 
 class Translator:
@@ -34,22 +121,24 @@ class Translator:
     # values are tuples of date times and bidict objects
     # the date times mark when the entry was cached
     # the bidict has the translation information
-    __translations: dict[str, tuple[date, bidict[Any, Any]]] = {}
+    _translations: dict[str, TranslatorEntry] = {}
 
     # A tuple of a datetime of when this entry was cached
     # and a list of strings for all the public datasets
-    __public_datasets: tuple[date, list[str]] | None = None
+    _public_datasets: TranslatorEntry | None = None
 
-    # how long entries are allowed to exist before getting refreshed
-    __cache_ttl = timedelta(hours=TRANSLATOR_CACHE_TTL)
+    db: DatabaseSource
 
-    def __init__(self, database: str):
-        self._db = database
+    def __init__(self, database: DatabaseSource = "default"):
+        self.db = database
 
     @staticmethod
-    def __load_bidict(
-        model_name: str, id_field: str, name_field: str, database: str
-    ) -> bidict:
+    def _get_entry(
+        database: DatabaseSource,
+        model: type[Model],
+        key_name_override: str | None = None,
+        query_override: _QueryOverride | None = None,
+    ) -> TranslatorEntry:
         """
         Load translations for a specific model if not already loaded.
 
@@ -62,205 +151,120 @@ class Translator:
             bidict: A bidirectional dictionary of translations for the model.
         """
 
-        # check if we have the desired information
-        if (database + ":" + model_name) not in Translator.__translations:
-            Translator.__load_and_cache(model_name, id_field, name_field, database)
-
-        model_translations = Translator.__translations[database + ":" + model_name]
-
-        # if the data's cache ttl is expired,
-        # recache and reload
-        if (datetime.today().date() - model_translations[0]) > Translator.__cache_ttl:
-            Translator.__load_and_cache(model_name, id_field, name_field, database)
-            model_translations = Translator.__translations[database + ":" + model_name]
-
-        # return the bidict of model translations
-        return model_translations[1]
-
-    @staticmethod
-    def __load_and_cache(
-        model_name: str, id_field: str, name_field: str, database: str
-    ):
-        LOGGER.info(
-            f"Loading and caching {database}:{model_name} for {id_field} <-> {name_field}"
-        )
-
-        # Get the model class dynamically
-        model = apps.get_model(app_label="Mexer", model_name=model_name)
-
-        # Create a bidict with name:id pairs
-        Translator.__translations[database + ":" + model_name] = (
-            # a datetime to see how long this has been cached
-            datetime.today().date(),
-            # the bidict containing all the data information
-            bidict(
-                {
-                    getattr(item, name_field): getattr(item, id_field)
-                    for item in model.objects.using(database).all()
-                }
-            ),
-        )
-
-    def _translate(self, model_name, value, id_field, name_field):
-        # Translate a value between its ID and name for a specific model.
-        # value: The value to translate (can be either an ID or a name).
-        # Returns: The translated value (either ID or name, depending on input).
-        translations = self.__load_bidict(model_name, id_field, name_field, self._db)
-
-        # try to get the translation
-        if translation := translations.get(value) or translations.inverse.get(value):
-            return translation
-
-        # if no translation found
-        raise KeyError("Unrecognized key '" + str(value) + "' for " + model_name)
-
-    # The following methods are specific translation functions for different models
-    # They all use the _translate method with appropriate parameters
-    def index_translate(self, value):
-        return self._translate("Index", value, "IndexID", "Index")
-
-    def dataset_translate(self, value):
-        return self._translate("Dataset", value, "DatasetID", "Dataset")
-
-    def version_translate(self, value):
-        return self._translate("Version", value, "VersionID", "Version")
-
-    def country_translate(self, value):
-        return self._translate("Country", value, "CountryID", "FullName")
-
-    def method_translate(self, value):
-        return self._translate("Method", value, "MethodID", "Method")
-
-    def energytype_translate(self, value):
-        return self._translate("EnergyType", value, "EnergyTypeID", "FullName")
-
-    def laststage_translate(self, value):
-        return self._translate("LastStage", value, "ECCStageID", "ECCStage")
-
-    def matname_translate(self, value):
-        return self._translate("matname", value, "matnameID", "matname")
-
-    def grossnet_translate(self, value):
-        return self._translate("GrossNet", value, "GrossNetID", "GrossNet")
-
-    def agglevel_translate(self, value):
-        return self._translate("AggLevel", value, "AggLevelID", "AggLevel")
-
-    def includesNEU_translate(self, value):
-        return int(bool(value))
-
-    @staticmethod
-    def get_all(attribute, database="default"):
-        """
-        Get all possible values for a given attribute.
-
-        Inputs:
-            attribute (str): The name of the attribute to get values for.
-
-        Outputs:
-            list: A list of all possible values (names) for the attribute.
-        """
-
-        # special cases
-        if attribute == "datasets:public":
-            return Translator.__fetch_public_datasets()
-        if attribute == "datasets:admin":
-            return Translator.__fetch_admin_datasets()
-
-        # Dictionary mapping attribute names to model details
-        model_mappings = {
-            "dataset": ("Dataset", "DatasetID", "Dataset"),
-            "version": ("Version", "VersionID", "Version"),
-            "country": ("Country", "CountryID", "FullName"),
-            "method": ("Method", "MethodID", "Method"),
-            "energytype": ("EnergyType", "EnergyTypeID", "FullName"),
-            "laststage": ("LastStage", "ECCStageID", "ECCStage"),
-            "matname": ("matname", "matnameID", "matname"),
-            "agglevel": ("AggLevel", "AggLevelID", "AggLevel"),
-            "grossnet": ("GrossNet", "GrossNetID", "GrossNet"),
-        }
-
-        if attribute not in model_mappings:
-            raise ValueError(f"Unknown attribute: {attribute}")
-
-        # Get model details and load translations
-        model_name, id_field, name_field = model_mappings[attribute]
-        translations = Translator.__load_bidict(
-            model_name, id_field, name_field, database
-        )
-        return list(translations.keys())
-
-    @staticmethod
-    def __fetch_public_datasets():
-        if (
-            # the list is empty and needs to be filled
-            Translator.__public_datasets is None
-            # the entry needs to be recached
-            or (datetime.today().date() - Translator.__public_datasets[0])
-            > Translator.__cache_ttl
-        ):
-            # reload and recache
-            Translator.__public_datasets = (
-                datetime.today().date(),
-                list(
-                    Dataset.objects.filter(Public=True).values_list(
-                        "Dataset", flat=True
-                    )
-                ),
+        def new_entry():
+            return Translator._generate_entry(
+                database, model, key_name_override, query_override
             )
 
-        return Translator.__public_datasets[1]
+        translation_key = _get_entry_key(database, model, key_name_override)
+        if translation_key not in Translator._translations:
+            # Reload, translation key not present.
+            entry = new_entry()
+        else:
+            # Load cached translation.
+            entry = Translator._translations[translation_key]
+            if entry.expired():
+                # Refresh.
+                entry = new_entry()
+        return entry
 
     @staticmethod
-    def __fetch_admin_datasets():
-        # get all datasets from both MexerDB and SandboxDB
-        mexerdb_datasets = Translator.__load_bidict(
-            "Dataset", "DatasetID", "Dataset", "default"
-        )
-        sandboxdb_datasets = Translator.__load_bidict(
-            "Dataset", "DatasetID", "Dataset", "sandbox"
-        )
+    def _generate_entry(
+        database: DatabaseSource,
+        model: type[Model],
+        key_name_override: str | None = None,
+        query_override: _QueryOverride | None = None,
+    ) -> TranslatorEntry:
+        if model not in ATTRIBUTES:
+            raise ValueError(f"Model kind {model} ineligible for translation")
 
-        # combine them and add the sandbox prefix
-        # onto the sandbox datasets to differentitate
-        return list(mexerdb_datasets.keys()) + [
-            settings.SANDBOX_PREFIX + ds for ds in sandboxdb_datasets.keys()
+        translation_key = _get_entry_key(database, model, key_name_override)
+        LOGGER.info(f"Loading and caching {translation_key}")
+
+        name_field = ATTRIBUTES[model]
+
+        # Create a mapping between the value of the model's
+        # name field and the value of the model's ID field.
+        query_set = (
+            query_override(model)
+            if query_override
+            else model.objects.using(database).values_list(name_field, "pk")
+        )
+        name_id_mapping = bidict(query_set)
+        translation = TranslatorEntry(model, name_id_mapping)
+
+        # Create a bidict with name:id pairs
+        Translator._translations[translation_key] = translation
+        return translation
+
+    def translate_id(self, *, attribute: type[Model] | str, id: int) -> str:
+        if isinstance(attribute, str):
+            attribute = mexer_config.get_model(attribute)
+        model_name = attribute._meta.object_name
+        entry = self._get_entry(self.db, attribute)
+        try:
+            return entry.translations.inverse[id]
+        except KeyError:
+            raise KeyError(f"Unrecognized ID {id} for {model_name}")
+
+    def translate_name(self, *, attribute: type[Model] | str, name: str) -> int:
+        if isinstance(attribute, str):
+            attribute = mexer_config.get_model(attribute)
+        model_name = attribute._meta.object_name
+        entry = self._get_entry(self.db, attribute)
+        try:
+            return entry.translations[name]
+        except KeyError:
+            raise KeyError(f"Unrecognized entry '{name}' for {model_name}")
+
+    def translate(self, *, attribute: type[Model] | str, value: str | int) -> str | int:
+        if isinstance(value, str):
+            return self.translate_name(attribute=attribute, name=value)
+        else:
+            return self.translate_id(attribute=attribute, id=value)
+
+    def get_translations(self, attribute: type[Model] | str) -> TranslatorEntry:
+        """Get all possible name/id pairs for a given attribute."""
+
+        if isinstance(attribute, str):
+            attribute = mexer_config.get_model(attribute)
+
+        translations = Translator._get_entry(self.db, attribute)
+        return translations
+
+    @property
+    def public_datasets(self):
+        key_name_override = "public_datasets"
+
+        def query_override(model: type[Model]):
+            return model.objects.filter(Public=True).values_list("Dataset", "pk")
+
+        return self._get_entry(self.db, Dataset, key_name_override, query_override)
+
+    @staticmethod
+    def admin_dataset_names():
+        mexer = Translator("default")
+        sandbox = Translator("sandbox")
+
+        mexer_datasets = mexer.get_translations(Dataset)
+        sandbox_datasets = sandbox.get_translations(Dataset)
+
+        # Combine them and add the sandbox prefix
+        # onto the sandbox datasets to differentiate.
+        return mexer_datasets.options + [
+            settings.SANDBOX_PREFIX + dataset for dataset in sandbox_datasets.options
         ]
-
-    @staticmethod
-    def get_includesNEUs():
-        return [True, False]
 
     # TODO: This needs to be finished...
     @staticmethod
-    def get_all_available(attribute):
-        """Get all available values for a given attribute from the PSUT model.
+    def get_all_available(attribute: type[Model] | str):
+        """Get all available values for a given attribute from the PSUT model."""
 
-        Inputs:
-            attribute (str): The name of the attribute to get values for.
+        if isinstance(attribute, str):
+            attribute = mexer_config.get_model(attribute)
 
-        Outputs:
-            A list of distinct values for the attribute from the PSUT model.
-        """
-        # Dictionary mapping attribute names to model details
-        model_mappings = {
-            "dataset": ("Dataset", "DatasetID", "Dataset"),
-            "version": ("Version", "VersionID", "Version"),
-            "country": ("Country", "CountryID", "FullName"),
-            "method": ("Method", "MethodID", "Method"),
-            "energytype": ("EnergyType", "EnergyTypeID", "FullName"),
-            "laststage": ("LastStage", "ECCStageID", "ECCStage"),
-            "matname": ("matname", "matnameID", "matname"),
-            "agglevel": ("AggLevel", "AggLevelID", "AggLevel"),
-            "grossnet": ("GrossNet", "GrossNetID", "GrossNet"),
-        }
-
-        if attribute not in model_mappings:
-            raise ValueError(f"Unknown attribute: {attribute}")
-
-        model_name, id_field, name_field = model_mappings[attribute]
-        _translations = Translator.__load_bidict(
-            model_name, id_field, name_field, ""
+        _translations = Translator._get_entry(
+            "default", attribute
         )  # TODO... which database?
 
         # Print distinct values for the attribute from the PSUT model

@@ -6,7 +6,7 @@ from utils.translator import Translator
 class TranslatorTests(TestCase):
     def test_get_all(self):
         translator = Translator("default")
-        translations = translator.get_all("energytype")
+        translations = translator.get_translations("energytype")
 
         self.assertIn("Energy", translations)
         self.assertIn("Exergy", translations)

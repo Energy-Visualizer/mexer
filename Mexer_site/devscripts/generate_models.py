@@ -56,11 +56,11 @@ def generate_models(
     output(f"Done creating {len(tables)} models at {dest}")
 
 
-def _table_class_name(name: str) -> str:
+def table_class_name(name: str) -> str:
     return name[:1].upper() + name[1:]
 
 
-def _column_field_name(name: str) -> str:
+def column_field_name(name: str) -> str:
     s = re.sub(r"([A-Z]+)([A-Z][a-z]{2,})", r"\1_\2", name)
     s = re.sub(r"([A-Z]{2,})([a-z])", r"\1_\2", s)
     s = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", s)
@@ -81,7 +81,7 @@ def _django_field_type(dt: SpreadsheetDataType) -> str:
 
 def _format_column(column_name: str, column: Column) -> str:
     # TODO: docs for columns?
-    field_name = _column_field_name(column_name)
+    field_name = column_field_name(column_name)
     args = {"db_column": f'"{column_name}"'}
 
     # Current models.py ignores foreign-key columns
@@ -100,7 +100,7 @@ def _format_column(column_name: str, column: Column) -> str:
 
 
 def _format_model(table_name: str, columns: dict[str, Column]) -> str:
-    class_name = _table_class_name(table_name)
+    class_name = table_class_name(table_name)
     # TODO, once table-of-tables added, derive docstring.
     docs = f"Model for the '{table_name}' database table.'"
 

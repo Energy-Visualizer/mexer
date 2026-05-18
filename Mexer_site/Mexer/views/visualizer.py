@@ -68,13 +68,13 @@ def visualizer(request):
 
     # Fetch all available options for various parameters from the Translator
     if admin_user:
-        datasets = Translator.get_all("datasets:admin")
+        datasets = Translator.get_translations("datasets:admin")
     else:
-        datasets = Translator.get_all("datasets:public")
+        datasets = Translator.get_translations("datasets:public")
 
-    countries = Translator.get_all("country")
+    countries = Translator.get_translations("country")
     countries.sort()
-    versions = Translator.get_all("version")
+    versions = Translator.get_translations("version")
     if admin_user:
         sandbox_versions = [
             settings.SANDBOX_PREFIX + ver
@@ -86,13 +86,13 @@ def visualizer(request):
         sandbox_versions = []
     # methods = Translator.get_all('method')
     methods = ["PCM"]  # override, we don't show all the options
-    energy_types = Translator.get_all("energytype")
+    energy_types = Translator.get_translations("energytype")
     # last_stages = Translator.get_all('laststage')
     last_stages = ["Final", "Useful"]  # override, we don't show all the options
-    grossnets = Translator.get_all("grossnet")
-    product_aggregations = Translator.get_all("agglevel")
-    industry_aggregations = Translator.get_all("agglevel")
-    matnames = Translator.get_all("matname")
+    grossnets = Translator.get_translations("grossnet")
+    product_aggregations = Translator.get_translations("agglevel")
+    industry_aggregations = Translator.get_translations("agglevel")
+    matnames = Translator.get_translations("matname")
     matnames.sort()
 
     # Prepare the context dictionary for the template
