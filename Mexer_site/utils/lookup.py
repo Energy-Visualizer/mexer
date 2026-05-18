@@ -14,8 +14,8 @@ from devscripts.generate_models import column_field_name
 from django.apps import apps
 from django.conf import settings
 from django.db.models import Model, QuerySet
+from Mexer import models
 from Mexer.apps import MexerConfig
-from Mexer.models import Dataset
 
 from utils.data import DatabaseSource
 from utils.logging import LOGGER
@@ -63,8 +63,55 @@ def _is_attribute(model: type[Model]) -> str | None:
 # column or a name column with the same name as themselves,
 # and have a single integer primary key column.
 ATTRIBUTES = {
-    model: name for model in mexer_config.get_models() if (name := _is_attribute(model))
+    model: name_column
+    for model in mexer_config.get_models()
+    if (name_column := _is_attribute(model))
 }
+
+# Mapping of model field names to attributes,
+# where the model name does not exactly match
+# a table name.
+#
+# The keys are lowercased DB COLUMN NAMES, not Django model names.
+# This is because the Pandas dataframes intercept query response
+# and use the underlying DB's column names.
+SPECIAL_ATTRIBUTE_COLUMNS = {
+    "validfromversion": models.Version,
+    "validtoversion": models.Version,
+    "choppedmat": models.Matname,
+    "choppedvar": models.Index,
+    "productaggregation": models.AggLevel,
+    "industryaggregation": models.AggLevel,
+    "i": models.Index,
+    "j": models.Index,
+}
+
+
+# Get an attribute model based on a raw column name,
+# not a Django field name.
+#
+# Many raw column names should match the names
+# of Django model names. Django model lookup
+# is case-insensitive.
+def _get_attribute(raw_name: str) -> type[Model]:
+    model_name = raw_name.replace("_", "")
+    model_name = model_name.lower()
+    if model_name in SPECIAL_ATTRIBUTE_COLUMNS:
+        return SPECIAL_ATTRIBUTE_COLUMNS[model_name]
+    return mexer_config.get_model(model_name)
+
+
+def get_attribute(raw_name: str) -> type[Model] | None:
+    """Whether this DB column name is eligible for attribute lookup."""
+    model_name = raw_name.replace("_", "")
+    model_name = model_name.lower()
+    if model_name in SPECIAL_ATTRIBUTE_COLUMNS:
+        return SPECIAL_ATTRIBUTE_COLUMNS[model_name]
+    try:
+        model = mexer_config.get_model(model_name)
+        return model if model in ATTRIBUTES else None
+    except LookupError:
+        return None
 
 
 type _QueryOverride = Callable[[type[Model]], QuerySet]
@@ -202,13 +249,13 @@ class LookupManager:
     def lookup(self, *, attribute: type[Model] | str, value: str) -> int: ...
     def lookup(self, *, attribute: type[Model] | str, value: str | int) -> str | int:
         if isinstance(attribute, str):
-            attribute = mexer_config.get_model(attribute)
+            attribute = _get_attribute(attribute)
         model_name = attribute._meta.object_name
         lookup = self._get_lookup(self.db, attribute)
         try:
             return lookup[value]
         except KeyError:
-            raise KeyError(f"Unrecognized lookup key '{name}' for {model_name}")
+            raise KeyError(f"Unrecognized lookup key '{name_column}' for {model_name}")
 
     def attribute(self, attribute: type[Model] | str) -> AttributeLookup:
         """Get or generate a lookup for a specific attribute."""
@@ -219,6 +266,9 @@ class LookupManager:
         lookup = LookupManager._get_lookup(self.db, attribute)
         return lookup
 
+    def __getitem__(self, attribute: type[Model] | str) -> AttributeLookup:
+        return self.attribute(attribute)
+
     @property
     def public_datasets(self):
         key_name_override = "public_datasets"
@@ -226,15 +276,17 @@ class LookupManager:
         def query_override(model: type[Model]):
             return model.objects.filter(Public=True).values_list("Dataset", "pk")
 
-        return self._get_lookup(self.db, Dataset, key_name_override, query_override)
+        return self._get_lookup(
+            self.db, models.Dataset, key_name_override, query_override
+        )
 
     @staticmethod
     def admin_dataset_names():
         mexer = LookupManager("default")
         sandbox = LookupManager("sandbox")
 
-        mexer_datasets = mexer.attribute(Dataset)
-        sandbox_datasets = sandbox.attribute(Dataset)
+        mexer_datasets = mexer[models.Dataset]
+        sandbox_datasets = sandbox[models.Dataset]
 
         # Combine them and add the sandbox prefix
         # onto the sandbox datasets to differentiate.
@@ -248,7 +300,7 @@ class LookupManager:
         """Get all available values for a given attribute from the PSUT model."""
 
         if isinstance(attribute, str):
-            attribute = mexer_config.get_model(attribute)
+            attribute = _get_attribute(attribute)
 
         _lookup = LookupManager._get_lookup(
             "default", attribute

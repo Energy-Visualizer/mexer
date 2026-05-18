@@ -28,20 +28,22 @@ import io
 from collections.abc import Callable
 from typing import Any, Literal, cast
 
+import Mexer.models as models
 import pandas as pd
 import pandas.io.sql as pd_sql  # for getting data into a pandas dataframe
 from django.conf import settings
 from django.db import connections
+from django.db.models import Model
 from django.http import QueryDict
-from Mexer.models import PSUT, AggEtaPFU, IEAData, models
 
+from Mexer_site.devscripts.generate_models import column_field_name
 from utils.logging import LOGGER
-from utils.lookup import LookupManager
+from utils.lookup import LookupManager, get_attribute
 from utils.misc import ShapedQuery, Silent
 
 type DatabaseSource = Literal["sandbox", "users", "default"]
 
-type DatabaseTarget = tuple[DatabaseSource, type[models.Model]]
+type DatabaseTarget = tuple[DatabaseSource, type[Model]]
 
 
 def get_database_target(query: ShapedQuery) -> DatabaseTarget:
@@ -54,9 +56,9 @@ def get_database_target(query: ShapedQuery) -> DatabaseTarget:
 
     plot_type = query.get("plot_type")
     if plot_type == "xy_plot":
-        model = AggEtaPFU
+        model = models.AggEtaPFU
     else:
-        model = IEAData if table_name == "IEAEWEB2022" else PSUT
+        model = models.IEAData if table_name == "IEAEWEB2022" else models.PSUT
 
     source = "sandbox" if is_sandbox else "default"
     return source, model
@@ -80,7 +82,9 @@ def query_database(target: DatabaseTarget, query: dict, values: list[str]):
     return data
 
 
-def get_dataframe(target: DatabaseTarget, query: dict, columns: list) -> pd.DataFrame:
+def get_dataframe(
+    target: DatabaseTarget, query: dict[str, Any], columns: list
+) -> pd.DataFrame:
     db_source, db_model = target
     if not _valid_database(db_source):
         # Invalid database, empty data frame.
@@ -103,70 +107,44 @@ def get_dataframe(target: DatabaseTarget, query: dict, columns: list) -> pd.Data
 # TODO: We need to "discover" these columns, not
 # hardcode them.
 
-META_COLUMNS = [
-    "dataset",
-    "valid_from_version",
-    "valid_to_version",
-    "country",
-    "method",
-    "entry_type",
-    "last_stage",
-    "includes_neu",
-    "year",
-    "chopped_mat",
-    "chopped_var",
-    "product_aggregation",
-    "industry_aggregation",
-]
 PSUT_COLUMNS = ["matname", "i", "j", "value"]
 AGGETA_COLUMNS = ["gross_net", "ex_p", "ex_f", "ex_u", "etapf", "etafu", "etapu"]
 
 
-def get_translated_dataframe(
+def get_userfriendly_dataframe(
     target: DatabaseTarget, query: dict[str, Any], columns: list
 ) -> pd.DataFrame:
+    """Translate database IDs and other numerical values into
+    named textual counterparts."""
+
     df = get_dataframe(target, query, columns)
 
-    # no need to do work if dataframe is empty (no data was found for the query)
     if df.empty:
         return df
 
-    translator = LookupManager(target[0])  # get a translator for the correct database
+    database = target[0]
+    lookups = LookupManager(database)
 
-    # Translate the DataFrame's column names
-    translate_columns = {
-        "dataset": translator.dataset_translate,
-        "valid_from_version": translator.version_translate,
-        "valid_to_version": translator.version_translate,
-        "country": translator.country_translate,
-        "method": translator.method_translate,
-        "entry_type": translator.energytype_translate,
-        "last_stage": translator.laststage_translate,
-        "chopped_mat": translator.matname_translate,
-        "chopped_var": translator.index_translate,
-        "product_aggregation": translator.agglevel_translate,
-        "industry_aggregation": translator.agglevel_translate,
-        "matname": translator.matname_translate,
-        "gross_net": translator.grossnet_translate,
-        "i": translator.index_translate,
-        "j": translator.index_translate,
-    }
+    # Translate IDs into names when appropriate.
+    for column in df.columns:
+        if not get_attribute(column):
+            continue
 
-    # Apply the translation functions to each column if it exists in the DataFrame
-    for col, translate_func in translate_columns.items():
-        if col in df.columns:
-            df[col] = df[col].apply(translate_func)
+        def transform(value):
+            return lookups.lookup(attribute=column, value=value)
 
-    # Handle IncludesNEU separately as it's a boolean
-    if "includes_neu" in df.columns:
-        df["includes_neu"] = df["includes_neu"].apply(lambda x: "Yes" if x else "No")
+        df[column] = df[column].apply(transform)
+
+    # Handle IncludesNEU separately as it's a boolean.
+    if "IncludesNEU" in df.columns:
+        df["IncludesNEU"] = df["IncludesNEU"].apply(lambda inc: "Yes" if inc else "No")
 
     return df
 
 
 def get_csv_from_query(target: DatabaseTarget, query: dict, columns: list) -> str:
     ROW_NUMS = False
-    return get_translated_dataframe(target, query, columns).to_csv(index=ROW_NUMS)
+    return get_userfriendly_dataframe(target, query, columns).to_csv(index=ROW_NUMS)
 
 
 def get_excel_from_query(
@@ -175,7 +153,7 @@ def get_excel_from_query(
     ROW_NUMS = False
     buffer = io.BytesIO()
     with pd.ExcelWriter(buffer) as writer:
-        get_translated_dataframe(target, query, columns).to_excel(
+        get_userfriendly_dataframe(target, query, columns).to_excel(
             writer, index=ROW_NUMS
         )
     return buffer.getvalue()
@@ -238,7 +216,6 @@ def _str_or_all_list[T](value: str | list[str], op: Callable[[str], T]) -> T | l
         return [op(item) for item in value]
 
 
-# TODO: rewrite this to use a for loop instead
 def translate_query(target: DatabaseTarget, query: ShapedQuery) -> dict[str, Any]:
     """Turn a query of human readable values from a form into a query read to hit the dataset
 
@@ -251,13 +228,13 @@ def translate_query(target: DatabaseTarget, query: ShapedQuery) -> dict[str, Any
         a dictionary of a query ready to hit the database
     """
 
-    translated = dict()
+    final_query: dict[str, Any] = dict()
     db_source, _ = target
 
     if not _valid_database(db_source):
         raise ValueError("Unknown database specified for translating query")
 
-    translator = LookupManager(db_source)
+    lookups = LookupManager(db_source)
 
     # Clear sandbox prefix from query parameters;
     # translation will not recognize sandbox prefix.
@@ -266,67 +243,50 @@ def translate_query(target: DatabaseTarget, query: ShapedQuery) -> dict[str, Any
         for k in query
     }
 
-    # common query parts
-    if v := query.get("dataset"):
-        translated["Dataset"] = translator.dataset_translate(v)
-    if v := query.get("version"):
-        translated["ValidFromVersion__lte"] = translator.version_translate(v)
-        translated["ValidToVersion__gte"] = translator.version_translate(v)
-    if v := query.get("country"):
-        if isinstance(v, list):
-            translated["Country__in"] = [
-                translator.country_translate(country) for country in v
-            ]
-        else:
-            translated["Country"] = translator.country_translate(v)
-    if v := query.get("method"):
-        if isinstance(v, list):
-            translated["Method__in"] = [
-                translator.method_translate(method) for method in v
-            ]
-        else:
-            translated["Method"] = translator.method_translate(v)
-    if v := query.get("energy_type"):
-        if isinstance(v, list):
-            translated["EnergyType__in"] = [
-                translator.energytype_translate(energy_type) for energy_type in v
-            ]
-        else:
-            translated["EnergyType"] = translator.energytype_translate(v)
-    if v := query.get("last_stage"):
-        translated["LastStage"] = translator.laststage_translate(v)
-    # includes neu either is in the query or not, it's value does need to be more than empty string, though
-    translated["IncludesNEU"] = int(bool(query.get("including_neu")))
-    if v := query.get("chopped_mat"):
-        translated["ChoppedMat"] = translator.matname_translate(v)
-    if v := query.get("chopped_var"):
-        translated["ChoppedVar"] = translator.index_translate(v)
-    if v := query.get("product_aggregation"):
-        translated["ProductAggregation"] = translator.agglevel_translate(v)
-    if v := query.get("industry_aggregation"):
-        translated["IndustryAggregation"] = translator.agglevel_translate(v)
-    if v := query.get("grossnet"):
-        translated["GrossNet"] = translator.grossnet_translate(v)
-    # plot-specific query parts
-    if (v := query.get("to_year")) and isinstance(v, str):
-        # if year part is a range of years, i.e. to_year present
-        # set up query as range
-        translated["Year__lte"] = int(v)
-        if (v := query.get("year")) and isinstance(v, str):
-            translated["Year__gte"] = int(v)
-    elif (v := query.get("year")) and isinstance(v, str):
-        # else just have year be one year
-        translated["Year"] = int(v)
-    if v := query.get("matname"):
-        if v == "RUVY":
-            translated["matname__in"] = [
-                translator.matname_translate("R"),
-                translator.matname_translate("U"),
-                translator.matname_translate("V"),
-                translator.matname_translate("Y"),
-            ]
-        else:
-            translated["matname"] = translator.matname_translate(v)
+    SPECIAL_CASES = (models.Version, models.Year)
 
-    LOGGER.debug(f"Translated query: {translated}")
-    return translated
+    # Override RUVY for matname query.
+    if "matname" in query and query["matname"] == "RUVY":
+        query["matname"] = list("RUVY")
+
+    # Translate names to IDs for lookup attributes.
+    for param, arg in query.items():
+        attribute = get_attribute(param)
+        if not attribute:
+            final_query[param] = arg
+            continue
+        if attribute in SPECIAL_CASES:
+            continue
+
+        # The column name is derived from the Python-ified DB table name.
+        column_name = column_field_name(str(attribute._meta.db_table))
+
+        lookup = lookups[attribute]
+        if isinstance(arg, list):
+            final_query_constraint = f"{column_name}__in"
+            final_arg = [lookup[item] for item in arg]
+        else:
+            final_query_constraint = column_name
+            final_arg = lookup[arg]
+        final_query[final_query_constraint] = final_arg
+
+    # Special query parameters.
+
+    final_query["includes_neu"] = int(bool(query.get("IncludesNEU")))
+
+    # Version range handling.
+    if isinstance(v := query.get("version"), str):
+        version = lookups[models.Version][v]
+        final_query["valid_from_version__lte"] = version
+        final_query["valid_to_version__gte"] = version
+
+    # Year handling.
+    if isinstance(v := query.get("to_year"), str):
+        final_query["year__lte"] = int(v)
+        if isinstance(v := query.get("year"), str):
+            final_query["year__gte"] = int(v)
+    elif isinstance(v := query.get("year"), str):
+        final_query["year"] = int(v)
+
+    LOGGER.debug(f"Translated query: {final_query}")
+    return final_query

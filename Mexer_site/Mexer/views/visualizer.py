@@ -128,10 +128,13 @@ def visualizer(request):
 
 def generate_sankey_html(target: DatabaseTarget, query: ShapedQuery) -> str:
     translated_query = translate_query(target, query)
-    nodes, links, options, num_columns = get_sankey(target, translated_query)
+    sankey = get_sankey(target, translated_query)
 
-    if nodes is None:
+    if sankey is None:
         return "Error: No cooresponding data"
+
+    nodes, links, options, num_columns = sankey
+
     return f"<script>createSankey({nodes},{links},{options},\"{get_plot_title(query)}\",{num_columns})</script>\
                     <button onclick='downloadSankey()' class='absolute top-2 right-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'>Download Sankey</button>"
 

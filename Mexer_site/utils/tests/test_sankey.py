@@ -86,10 +86,7 @@ class SankeyTests(TransactionTestCase):
         query = {"Year": 9999}  # Year that doesn't exist in test data
 
         result = get_sankey(target, query)
-
-        self.assertEqual(result[0], None)
-        self.assertEqual(result[1], None)
-        self.assertEqual(result[2], None)
+        self.assertIsNone(result)
 
     def test_get_sankey_returns_json_strings(self):
         """get_sankey should return JSON strings for nodes, links, and options."""
@@ -99,6 +96,7 @@ class SankeyTests(TransactionTestCase):
         result = get_sankey(target, query)
 
         # Should return nodes, links, options, max_columns
+        assert result is not None
         self.assertEqual(len(result), 4)
 
         nodes_json, links_json, options_json, max_columns = result
@@ -121,7 +119,9 @@ class SankeyTests(TransactionTestCase):
         target = ("default", PSUT)
         query = {"Year": 2020}
 
-        nodes_json, *_ = get_sankey(target, query)
+        sankey = get_sankey(target, query)
+        assert sankey is not None
+        nodes_json, *_ = sankey
 
         nodes = json.loads(nodes_json)
 
@@ -142,7 +142,9 @@ class SankeyTests(TransactionTestCase):
         target = ("default", PSUT)
         query = {"Year": 2020}
 
-        _, links_json, *_ = get_sankey(target, query)
+        sankey = get_sankey(target, query)
+        assert sankey is not None
+        _, links_json, *_ = sankey
 
         links = json.loads(links_json)
 
@@ -170,7 +172,9 @@ class SankeyTests(TransactionTestCase):
         target = ("default", PSUT)
         query = {"Year": 2020}
 
-        _, _, options_json, _ = get_sankey(target, query)
+        sankey = get_sankey(target, query)
+        assert sankey is not None
+        _, _, options_json, _ = sankey
 
         options = json.loads(options_json)
 

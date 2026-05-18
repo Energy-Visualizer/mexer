@@ -7,7 +7,7 @@ from utils.data import (
     get_database_target,
     get_dataframe,
     get_excel_from_query,
-    get_translated_dataframe,
+    get_userfriendly_dataframe,
     query_database,
     shape_post_request,
     translate_query,
@@ -53,7 +53,7 @@ class DataTests(TransactionTestCase):
         target = ("default", PSUT)
         query = {"Year": 2021}
         columns = ["Year", "value"]
-        df = get_translated_dataframe(target, query, columns)
+        df = get_userfriendly_dataframe(target, query, columns)
         self.assertEqual(len(df), 1)
         self.assertEqual(df.iloc[0]["Year"], 2021)
         self.assertEqual(df.iloc[0]["value"], 5.5)

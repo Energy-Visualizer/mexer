@@ -15,7 +15,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-from utils.data import DatabaseTarget, get_translated_dataframe
+from utils.data import DatabaseTarget, get_userfriendly_dataframe
 
 
 def get_xy(
@@ -54,7 +54,7 @@ def get_xy(
             fields_to_select.append(mapped)
 
     # get the respective data from the database
-    df = get_translated_dataframe(target, query, fields_to_select)
+    df = get_userfriendly_dataframe(target, query, fields_to_select)
 
     if df.empty:
         return None  # if no data, return as such
