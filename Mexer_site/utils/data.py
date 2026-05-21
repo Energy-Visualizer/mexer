@@ -86,14 +86,29 @@ def get_dataframe(target: DatabaseTarget, query: dict, columns: list) -> pd.Data
         # Invalid database, empty data frame.
         return pd.DataFrame()
 
-    LOGGER.info(str(query))
+    LOGGER.info(f"Query being passed to filter: {query}")
 
-    db_query = db_model.objects.filter(**query).values(*columns).query
+    # Default sort: chronological.
+    # Expand on sorting options in the future.
+    db_query = (
+        db_model.objects.using(db_source)
+        .filter(**query)
+        .values(*columns)
+        .order_by("Year")
+        .query
+    )
+
+    try:
+        sql = str(db_query)
+    except Exception as e:
+        LOGGER.error(f"Query compilation failed: {e}")
+        LOGGER.error(f"Raw query dict: {query}")
+        return pd.DataFrame()
 
     # Intercept database connection and read query to a pandas data frame.
     with Silent():
         df = pd_sql.read_sql_query(
-            str(db_query),
+            sql,
             con=connections[db_source].cursor().connection,
         )
 
