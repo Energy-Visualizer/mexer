@@ -61,6 +61,6 @@ Mexer is designed to be a versatile tool that can be used across various sectors
 
 # Acknowledgements
 
-The development of Mexer was supported by the Energy Economics Team. We appreciate the contributions of Tânia Sousa, Paul Brockway, and all collaborators whose input has been invaluable in shaping the tool's functionality and user experience. Mexer was developed at Calvin University as part of the STEM department's summer research program. Initial development was made possible with a grant from Instituto Superior Técnico, Lisbon, Portugal.
+The development of Mexer was supported by the Energy Economics Team. We appreciate the contributions of Tânia Sousa, Paul Brockway, and all collaborators whose input has been invaluable in shaping the tool's functionality and user experience. Mexer was developed at Calvin University as part of the STEM department's summer research program. Initial development was made possible with a grant from Instituto Superior Téchnico, Lisbon, Portugal.
 
 # References
