@@ -171,8 +171,8 @@ class PSUT(models.Model):
         managed = False
 
     Dataset = models.PositiveSmallIntegerField(primary_key=True)
-    ValidToVersion = models.PositiveSmallIntegerField()
-    ValidFromVersion = models.PositiveSmallIntegerField()
+    ValidToVersion = models.PositiveIntegerField()
+    ValidFromVersion = models.PositiveIntegerField()
     Country = models.PositiveSmallIntegerField()
     Method = models.PositiveSmallIntegerField()
     EnergyType = models.PositiveSmallIntegerField()
