@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.http import QueryDict
 from django.test import TransactionTestCase
 from Mexer.models import PSUT, AggEtaPFU, IEAData
 
@@ -74,12 +75,11 @@ class DataTests(TransactionTestCase):
         self.assertTrue(isinstance(excel_data, bytes))
 
     def test_shape_post_request(self):
-        payload = {
-            "csrfmiddlewaretoken": "dummy_token",
-            "dataset": "IEAEWEB2022",
-            "plot_type": "xy_plot",
-        }
-        shaped_query, plot_type, db_target = shape_post_request(payload)
+        q = QueryDict("", mutable=True)
+        q["csrfmiddlewaretoken"] = "dummy_token"
+        q["dataset"] = "IEAEWEB2022"
+        q["plot_type"] = "xy_plot"
+        shaped_query, plot_type, db_target = shape_post_request(q)
         self.assertNotIn("csrfmiddlewaretoken", shaped_query)
         self.assertEqual(plot_type, "xy_plot")
         self.assertEqual(db_target, ("default", AggEtaPFU))
