@@ -18,7 +18,19 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
-from Mexer.models import AggEtaPFU, EvizUser, Version
+from Mexer.models import (
+    AggEtaPFU,
+    AggLevel,
+    Country,
+    Dataset,
+    EnergyType,
+    EvizUser,
+    GrossNet,
+    LastStage,
+    Method,
+    Version,
+    matname,
+)
 from plotly.offline import plot
 from utils.data import (
     AGGETA_COLUMNS,
@@ -66,15 +78,16 @@ def visualizer(request):
         print(e)
         admin_user = False
 
-    # Fetch all available options for various parameters from the Translator
-    if admin_user:
-        datasets = Translator.get_all("datasets:admin")
-    else:
-        datasets = Translator.get_all("datasets:public")
+    # Temporary, do not use translator.
+    # TODO: Lookup rewrite should include
+    # descriptions as part of entries.
 
-    countries = Translator.get_all("country")
-    countries.sort()
-    versions = Translator.get_all("version")
+    if admin_user:
+        datasets = list(Dataset.objects.all())
+    else:
+        datasets = list(Dataset.objects.filter(Public=True))
+
+    versions = Version.objects.all()
     if admin_user:
         sandbox_versions = [
             settings.SANDBOX_PREFIX + ver
@@ -84,16 +97,22 @@ def visualizer(request):
         ]
     else:
         sandbox_versions = []
-    # methods = Translator.get_all('method')
-    methods = ["PCM"]  # override, we don't show all the options
-    energy_types = Translator.get_all("energytype")
-    # last_stages = Translator.get_all('laststage')
-    last_stages = ["Final", "Useful"]  # override, we don't show all the options
-    grossnets = Translator.get_all("grossnet")
-    product_aggregations = Translator.get_all("agglevel")
-    industry_aggregations = Translator.get_all("agglevel")
-    matnames = Translator.get_all("matname")
-    matnames.sort(key=len)  # sort matrix names by how long they are... seems reasonable
+
+    countries = list(Country.objects.all())
+    countries.sort(key=lambda country: country.FullName)
+
+    methods = list(method for method in Method.objects.all() if method.Method == "PCM")
+    energy_types = list(EnergyType.objects.all())
+    last_stages = list(
+        stage
+        for stage in LastStage.objects.all()
+        if stage.ECCStage in ("Final", "Useful")
+    )
+    grossnets = list(GrossNet.objects.all())
+    agglevels = list(AggLevel.objects.all())
+
+    matnames = list(matname.objects.all())
+    matnames.sort(key=lambda mat: mat.matname)
 
     # Prepare the context dictionary for the template
     context = {
@@ -106,19 +125,17 @@ def visualizer(request):
         "countries": countries,
         "default_country": "Ghana",
         "methods": methods,
-        "default_method": methods[0],
+        "default_method": methods[0].Method,
         "energy_types": energy_types,
-        "default_energy_type": energy_types[0],
+        "default_energy_type": energy_types[0].EnergyType,
         "last_stages": last_stages,
-        "default_last_stage": last_stages[0],
+        "default_last_stage": last_stages[0].ECCStage,
         "grossnets": grossnets,
-        "default_grossnet": grossnets[0],
+        "default_grossnet": grossnets[0].GrossNet,
         "matnames": matnames,
-        "default_matname": matnames[0],
-        "product_aggregations": product_aggregations,
-        "default_product_aggregation": product_aggregations[0],
-        "industry_aggregations": industry_aggregations,
-        "default_industry_aggregation": industry_aggregations[0],
+        "default_matname": matnames[0].matname,
+        "agglevels": agglevels,
+        "default_agglevel": agglevels[0].AggLevel,
         "iea_user": iea_user,
         "site_version": settings.SITE_VERSION,  # version of the site to be displayed to users
     }
