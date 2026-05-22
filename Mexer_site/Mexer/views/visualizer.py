@@ -4,14 +4,13 @@
 # The three main views are
 # The visualizer page itself - where users make queries and see plots
 # The plotting page - the page where, given a post request, plot html will be returned
-# The data page - the page where, given a post request, data in csv or excel (wip) will be returned
+# The data page - the page where, given a post request, data in csv or excel will be returned
 #
 # Authors:
 #       Kenny Howes - kmh67@calvin.edu
 #       Edom Maru - eam43@calvin.edu
 #####################
 import time
-from typing import Any  # for timestamp in data file name
 
 from altair.utils.data import MaxRowsError  # for catching with matrices are too big
 from django.conf import settings
