@@ -27,6 +27,11 @@ mexer_config = apps.get_app_config(app_name)
 # How long to cache information from the database.
 LOOKUP_CACHE_TTL = timedelta(hours=24.0)
 
+##
+## TODO no attribute tables need to use the full_name field
+## as they all have same-named fields.
+##
+
 # Some models have a full_name field which represents the name half
 # of the lookup.
 #
@@ -48,7 +53,8 @@ def _is_attribute(model: type[Model]) -> str | None:
         return None
     model_name_column = column_field_name(model_name)
 
-    name_field_candidates = (FULLNAME_FIELD_NAME, model_name_column)
+    # Prefer model name column first, full-name tends to be more verbose.
+    name_field_candidates = (model_name_column, FULLNAME_FIELD_NAME)
     for candidate in name_field_candidates:
         if any(field.name == candidate for field in model_fields):
             return candidate
@@ -85,6 +91,13 @@ SPECIAL_ATTRIBUTE_COLUMNS = {
     "i": models.Index,
     "j": models.Index,
 }
+
+
+##
+##
+## TODO: STORE DESCRIPTIONS FOR VISUALIZER
+##
+##
 
 
 # Get an attribute model based on a raw column name,
