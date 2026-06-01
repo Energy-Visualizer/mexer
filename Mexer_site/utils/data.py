@@ -38,7 +38,7 @@ from django.http import QueryDict
 
 from Mexer_site.devscripts.generate_models import column_field_name
 from utils.logging import LOGGER
-from utils.lookup import LookupManager, get_attribute
+from utils.lookup import LookupManager, get_foreign_attribute
 from utils.misc import ShapedQuery, Silent
 
 type DatabaseSource = Literal["sandbox", "users", "default"]
@@ -92,6 +92,11 @@ def get_dataframe(
 
     LOGGER.info(f"Query being passed to filter: {query}")
 
+    #
+    # TODO: DO NOT intercept DB connection like this.
+    # Let's build Django models instead.
+    #
+
     # Default sort: chronological.
     # Expand on sorting options in the future.
     db_query = (
@@ -142,7 +147,7 @@ def get_userfriendly_dataframe(
 
     # Translate IDs into names when appropriate.
     for column in df.columns:
-        if not get_attribute(column):
+        if not get_foreign_attribute(column):
             continue
 
         def transform(value):
@@ -266,7 +271,7 @@ def translate_query(target: DatabaseTarget, query: ShapedQuery) -> dict[str, Any
 
     # Translate names to IDs for lookup attributes.
     for param, arg in query.items():
-        attribute = get_attribute(param)
+        attribute = get_foreign_attribute(param)
         if not attribute:
             final_query[param] = arg
             continue
