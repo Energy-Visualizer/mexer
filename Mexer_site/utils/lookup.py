@@ -98,7 +98,9 @@ class Attribute:
 # DB queries, called "attributes", i.e. they are the targets
 # of the many foreign-key columns present in data-source tables.
 #
-# These are hardcoded for now, but should be taken from table of tables.
+# TODO: These are hardcoded for now, but should be taken from table of attributes.
+#
+# TODO: foreign_fields can be derived from schema spreadsheet.
 ATTRIBUTES = {
     models.Index: Attribute(
         model=models.Index, name_field="index", foreign_fields=["i", "j", "chopped_var"]
@@ -114,7 +116,9 @@ ATTRIBUTES = {
     models.EnergyType: Attribute(
         model=models.EnergyType, name_field=FULLNAME_FIELD_NAME
     ),
-    models.ECCStage: Attribute(model=models.ECCStage, name_field="ecc_stage"),
+    models.ECCStage: Attribute(
+        model=models.ECCStage, name_field="ecc_stage", foreign_fields=["last_stage"]
+    ),
     models.Matname: Attribute(
         model=models.Matname, name_field="matname", foreign_fields=["chopped_mat"]
     ),
@@ -287,20 +291,23 @@ class LookupManager:
         except KeyError:
             raise KeyError(f"Unrecognized lookup key '{value}' for {attribute.name}")
 
-    def attribute(self, model: type[Model] | str) -> AttributeLookup:
+    def attribute(self, model: type[Model] | str) -> AttributeLookup | None:
         """Get or generate a lookup for a specific attribute."""
         if isinstance(model, str):
             attribute = get_foreign_attribute(model)
         else:
             attribute = ATTRIBUTES.get(model)
         if attribute is None:
-            raise ValueError(f"Model kind {model} ineligible for lookup")
+            return None
 
         lookup = LookupManager._get_lookup(self.db, attribute)
         return lookup
 
-    def __getitem__(self, attribute: type[Model] | str) -> AttributeLookup:
-        return self.attribute(attribute)
+    def __getitem__(self, model: type[Model] | str) -> AttributeLookup:
+        attribute = self.attribute(model)
+        if attribute is None:
+            raise ValueError(f"model {model} is ineligible for attribute lookup")
+        return attribute
 
     @property
     def public_datasets(self):

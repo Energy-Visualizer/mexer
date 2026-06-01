@@ -251,7 +251,7 @@
                     <input
                         type="checkbox"
                         value="true"
-                        name="including_neu"
+                        name="includes_neu"
                         class="hidden peer"
                         checked
                     />
@@ -397,28 +397,28 @@
             <!-- GrossNet selection -->
             <div class="query-choice">
                 <div class="flex items-center space-x-2">
-                    {% field_label "GrossNet" "GrossNet" %}
+                    {% field_label "Gross/Net" "Gross/Net" %}
                 </div>
                 <div class="mt-2">
-                    <div class="flex flex-col space-y-2" id="grossnet_radio">
-                        {% for grossnet in grossnets %}
+                    <div class="flex flex-col space-y-2" id="gross_net_radio">
+                        {% for gross_net in gross_nets %}
                         <label
                             class="flex items-center space-x-3 cursor-pointer group"
                         >
                             <input
                                 type="radio"
-                                value="{{ grossnet }}"
-                                name="grossnet"
+                                value="{{ gross_net }}"
+                                name="gross_net"
                                 class="hidden peer"
                                 required
-                                {% if grossnet == default_grossnet %}checked{% endif %}
+                                {% if gross_net == default_gross_net %}checked{% endif %}
                             />
                             <span
                                 class="w-5 h-5 inline-block border-2 border-gray-300 rounded-full peer-checked:bg-blue-500 peer-checked:border-blue-500 transition group-hover:scale-110"
                             ></span>
                             <span
                                 class="text-gray-800 peer-checked:text-blue-500 font-medium group-hover:text-blue-400 transition"
-                                >{{ grossnet }}</span
+                                >{{ gross_net }}</span
                             >
                         </label>
                         {% endfor %}
@@ -439,9 +439,9 @@
                         required
                     >
                         <!-- TODO: don't hardcode these -->
-                        <option value="EXp" checked>EXp</option>
-                        <option value="EXf">EXf</option>
-                        <option value="EXu">EXu</option>
+                        <option value="ex_P" checked>EXp</option>
+                        <option value="ex_f">EXf</option>
+                        <option value="ex_u">EXu</option>
                         <option value="etapf">etapf</option>
                         <option value="etafu">etafu</option>
                         <option value="etapu">etapu</option>
@@ -710,7 +710,7 @@
             <div class="mt-4">
                 <label class="block text-lg font-medium mb-2">File Format (for Downloads)</label>
                 <select
-                    name="returnDataType"
+                    name="return_data_type"
                     class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 >
                     <option value="csv" selected>CSV</option>

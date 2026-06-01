@@ -313,7 +313,7 @@ def get_data(request: HttpRequest):
     if request.method != "POST":
         return HttpResponse(status=405)
 
-    data_format = request.POST.get("returnDataType")
+    data_format = request.POST.get("return_data_type")
     if data_format is None:
         return HttpResponse("Data format unspecified", status=400)
 
