@@ -192,48 +192,27 @@ def get_excel_from_query(
 def shape_post_request(
     params: QueryDict,
 ) -> tuple[ShapedQuery, str | None, DatabaseTarget]:
-    """Turn a POST request payload into a ready to use query in a dictionary
-
-    Input:
-
-        payload, some dict-like (used with Django HttpRequest POST attributes):
-        the POST payload to shape into a query dictionary
-
-        get_plot_type, bool: whether or not to get and give the plot type in the payload
-
-    Output:
-
-        a dictionary containing all the associations of a query parts and their values
-
-        IF get_plot_type is True:
-
-            2-tuple containing in top-down order
-
-                a string telling the plot type requested
-
-                a dictionary containing all the associations of a query parts and their values
-    """
+    """Turn a POST request payload into a ready to use query in a dictionary"""
 
     # Get rid of security token; it is not part of a query.
     SKIP_PARAMS = ("csrfmiddlewaretoken",)
 
     # Shaped query extracts items from lists.
-    def shaped_value(key: str, value: str | list[object]) -> str | list[str] | None:
+    def shaped_value(key: str, value: list[str]) -> str | list[str] | None:
         if key in SKIP_PARAMS:
             return None
-        if isinstance(value, str):
-            return value
-        if len(value) == 1 and isinstance(value[0], str):
+        if len(value) == 1:
             return value[0]
-        if all(isinstance(item, str) for item in value):
-            return cast(list[str], value)
+        if len(value) > 1:
+            return value
         LOGGER.warning(f"Non-string POST param for key {key}")
 
     shaped_query = {
         key: value
         for key in params
-        if (value := shaped_value(key, params[key])) is not None
+        if (value := shaped_value(key, params.getlist(key))) is not None
     }
+    LOGGER.info(f"Shaped post request {shaped_query}")
     plot_type = str(shaped_query.get("plot_type"))
     db_target = get_database_target(shaped_query)
     return shaped_query, plot_type, db_target

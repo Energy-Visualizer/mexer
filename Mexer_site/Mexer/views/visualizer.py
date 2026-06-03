@@ -4,7 +4,7 @@
 # The three main views are
 # The visualizer page itself - where users make queries and see plots
 # The plotting page - the page where, given a post request, plot html will be returned
-# The data page - the page where, given a post request, data in csv or excel (wip) will be returned
+# The data page - the page where, given a post request, data in csv or excel will be returned
 #
 # Authors:
 #       Kenny Howes - kmh67@calvin.edu
@@ -110,19 +110,17 @@ def visualizer(request):
         "countries": countries,
         "default_country": "Ghana",
         "methods": methods,
-        "default_method": methods[0],
+        "default_method": methods[0].Method,
         "energy_types": energy_types,
-        "default_energy_type": energy_types[0],
+        "default_energy_type": energy_types[0].EnergyType,
         "last_stages": last_stages,
-        "default_last_stage": last_stages[0],
+        "default_last_stage": last_stages[0].ECCStage,
         "grossnets": grossnets,
-        "default_grossnet": grossnets[0],
+        "default_grossnet": grossnets[0].GrossNet,
         "matnames": matnames,
-        "default_matname": matnames[0],
-        "product_aggregations": product_aggregations,
-        "default_product_aggregation": product_aggregations[0],
-        "industry_aggregations": industry_aggregations,
-        "default_industry_aggregation": industry_aggregations[0],
+        "default_matname": matnames[0].matname,
+        "agglevels": agglevels,
+        "default_agglevel": agglevels[0].AggLevel,
         "iea_user": iea_user,
         "site_version": settings.SITE_VERSION,  # version of the site to be displayed to users
     }
