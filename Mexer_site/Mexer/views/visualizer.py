@@ -110,17 +110,17 @@ def visualizer(request):
         "countries": countries,
         "default_country": "Ghana",
         "methods": methods,
-        "default_method": methods[0].Method,
+        "default_method": methods[0].method,
         "energy_types": energy_types,
-        "default_energy_type": energy_types[0].EnergyType,
+        "default_energy_type": energy_types[0].energy_type,
         "last_stages": last_stages,
-        "default_last_stage": last_stages[0].ECCStage,
+        "default_last_stage": last_stages[0].ecc_stage,
         "grossnets": grossnets,
-        "default_grossnet": grossnets[0].GrossNet,
+        "default_grossnet": grossnets[0].gross_net,
         "matnames": matnames,
         "default_matname": matnames[0].matname,
         "agglevels": agglevels,
-        "default_agglevel": agglevels[0].AggLevel,
+        "default_agglevel": agglevels[0].agg_level,
         "iea_user": iea_user,
         "site_version": settings.SITE_VERSION,  # version of the site to be displayed to users
     }
@@ -336,7 +336,7 @@ def get_data(request: HttpRequest):
     LOGGER.info(query)
 
     columns: list[str] = get_attribute_fields(dataset_model)
-    if dataset_model is AggEtaPFU:
+    if dataset_model is models.AggEtaPFU:
         # get xy info
         columns.extend(AGGETA_COLUMNS)
     else:

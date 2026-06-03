@@ -73,11 +73,11 @@
                     >
                         {% for dataset in datasets %}
                         <option
-                            value="{{ dataset.Dataset }}"
-                            title="{{ dataset.Description }}"
-                            {% if dataset.Dataset == default_dataset %}selected{%endif%}
+                            value="{{ dataset.dataset }}"
+                            title="{{ dataset.description }}"
+                            {% if dataset.dataset == default_dataset %}selected{%endif%}
                         >
-                            {{ dataset.Dataset }}
+                            {{ dataset.dataset }}
                         </option>
                         {% endfor %}
                     </select>
@@ -98,10 +98,10 @@
                     >
                         {% for version in versions %}
                         <option
-                            value="{{ version.Version }}"
-                            {% if version.Version == default_version %}selected{% endif %}
+                            value="{{ version.version }}"
+                            {% if version.version == default_version %}selected{% endif %}
                         >
-                            {{ version.Version }}
+                            {{ version.version }}
                         </option>
                         {% endfor %}
                     </select>
@@ -115,10 +115,10 @@
                     >
                         {% for version in sandbox_versions %}
                         <option
-                            value="{{ version.Version }}"
-                            {% if version.Version == default_sandbox_version %}selected{% endif %}
+                            value="{{ version.version }}"
+                            {% if version.version == default_sandbox_version %}selected{% endif %}
                         >
-                            {{ version.Version }}
+                            {{ version.version }}
                         </option>
                         {% endfor %}
                     </select>
@@ -139,11 +139,11 @@
                     >
                         {% for country in countries %}
                         <option
-                            value="{{ country.FullName }}"
-                            title="{{ country.Description }}"
-                            {% if country.FullName == default_country %}selected{% endif %}
+                            value="{{ country.full_name }}"
+                            title="{{ country.description }}"
+                            {% if country.full_name == default_country %}selected{% endif %}
                         >
-                            {{ country.FullName }}
+                            {{ country.full_name }}
                         </option>
                         {% endfor %}
                     </select>
@@ -167,21 +167,20 @@
                     <label
                         class="flex items-center space-x-3 cursor-pointer group"
                     >
-                        {% if method == default_method %}Bruh!{% endif %}
                         <input
                             type="checkbox"
-                            value="{{ method.Method }}"
+                            value="{{ method.method }}"
                             class="hidden peer"
                             name="method"
-                            {% if method.Method == default_method %}checked{% endif %}
+                            {% if method.method == default_method %}checked{% endif %}
                         />
                         <span
                             class="w-5 h-5 inline-block border-2 border-gray-300 rounded-md peer-checked:bg-blue-500 peer-checked:border-blue-500 transition group-hover:scale-110"
                         ></span>
                         <span
                             class="text-gray-800 peer-checked:text-blue-500 font-medium group-hover:text-blue-400 transition"
-                            title="{{ method.Description }}"
-                            >{{ method.Method }}</span
+                            title="{{ method.description }}"
+                            >{{ method.method }}</span
                         >
                     </label>
                     {% endfor %}
@@ -200,18 +199,18 @@
                     >
                         <input
                             type="checkbox"
-                            value="{{ energy_type.FullName }}"
+                            value="{{ energy_type.full_name }}"
                             class="hidden peer"
                             name="energy_type"
-                            {% if energy_type.FullName == default_energy_type %}checked{% endif %}
+                            {% if energy_type.full_name == default_energy_type %}checked{% endif %}
                         />
                         <span
                             class="w-5 h-5 inline-block border-2 border-gray-300 rounded-md peer-checked:bg-blue-500 peer-checked:border-blue-500 transition group-hover:scale-110"
                         ></span>
                         <span
                             class="text-gray-800 peer-checked:text-blue-500 font-medium group-hover:text-blue-400 transition"
-                            title="{{ energy_type.Description }}"
-                            >{{ energy_type.FullName }}</span
+                            title="{{ energy_type.description }}"
+                            >{{ energy_type.full_name }}</span
                         >
                     </label>
                     {% endfor %}
@@ -231,19 +230,19 @@
                         >
                             <input
                                 type="radio"
-                                value="{{ stage.ECCStage }}"
+                                value="{{ stage.ecc_stage }}"
                                 name="last_stage"
                                 class="hidden peer"
                                 required
-                                {% if stage.ECCStage == default_last_stage %}checked{% endif %}
+                                {% if stage.ecc_stage == default_last_stage %}checked{% endif %}
                             />
                             <span
                                 class="w-5 h-5 inline-block border-2 border-gray-300 rounded-full peer-checked:bg-blue-500 peer-checked:border-blue-500 transition group-hover:scale-110"
                             ></span>
                             <span
                                 class="text-gray-800 peer-checked:text-blue-500 font-medium group-hover:text-blue-400 transition"
-                                title="{{ stage.Description }}"
-                                >{{ stage.ECCStage }}</span
+                                title="{{ stage.description }}"
+                                >{{ stage.ecc_stage }}</span
                             >
                         </label>
                         {% endfor %}
@@ -278,18 +277,18 @@
                     >
                         <input
                             type="checkbox"
-                            value="{{ agglevel.AggLevel }}"
+                            value="{{ agglevel.agg_level }}"
                             name="product_aggregation"
                             class="hidden peer"
-                            {% if agglevel.AggLevel == default_agglevel %}checked{% endif %}
+                            {% if agglevel.agg_level == default_agglevel %}checked{% endif %}
                         />
                         <span
                             class="w-5 h-5 inline-block border-2 border-gray-300 rounded-md peer-checked:bg-blue-500 peer-checked:border-blue-500 transition group-hover:scale-110"
                         ></span>
                         <span
                             class="text-gray-800 peer-checked:text-blue-500 font-medium group-hover:text-blue-400 transition"
-                            title="{{ agglevel.Description }}"
-                            >{{ agglevel.AggLevel }}</span
+                            title="{{ agglevel.description }}"
+                            >{{ agglevel.agg_level }}</span
                         >
                     </label>
                     {% endfor %}
@@ -308,19 +307,18 @@
                     >
                         <input
                             type="checkbox"
-                            value="{{ agglevel.AggLevel }}"
-                            title="{{ agglevel.Description }}"x
+                            value="{{ agglevel.agg_level }}"
                             name="industry_aggregation"
                             class="hidden peer"
-                            {% if agglevel.AggLevel == default_agglevel %}checked{% endif %}
+                            {% if agglevel.agg_level == default_agglevel %}checked{% endif %}
                         />
                         <span
                             class="w-5 h-5 inline-block border-2 border-gray-300 rounded-md peer-checked:bg-blue-500 peer-checked:border-blue-500 transition group-hover:scale-110"
                         ></span>
                         <span
                             class="text-gray-800 peer-checked:text-blue-500 font-medium group-hover:text-blue-400 transition"
-                            title="{{ agglevel.Description }}"
-                            >{{ agglevel.AggLevel }}</span
+                            title="{{ agglevel.description }}"
+                            >{{ agglevel.agg_level }}</span
                         >
                     </label>
                     {% endfor %}
