@@ -80,6 +80,14 @@
                             {{ dataset.dataset }}
                         </option>
                         {% endfor %}
+                        {% for dataset in sandbox_datasets %}
+                        <option
+                            value="{{ SANDBOX_PREFIX }}{{ dataset.dataset }}"
+                            title="{{ dataset.description }}"
+                        >
+                            {{ SANDBOX_PREFIX }}{{ dataset.dataset }}
+                        </option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>
@@ -255,8 +263,8 @@
                 <label class="flex items-center gap-2 cursor-pointer group">
                     <input
                         type="checkbox"
-                        value="true"
                         name="includes_neu"
+                        value="true"
                         class="hidden peer"
                         checked
                     />
@@ -271,24 +279,24 @@
                     {% field_label "Product Aggregation" "Choose the desired Product Aggregation." %}
                 </div>
                 <div class="mt-2">
-                    {% for agglevel in agglevels %}
+                    {% for agg_level in agg_levels %}
                     <label
                         class="flex items-center space-x-3 cursor-pointer group"
                     >
                         <input
                             type="checkbox"
-                            value="{{ agglevel.agg_level }}"
+                            value="{{ agg_level.agg_level }}"
                             name="product_aggregation"
                             class="hidden peer"
-                            {% if agglevel.agg_level == default_agglevel %}checked{% endif %}
+                            {% if agg_level.agg_level == default_agg_level %}checked{% endif %}
                         />
                         <span
                             class="w-5 h-5 inline-block border-2 border-gray-300 rounded-md peer-checked:bg-blue-500 peer-checked:border-blue-500 transition group-hover:scale-110"
                         ></span>
                         <span
                             class="text-gray-800 peer-checked:text-blue-500 font-medium group-hover:text-blue-400 transition"
-                            title="{{ agglevel.description }}"
-                            >{{ agglevel.agg_level }}</span
+                            title="{{ agg_level.description }}"
+                            >{{ agg_level.agg_level }}</span
                         >
                     </label>
                     {% endfor %}
@@ -301,24 +309,24 @@
                     {% field_label "Sector Aggregation" "Choose the desired Sector Aggregation." %}
                 </div>
                 <div class="mt-2">
-                    {% for agglevel in agglevels %}
+                    {% for agg_level in agg_levels %}
                     <label
                         class="flex items-center space-x-3 cursor-pointer group"
                     >
                         <input
                             type="checkbox"
-                            value="{{ agglevel.agg_level }}"
+                            value="{{ agg_level.agg_level }}"
                             name="industry_aggregation"
                             class="hidden peer"
-                            {% if agglevel.agg_level == default_agglevel %}checked{% endif %}
+                            {% if agg_level.agg_level == default_agg_level %}checked{% endif %}
                         />
                         <span
                             class="w-5 h-5 inline-block border-2 border-gray-300 rounded-md peer-checked:bg-blue-500 peer-checked:border-blue-500 transition group-hover:scale-110"
                         ></span>
                         <span
                             class="text-gray-800 peer-checked:text-blue-500 font-medium group-hover:text-blue-400 transition"
-                            title="{{ agglevel.description }}"
-                            >{{ agglevel.agg_level }}</span
+                            title="{{ agg_level.description }}"
+                            >{{ agg_level.agg_level }}</span
                         >
                     </label>
                     {% endfor %}
@@ -412,19 +420,19 @@
                         >
                             <input
                                 type="radio"
-                                value="{{ gross_net.GrossNet }}"
+                                value="{{ gross_net.gross_net }}"
                                 name="gross_net"
                                 class="hidden peer"
                                 required
-                                {% if gross_net.GrossNet == default_grossnet %}checked{% endif %}
+                                {% if gross_net.gross_net == default_grossnet %}checked{% endif %}
                             />
                             <span
                                 class="w-5 h-5 inline-block border-2 border-gray-300 rounded-full peer-checked:bg-blue-500 peer-checked:border-blue-500 transition group-hover:scale-110"
                             ></span>
                             <span
                                 class="text-gray-800 peer-checked:text-blue-500 font-medium group-hover:text-blue-400 transition"
-                                title="{{ gross_net.Description }}"
-                                >{{ gross_net.GrossNet }}</span
+                                title="{{ gross_net.description }}"
+                                >{{ gross_net.gross_net }}</span
                             >
                         </label>
                         {% endfor %}

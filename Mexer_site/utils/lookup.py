@@ -5,7 +5,9 @@ as part of their composite key (i.e. distinguishing by country). To
 speed up queries, this lookup service reduces the number of joins required
 for queries by keeping these attribute tables in memory."""
 
-from codecs import lookup_error
+from __future__ import annotations
+
+import typing
 from collections.abc import Callable
 from datetime import datetime, timedelta
 from typing import overload
@@ -16,8 +18,10 @@ from django.db.models import Model, QuerySet
 from Mexer import models
 from Mexer.apps import MexerConfig
 
-from utils.data import DatabaseSource
 from utils.logging import LOGGER
+
+if typing.TYPE_CHECKING:
+    from utils.data import DatabaseSource
 
 # App config used to get models dynamically.
 app_name = MexerConfig.name
@@ -43,10 +47,10 @@ class Attribute[T: Model]:
         the display name of the row, which is shown to the user.
     """
 
-    name: str
     model: type[T]
-    foreign_fields: list[str]
+    name: str
     description: str
+    foreign_fields: list[str]
     id_field: str
     name_field: str
 
@@ -58,6 +62,7 @@ class Attribute[T: Model]:
         foreign_fields: list[str] | None = None,
         description="",
     ):
+        self.model = model
         assert model._meta.object_name is not None
         self.name = model._meta.object_name
         self.description = description
@@ -70,29 +75,25 @@ class Attribute[T: Model]:
         if not model_has_field(model, self.name_field):
             raise ValueError(f"name field '{self.name_field}' not found on model")
 
+        column_name = column_field_name(self.name)
+        self.foreign_fields = [column_name]
         if foreign_fields is not None:
-            self.foreign_fields = foreign_fields
-        else:
-            # Since this is unspecified, the other models likely have
-            # a field with the same name as this model.
-            column_name = column_field_name(self.name)
-            self.foreign_fields = [column_name]
-
-        # Sanity check: are each of these foreign fields present
-        # on at least one model (other than this one)?
-        foreign_models = [
-            foreign_model
-            for foreign_model in mexer_config.get_models()
-            if foreign_model is not model
-        ]
-        for foreign_field in self.foreign_fields:
-            field_exists = any(
-                model_has_field(fm, foreign_field) for fm in foreign_models
-            )
-            if not field_exists:
-                raise ValueError(
-                    f"foreign field '{foreign_field}' not found on other models"
+            # Sanity check: are each of these foreign fields present
+            # on at least one model (other than this one)?
+            foreign_models = [
+                foreign_model
+                for foreign_model in mexer_config.get_models()
+                if foreign_model is not model
+            ]
+            for foreign_field in foreign_fields:
+                field_exists = any(
+                    model_has_field(fm, foreign_field) for fm in foreign_models
                 )
+                if not field_exists:
+                    raise ValueError(
+                        f"foreign field '{foreign_field}' not found on other models"
+                    )
+            self.foreign_fields.extend(foreign_fields)
 
 
 # Models eligible for LOOKUP are those used to narrow
@@ -202,9 +203,11 @@ class AttributeLookup[T: Model]:
         obj = self.get_object(value)
         if obj is None:
             return None
-        if isinstance(value, int):
+        if isinstance(value, str):
+            # Name provided; return ID.
             return getattr(obj, self.attribute.id_field)
         else:
+            # ID provided; return name.
             return getattr(obj, self.attribute.name_field)
 
     def __getitem__(self, value: str | int) -> T:
@@ -360,12 +363,14 @@ class LookupManager:
         lookup = self._get_lookup(self.db, attribute)
         return lookup.translate(value)
 
-    def attribute[T: Model](self, model: type[T] | str) -> AttributeLookup[T] | None:
+    def attribute[T: Model](
+        self, model_or_field: type[T] | str
+    ) -> AttributeLookup[T] | None:
         """Get or generate a lookup for a specific attribute."""
-        if isinstance(model, str):
-            attribute = get_foreign_attribute(model)
+        if isinstance(model_or_field, str):
+            attribute = get_foreign_attribute(model_or_field)
         else:
-            attribute = get_attribute(model)
+            attribute = get_attribute(model_or_field)
         if attribute is None:
             return None
 

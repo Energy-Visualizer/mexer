@@ -12,21 +12,21 @@
 #####################
 import time
 
-import models
 from altair.utils.data import MaxRowsError  # for catching with matrices are too big
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
+from Mexer import models
 from plotly.offline import plot
 from utils.data import (
     AGGETA_COLUMNS,
     PSUT_COLUMNS,
     DatabaseTarget,
     ShapedQuery,
-    get_attribute_fields,
     get_csv_from_query,
+    get_dataset_attributes,
     get_excel_from_query,
     shape_post_request,
     translate_query,
@@ -67,7 +67,7 @@ def visualizer(request):
     except Exception:
         admin_user = False
 
-    # Fetch all available options for various parameters
+    # Fetch all available options for various parameters.
 
     lookups = LookupManager("default")
     sandbox_lookups = LookupManager("sandbox")
@@ -91,20 +91,27 @@ def visualizer(request):
 
     energy_types = lookups.get_objects(model=models.EnergyType)
 
-    last_stage_names = ["Final", "Useful"]  # override, we don't show all the options
+    last_stage_names = ["Final", "Useful"]
     last_stages = [lookups[models.ECCStage][name] for name in last_stage_names]
 
-    grossnets = lookups.get_objects(model=models.GrossNet)
-    agglevels = lookups.get_objects(model=models.AggLevel)
+    gross_nets = lookups.get_objects(model=models.GrossNet)
+
+    agg_levels = lookups.get_objects(model=models.AggLevel)
+
     matnames = lookups.get_objects(model=models.Matname)
     matnames.sort(key=lambda m: m.full_name)
 
+    # TODO: Use AttributeTables description column
+    # for field-level tooltips.
+
     # Prepare the context dictionary for the template
     context = {
+        "SANDBOX_PREFIX": settings.SANDBOX_PREFIX,
         "datasets": datasets,
+        "sandbox_datasets": sandbox_datasets,
         "default_dataset": "CL-PFU MW",
         "versions": versions,
-        "default_version": "v2.0",
+        "default_version": "current",
         "sandbox_versions": sandbox_versions,
         "default_sandbox_version": settings.SANDBOX_PREFIX + "v2.0a7",
         "countries": countries,
@@ -115,14 +122,14 @@ def visualizer(request):
         "default_energy_type": energy_types[0].energy_type,
         "last_stages": last_stages,
         "default_last_stage": last_stages[0].ecc_stage,
-        "grossnets": grossnets,
-        "default_grossnet": grossnets[0].gross_net,
+        "gross_nets": gross_nets,
+        "default_gross_net": gross_nets[0].gross_net,
         "matnames": matnames,
         "default_matname": matnames[0].matname,
-        "agglevels": agglevels,
-        "default_agglevel": agglevels[0].agg_level,
+        "agg_levels": agg_levels,
+        "default_agg_level": agg_levels[0].agg_level,
         "iea_user": iea_user,
-        "site_version": settings.SITE_VERSION,  # version of the site to be displayed to users
+        "site_version": settings.SITE_VERSION,
     }
 
     return render(request, "visualizer.html", context)
@@ -315,6 +322,8 @@ def get_data(request: HttpRequest):
     if request.method != "POST":
         return HttpResponse(status=405)
 
+    LOGGER.info(f"Raw data: {request.POST}")
+
     data_format = request.POST.get("return_data_type")
     if data_format is None:
         return HttpResponse("Data format unspecified", status=400)
@@ -335,7 +344,7 @@ def get_data(request: HttpRequest):
 
     LOGGER.info(query)
 
-    columns: list[str] = get_attribute_fields(dataset_model)
+    columns: list[str] = list(get_dataset_attributes(dataset_model).keys())
     if dataset_model is models.AggEtaPFU:
         # get xy info
         columns.extend(AGGETA_COLUMNS)

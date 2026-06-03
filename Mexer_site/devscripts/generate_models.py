@@ -79,7 +79,7 @@ def _django_field_type(dt: SpreadsheetDataType) -> str:
             return "TextField"
 
 
-def _format_column(column_name: str, column: Column) -> str:
+def _format_column(column_name: str, column: Column, composite: bool) -> str:
     # TODO: docs for columns?
     field_name = column_field_name(column_name)
     args = {"db_column": f'"{column_name}"'}
@@ -92,7 +92,7 @@ def _format_column(column_name: str, column: Column) -> str:
     # else:
 
     field_type = _django_field_type(column.data_type)
-    if column.pk:
+    if column.pk and not composite:
         args["primary_key"] = "True"
     args_list = ", ".join(f"{param}={value}" for param, value in args.items())
 
@@ -104,6 +104,17 @@ def _format_model(table_name: str, columns: dict[str, Column]) -> str:
     # TODO, once table-of-tables added, derive docstring.
     docs = f"Model for the '{table_name}' database table."
 
+    primaries = [
+        f'"{column_field_name(name)}"' for name, col in columns.items() if col.pk
+    ]
+    composite = len(primaries) > 1
+
+    composite_code = ""
+    if composite:
+        composite_code = f"""
+
+    pk = models.CompositePrimaryKey({", ".join(primaries)})"""
+
     return f"""class {class_name}(models.Model):
     \"\"\"{docs}\"\"\"
 
@@ -111,7 +122,7 @@ def _format_model(table_name: str, columns: dict[str, Column]) -> str:
         db_table = "{table_name}"
         managed = False
 
-    {"\n    ".join(_format_column(name, data) for name, data in columns.items())}"""
+    {"\n    ".join(_format_column(name, data, composite) for name, data in columns.items())}{composite_code}"""
 
 
 if __name__ == "__main__":

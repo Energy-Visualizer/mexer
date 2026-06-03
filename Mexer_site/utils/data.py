@@ -26,7 +26,7 @@
 #####################
 import io
 from collections.abc import Callable
-from typing import Any, Literal, cast
+from typing import Any, Literal
 
 import Mexer.models as models
 import pandas as pd
@@ -35,7 +35,7 @@ from django.db.models import Model
 from django.http import QueryDict
 
 from utils.logging import LOGGER
-from utils.lookup import ATTRIBUTES, LookupManager, get_foreign_attribute
+from utils.lookup import ATTRIBUTES, Attribute, LookupManager, get_foreign_attribute
 from utils.misc import ShapedQuery
 
 type DatabaseSource = Literal["sandbox", "users", "default"]
@@ -88,20 +88,19 @@ def get_dataframe(
         return pd.DataFrame()
 
     LOGGER.info(f"Query being passed to filter: {query}")
-
-    db_source, db_model = target
-    if not _valid_database(db_source):
-        return pd.DataFrame()
-
-    LOGGER.info(f"Query being passed to filter: {query}")
+    LOGGER.info(f"Requested columns: {columns}")
 
     try:
-        qs = (
+        qs = list(
             db_model.objects.using(db_source)
             .filter(**query)
             .values(*columns)
-            .order_by("Year")
+            .order_by("year")
         )
+        if len(qs) < 20:
+            LOGGER.info(f"Raw results: {qs}")
+        else:
+            LOGGER.info(f"Got {len(qs)} rows")
         return pd.DataFrame.from_records(qs)
     except Exception as e:
         LOGGER.error(f"Query failed: {e}")
@@ -112,25 +111,25 @@ def get_dataframe(
 # TODO: We need to "discover" these columns, not
 # hardcode them.
 
-PSUT_COLUMNS = ["matname", "i", "j", "value"]
+PSUT_COLUMNS = ["value"]
 AGGETA_COLUMNS = ["gross_net", "ex_p", "ex_f", "ex_u", "etapf", "etafu", "etapu"]
 INCLUDES_NEU_COLUMN = "includes_neu"
 
 
-def get_attribute_fields(model: type[Model]) -> list[str]:
+def get_dataset_attributes(model: type[Model]) -> dict[str, Attribute]:
     """Get available attribute fields on the given
     dataset model."""
 
-    def has_field(field: str):
-        return any(field.name == field for field in model._meta.fields)
+    def has_field(attr_field: str):
+        return any(field.name == attr_field for field in model._meta.fields)
 
     # For all foreign fields, which ones does this model have?
-    return [
-        field
+    return {
+        field: attr
         for attr in ATTRIBUTES.values()
         for field in attr.foreign_fields
         if has_field(field)
-    ]
+    }
 
 
 def get_userfriendly_dataframe(
@@ -142,6 +141,7 @@ def get_userfriendly_dataframe(
     df = get_dataframe(target, query, columns)
 
     if df.empty:
+        LOGGER.error("EMPTY: Empty dataframe")
         return df
 
     database = target[0]
@@ -230,7 +230,7 @@ def translate_query(target: DatabaseTarget, query: ShapedQuery) -> dict[str, Any
     into a query ready to hit the dataset."""
 
     final_query: dict[str, Any] = dict()
-    db_source, _ = target
+    db_source, dataset_model = target
 
     if not _valid_database(db_source):
         raise ValueError("Unknown database specified for translating query")
@@ -251,14 +251,21 @@ def translate_query(target: DatabaseTarget, query: ShapedQuery) -> dict[str, Any
         query["matname"] = list("RUVY")
 
     # Translate names to IDs for lookup attributes.
+
+    attributes = get_dataset_attributes(dataset_model)
+
+    LOGGER.info(f"TRANSLATEQUERY: Attributes: {list(attributes.keys())}")
+
     for param, arg in query.items():
-        try_lookup = lookups.attribute(param)
-        if try_lookup is None:
-            final_query[param] = arg
+        attribute = attributes.get(param)
+        if attribute is None:
+            LOGGER.info(f"TRANSLATEQUERY: No attribute found for {param}")
+            # Not an attribute; omit from query.
             continue
-        if try_lookup.attribute.model in SPECIAL_CASES:
+        if attribute.model in SPECIAL_CASES:
             continue
-        lookup = try_lookup
+        lookup = lookups[attribute.model]
+        LOGGER.info(f"TRANSLATEQUERY: Attribute found for {param}")
 
         if isinstance(arg, list):
             param = f"{param}__in"
@@ -267,7 +274,7 @@ def translate_query(target: DatabaseTarget, query: ShapedQuery) -> dict[str, Any
 
     # Special cases handled below.
 
-    final_query["includes_neu"] = int(bool(query.get("IncludesNEU")))
+    final_query["includes_neu"] = int(bool(query.get("includes_neu")))
 
     # Version range handling.
     if isinstance(v := query.get("version"), str):
