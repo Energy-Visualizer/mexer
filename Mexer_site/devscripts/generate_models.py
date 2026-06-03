@@ -102,7 +102,7 @@ def _format_column(column_name: str, column: Column) -> str:
 def _format_model(table_name: str, columns: dict[str, Column]) -> str:
     class_name = table_class_name(table_name)
     # TODO, once table-of-tables added, derive docstring.
-    docs = f"Model for the '{table_name}' database table.'"
+    docs = f"Model for the '{table_name}' database table."
 
     return f"""class {class_name}(models.Model):
     \"\"\"{docs}\"\"\"

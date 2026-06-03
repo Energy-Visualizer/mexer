@@ -35,7 +35,7 @@ from django.db.models import Model
 from django.http import QueryDict
 
 from utils.logging import LOGGER
-from utils.lookup import LookupManager, get_foreign_attribute
+from utils.lookup import ATTRIBUTES, LookupManager, get_foreign_attribute
 from utils.misc import ShapedQuery
 
 type DatabaseSource = Literal["sandbox", "users", "default"]
@@ -117,6 +117,22 @@ AGGETA_COLUMNS = ["gross_net", "ex_p", "ex_f", "ex_u", "etapf", "etafu", "etapu"
 INCLUDES_NEU_COLUMN = "includes_neu"
 
 
+def get_attribute_fields(model: type[Model]) -> list[str]:
+    """Get available attribute fields on the given
+    dataset model."""
+
+    def has_field(field: str):
+        return any(field.name == field for field in model._meta.fields)
+
+    # For all foreign fields, which ones does this model have?
+    return [
+        field
+        for attr in ATTRIBUTES.values()
+        for field in attr.foreign_fields
+        if has_field(field)
+    ]
+
+
 def get_userfriendly_dataframe(
     target: DatabaseTarget, query: dict[str, Any], columns: list[str]
 ) -> pd.DataFrame:
@@ -133,15 +149,17 @@ def get_userfriendly_dataframe(
 
     # Translate IDs into names when appropriate.
     for column in df.columns:
+        # For accurate type hints:
         assert isinstance(column, str)
+        col = column
 
-        if not get_foreign_attribute(column):
+        if not get_foreign_attribute(col):
             continue
 
         def transform(value):
-            return lookups.lookup(model=column, value=value)
+            return lookups.translate(model_or_field=col, value=value)
 
-        df[column] = df[column].apply(transform)
+        df[col] = df[col].apply(transform)
 
     # Handle IncludesNEU separately as it's a boolean.
     if INCLUDES_NEU_COLUMN in df.columns:
@@ -266,7 +284,7 @@ def translate_query(target: DatabaseTarget, query: ShapedQuery) -> dict[str, Any
         if isinstance(arg, list):
             param = f"{param}__in"
 
-        final_query[param] = _str_or_all_list(arg, lambda arg: lookup[arg])
+        final_query[param] = _str_or_all_list(arg, lambda arg: lookup.translator[arg])
 
     # Special cases handled below.
 
@@ -274,7 +292,7 @@ def translate_query(target: DatabaseTarget, query: ShapedQuery) -> dict[str, Any
 
     # Version range handling.
     if isinstance(v := query.get("version"), str):
-        version = lookups[models.Version][v]
+        version = lookups[models.Version].translator[v]
         final_query["valid_from_version__lte"] = version
         final_query["valid_to_version__gte"] = version
 

@@ -101,11 +101,11 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str, int]
         del query["matname"]
 
     lookups = LookupManager(target[0])  # get a translator for the correct database
-    matname_lookup = lookups[models.Matname]
-    index_lookup = lookups[models.Index]
+    matname_translator = lookups[models.Matname].translator
+    index_translator = lookups[models.Index].translator
 
     # have the query get a full RUVY
-    query.update({"matname__in": [matname_lookup[mat] for mat in "RUVY"]})
+    query.update({"matname__in": [matname_translator[mat] for mat in "RUVY"]})
 
     # get all four matrices to make the full RUVY matrix
     raw_data = query_database(target, query, ["matname", "i", "j", "value"])
@@ -163,14 +163,14 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str, int]
     indexes_by_column = Counter()
 
     for matname, i, j, magnitude in data:
-        readable_matname = matname_lookup[matname]
+        readable_matname = matname_translator[matname]
 
         # if R or V matrix, then the destination node must be an energy carrier, while the source node must be an industry
         # j not being the carrier inherintly means i is the carrier
         j_is_carrier = readable_matname == "R" or readable_matname == "V"
 
-        i_name = index_lookup[i]
-        j_name = index_lookup[j]
+        i_name = index_translator[i]
+        j_name = index_translator[j]
 
         # get the column the i (from) and j (to) nodes should go in
         try:
@@ -214,7 +214,7 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str, int]
                 "from": dict(column=from_node_info.column, node=from_node_info.index),
                 "to": dict(column=to_node_info.column, node=to_node_info.index),
                 "value": magnitude,
-                "color": _get_sankey_color(index_lookup[j if j_is_carrier else i]),
+                "color": _get_sankey_color(index_translator[j if j_is_carrier else i]),
             }
         )
 

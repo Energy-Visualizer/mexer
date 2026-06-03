@@ -12,20 +12,20 @@
 #####################
 import time
 
+import models
 from altair.utils.data import MaxRowsError  # for catching with matrices are too big
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
-from Mexer.models import AggEtaPFU, EvizUser, Version
 from plotly.offline import plot
 from utils.data import (
     AGGETA_COLUMNS,
-    META_COLUMNS,
     PSUT_COLUMNS,
     DatabaseTarget,
     ShapedQuery,
+    get_attribute_fields,
     get_csv_from_query,
     get_excel_from_query,
     shape_post_request,
@@ -61,39 +61,43 @@ def visualizer(request):
 
     # see if the user is an admin to get access to SandboxDB table
     try:
-        admin_user = EvizUser.objects.get_by_natural_key(request.user.username).is_staff
-    except Exception as e:
-        print(e)
+        admin_user = models.EvizUser.objects.get_by_natural_key(
+            request.user.username
+        ).is_staff
+    except Exception:
         admin_user = False
 
-    # Fetch all available options for various parameters from the Translator
-    if admin_user:
-        datasets = LookupManager.attribute("datasets:admin")
-    else:
-        datasets = LookupManager.attribute("datasets:public")
+    # Fetch all available options for various parameters
 
-    countries = LookupManager.attribute("country")
-    countries.sort()
-    versions = LookupManager.attribute("version")
+    lookups = LookupManager("default")
+    sandbox_lookups = LookupManager("sandbox")
+
     if admin_user:
-        sandbox_versions = [
-            settings.SANDBOX_PREFIX + ver
-            for ver in Version.objects.using("sandbox").values_list(
-                "Version", flat=True
-            )
-        ]
+        datasets = lookups.get_objects(model=models.Dataset)
+        sandbox_datasets = sandbox_lookups.get_objects(model=models.Dataset)
     else:
-        sandbox_versions = []
-    # methods = Translator.get_all('method')
-    methods = ["PCM"]  # override, we don't show all the options
-    energy_types = LookupManager.attribute("energytype")
-    # last_stages = Translator.get_all('laststage')
-    last_stages = ["Final", "Useful"]  # override, we don't show all the options
-    grossnets = LookupManager.attribute("grossnet")
-    product_aggregations = LookupManager.attribute("agglevel")
-    industry_aggregations = LookupManager.attribute("agglevel")
-    matnames = LookupManager.attribute("matname")
-    matnames.sort()
+        datasets = lookups.public_datasets().objects
+        sandbox_datasets = None
+
+    countries = lookups.get_objects(model=models.Country)
+    countries.sort(key=lambda c: c.full_name)
+
+    versions = lookups.get_objects(model=models.Version)
+    sandbox_versions = sandbox_lookups.get_objects(model=models.Version)
+    versions.sort(key=lambda v: v.version_id)
+    sandbox_versions.sort(key=lambda v: v.version_id)
+
+    methods = [lookups[models.Method]["PCM"]]
+
+    energy_types = lookups.get_objects(model=models.EnergyType)
+
+    last_stage_names = ["Final", "Useful"]  # override, we don't show all the options
+    last_stages = [lookups[models.ECCStage][name] for name in last_stage_names]
+
+    grossnets = lookups.get_objects(model=models.GrossNet)
+    agglevels = lookups.get_objects(model=models.AggLevel)
+    matnames = lookups.get_objects(model=models.Matname)
+    matnames.sort(key=lambda m: m.full_name)
 
     # Prepare the context dictionary for the template
     context = {
@@ -191,12 +195,12 @@ def generate_matrix_html(target: DatabaseTarget, query: ShapedQuery) -> str:
 
     matname = None
     if matrix_name == "RUVY" and coloring_method == "ruvy":
-        matrix, matname = get_ruvy_matrix(target, translated_query)
+        ruvy_matrix = get_ruvy_matrix(target, translated_query)
+        if ruvy_matrix is None:
+            return "Error: No corresponding data"
+        matrix, matname = ruvy_matrix
     else:
         matrix = get_matrix(target, translated_query)
-
-    if matrix is None:
-        return "Error: No corresponding data"
 
     heatmap = visualize_matrix(target, matrix, matname, color_scale, coloring_method)
     heatmap = heatmap.properties(
@@ -318,6 +322,7 @@ def get_data(request: HttpRequest):
         return HttpResponse("Data format unspecified", status=400)
 
     query, _, target = shape_post_request(request.POST)
+    dataset_model = target[1]
 
     if not iea_valid(request.user, query):
         LOGGER.warning(
@@ -332,13 +337,13 @@ def get_data(request: HttpRequest):
 
     LOGGER.info(query)
 
-    columns: list[str] = []
-    if target[1] is AggEtaPFU:
+    columns: list[str] = get_attribute_fields(dataset_model)
+    if dataset_model is AggEtaPFU:
         # get xy info
-        columns = META_COLUMNS + AGGETA_COLUMNS
+        columns.extend(AGGETA_COLUMNS)
     else:
         # get psut (sankey and matrix) info
-        columns = META_COLUMNS + PSUT_COLUMNS
+        columns.extend(PSUT_COLUMNS)
 
     final_response = HttpResponse()
     filename = f"mexer-data-{time.strftime('%H-%M_%d-%m-%Y')}"

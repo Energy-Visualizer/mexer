@@ -10,9 +10,11 @@
 #       Kenny Howes - kmh67@calvin.edu
 #       Edom Maru - eam43@calvin.edu
 #####################
+from typing import Any
+
 import altair as alt
 import pandas as pd
-from Mexer.models import Index
+from Mexer import models
 from scipy.sparse import coo_matrix
 
 from utils.data import DatabaseTarget, query_database
@@ -21,7 +23,7 @@ from utils.lookup import LookupManager
 alt.data_transformers.enable("default")
 
 
-def get_matrix(target: DatabaseTarget, query: dict) -> coo_matrix:
+def get_matrix(target: DatabaseTarget, query: dict[str, Any]) -> coo_matrix:
     """Collects, constructs, and returns one of the RUVY matrices
 
     Inputs:
@@ -43,7 +45,7 @@ def get_matrix(target: DatabaseTarget, query: dict) -> coo_matrix:
 
     # Get dimensions for a matrix (rows and columns will be the same)
     # len() would evaluate the query set, so use count() instead for better performance
-    matrix_nrow = Index.objects.all().count()
+    matrix_nrow = models.Index.objects.all().count()
 
     # For each 3-tuple in sparse_matrix
     # Put together all the first values, all the second, etc.
@@ -58,12 +60,13 @@ def get_matrix(target: DatabaseTarget, query: dict) -> coo_matrix:
 
 
 def get_ruvy_matrix(
-    target: DatabaseTarget, query: dict
-) -> tuple[coo_matrix | None, tuple | None]:
+    target: DatabaseTarget,
+    query: dict[str, Any],
+) -> tuple[coo_matrix, tuple[int, ...]] | None:
     sparse_matrix = query_database(target, query, ["i", "j", "value", "matname"])
     if not sparse_matrix:
-        return None, None
-    matrix_nrow = Index.objects.all().count()
+        return None
+    matrix_nrow = models.Index.objects.all().count()
     row, col, val, matname = zip(*sparse_matrix)
     mat = coo_matrix(
         (val, (row, col)),
@@ -76,7 +79,7 @@ def get_ruvy_matrix(
 def visualize_matrix(
     target: DatabaseTarget,
     mat: coo_matrix,
-    matnames: tuple | None = None,
+    matnames: tuple[int, ...] | None = None,
     color_scale: str = "inferno",
     coloring_method: str = "weight",
 ) -> alt.Chart:
@@ -90,28 +93,30 @@ def visualize_matrix(
         alt.Chart A chart containing the heatmap.
     """
 
-    translator = LookupManager(target[0])  # get a translator for the correct database
+    lookups = LookupManager(target[0])
+    index_lookup = lookups[models.Index]
+    matname_lookup = lookups[models.Matname]
 
     # Create a dictionary mapping index IDs to their orders.
-    index_orders = {
-        id: order for id, order in Index.objects.values_list("IndexID", "Order")
+    index_orders: dict[int, int] = {
+        index.index_id: index.order for index in index_lookup.objects
     }
 
     # columns to be used in dataframe
     # frame_columns = {
     df = pd.DataFrame(
         {
-            "x": [translator.index_translate(col) for col in mat.col],
-            "y": [translator.index_translate(row) for row in mat.row],
+            "x": [index_lookup.translator[int(col)] for col in mat.col],
+            "y": [index_lookup.translator[int(row)] for row in mat.row],
             "value": mat.data,
-            "x_order": [index_orders[col] for col in mat.col],
-            "y_order": [index_orders[row] for row in mat.row],
+            "x_order": [index_orders[int(col)] for col in mat.col],
+            "y_order": [index_orders[int(row)] for row in mat.row],
         }
     )
 
     # Create a Plotly Heatmap object
     if coloring_method == "ruvy" and matnames:
-        df = df.assign(matname=[translator.matname_translate(i) for i in matnames])
+        df = df.assign(matname=[matname_lookup.translator[m] for m in matnames])
 
         tooltip = [
             alt.Tooltip("y", title="From"),

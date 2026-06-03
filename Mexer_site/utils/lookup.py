@@ -5,14 +5,13 @@ as part of their composite key (i.e. distinguishing by country). To
 speed up queries, this lookup service reduces the number of joins required
 for queries by keeping these attribute tables in memory."""
 
+from codecs import lookup_error
 from collections.abc import Callable
 from datetime import datetime, timedelta
 from typing import overload
 
-from bidict import bidict
 from devscripts.generate_models import column_field_name
 from django.apps import apps
-from django.conf import settings
 from django.db.models import Model, QuerySet
 from Mexer import models
 from Mexer.apps import MexerConfig
@@ -30,7 +29,7 @@ LOOKUP_CACHE_TTL = timedelta(hours=24.0)
 FULLNAME_FIELD_NAME = "full_name"
 
 
-class Attribute:
+class Attribute[T: Model]:
     """Metadata about a database table that is used as
     an attribute to narrow queries.
 
@@ -45,15 +44,16 @@ class Attribute:
     """
 
     name: str
-    model: type[Model]
+    model: type[T]
     foreign_fields: list[str]
     description: str
+    id_field: str
     name_field: str
 
     def __init__(
         self,
         *,
-        model: type[Model],
+        model: type[T],
         name_field: str,
         foreign_fields: list[str] | None = None,
         description="",
@@ -61,6 +61,7 @@ class Attribute:
         assert model._meta.object_name is not None
         self.name = model._meta.object_name
         self.description = description
+        self.id_field = model._meta.pk.name
         self.name_field = name_field
 
         def model_has_field(model: type[Model], field_name: str):
@@ -101,7 +102,7 @@ class Attribute:
 # TODO: These are hardcoded for now, but should be taken from table of attributes.
 #
 # TODO: foreign_fields can be derived from schema spreadsheet.
-ATTRIBUTES = {
+ATTRIBUTES: dict[type[Model], Attribute] = {
     models.Index: Attribute(
         model=models.Index, name_field="index", foreign_fields=["i", "j", "chopped_var"]
     ),
@@ -131,6 +132,10 @@ ATTRIBUTES = {
 }
 
 
+def get_attribute[T: Model](model: type[T]) -> Attribute[T]:
+    return ATTRIBUTES[model]
+
+
 def get_foreign_attribute(field_name: str) -> Attribute | None:
     """Whether this DB column name is eligible for attribute lookup."""
     for attr in ATTRIBUTES.values():
@@ -149,7 +154,7 @@ def _get_lookup_key(
     return f"{database}:{model_name}"
 
 
-class AttributeLookup:
+class AttributeLookup[T: Model]:
     """A two-way lookup between names and IDs of one attribute table.
 
     Attributes:
@@ -158,40 +163,90 @@ class AttributeLookup:
     - pairs: Bidirectional mapping from names to IDs.
     """
 
-    attribute: Attribute
+    attribute: Attribute[T]
     created_at: datetime
-    pairs: bidict[str, int]
+    objects: set[T]
+    by_name: dict[str, T]
+    by_id: dict[int, T]
 
     def __init__(
         self,
         attribute: Attribute,
-        pairs: bidict[str, int],
+        objects: QuerySet[T],
         created_at: datetime | None = None,
     ):
         self.attribute = attribute
-        self.pairs = pairs
+
+        self.objects = set(objects)
+        self.by_name = {}
+        self.by_id = {}
+        for obj in self.objects:
+            name: str = getattr(obj, attribute.name_field)
+            id: int = getattr(obj, attribute.id_field)
+            self.by_name[name] = obj
+            self.by_id[id] = obj
+
         self.created_at = created_at or datetime.now()
+
+    def get_object(self, value: str | int) -> T | None:
+        if isinstance(value, str):
+            return self.by_name.get(value)
+        else:
+            return self.by_id.get(value)
+
+    @overload
+    def translate(self, value: str) -> int | None: ...
+    @overload
+    def translate(self, value: int) -> str | None: ...
+    def translate(self, value: str | int) -> str | int | None:
+        obj = self.get_object(value)
+        if obj is None:
+            return None
+        if isinstance(value, int):
+            return getattr(obj, self.attribute.id_field)
+        else:
+            return getattr(obj, self.attribute.name_field)
+
+    def __getitem__(self, value: str | int) -> T:
+        if isinstance(value, str):
+            return self.by_name[value]
+        else:
+            return self.by_id[value]
+
+    @property
+    def translator(self):
+        return _Translator(self)
+
+    @property
+    def age(self) -> timedelta:
+        return datetime.now() - self.created_at
+
+    def expired(self, ttl=LOOKUP_CACHE_TTL) -> bool:
+        return self.age > ttl
+
+
+class _Translator[T: Model]:
+    lookup: AttributeLookup[T]
+
+    def __init__(self, lookup: AttributeLookup[T]):
+        self.lookup = lookup
+
+    @overload
+    def get(self, value: str) -> int | None: ...
+    @overload
+    def get(self, value: int) -> str | None: ...
+    def get(self, value: str | int) -> str | int | None:
+        return self.lookup.translate(value)
 
     @overload
     def __getitem__(self, value: str) -> int: ...
     @overload
     def __getitem__(self, value: int) -> str: ...
     def __getitem__(self, value: str | int) -> str | int:
-        if isinstance(value, str):
-            return self.pairs[value]
-        else:
-            return self.pairs.inv[value]
-
-    @property
-    def age(self) -> timedelta:
-        return datetime.now() - self.created_at
-
-    @property
-    def names(self) -> list[str]:
-        return list(self.pairs.keys())
-
-    def expired(self, ttl=LOOKUP_CACHE_TTL) -> bool:
-        return self.age > ttl
+        translated = self.get(value)
+        if translated is None:
+            raise KeyError(f"invalid lookup key {value}")
+        return translated
 
 
 class LookupManager:
@@ -216,12 +271,12 @@ class LookupManager:
         self.db = database
 
     @staticmethod
-    def _get_lookup(
+    def _get_lookup[T: Model](
         database: DatabaseSource,
-        attribute: Attribute,
+        attribute: Attribute[T],
         key_name_override: str | None = None,
         query_override: _QueryOverride | None = None,
-    ) -> AttributeLookup:
+    ) -> AttributeLookup[T]:
         def new_lookup():
             return LookupManager._generate_lookup(
                 database,
@@ -245,94 +300,93 @@ class LookupManager:
         return lookup
 
     @staticmethod
-    def _generate_lookup(
+    def _generate_lookup[T: Model](
         database: DatabaseSource,
-        attribute: Attribute,
+        attribute: Attribute[T],
         *,
         key_name_override: str | None = None,
         query_override: _QueryOverride | None = None,
-    ) -> AttributeLookup:
+    ) -> AttributeLookup[T]:
         lookup_key = _get_lookup_key(
             database, attribute, key_name_override=key_name_override
         )
         LOGGER.info(f"Loading and caching {lookup_key}")
 
-        name_field = attribute.name_field
-
-        # Create a mapping between the value of the model's
-        # name field and the value of the model's ID field.
-        query_set = (
+        objects = (
             query_override(attribute.model)
             if query_override
-            else attribute.model.objects.using(database).values_list(name_field, "pk")
+            else attribute.model.objects.using(database).all()
         )
-        name_id_mapping = bidict(query_set)
-        lookup = AttributeLookup(attribute, name_id_mapping)
+        lookup = AttributeLookup(attribute, objects)
 
         # Create a bidict with name:id pairs
         LookupManager._lookups[lookup_key] = lookup
         return lookup
 
-    @overload
-    def lookup(self, *, model: type[Model] | str, value: int) -> str: ...
-    @overload
-    def lookup(self, *, model: type[Model] | str, value: str) -> int: ...
-    def lookup(self, *, model: type[Model] | str, value: str | int) -> str | int:
-        if isinstance(model, str):
-            attribute = get_foreign_attribute(model)
-        else:
-            attribute = ATTRIBUTES.get(model)
+    def get_objects[T: Model](self, *, model: type[T]) -> list[T]:
+        attribute = get_attribute(model)
+        if attribute is None:
+            return []
+
+        lookup = self._get_lookup(self.db, attribute)
+        return list(lookup.objects)
+
+    def lookup[T: Model](self, *, model: type[T], value: str | int) -> T | None:
+        attribute = get_attribute(model)
         if attribute is None:
             raise ValueError(f"Model kind {model} ineligible for lookup")
 
         lookup = self._get_lookup(self.db, attribute)
-        try:
-            return lookup[value]
-        except KeyError:
-            raise KeyError(f"Unrecognized lookup key '{value}' for {attribute.name}")
+        return lookup.get_object(value)
 
-    def attribute(self, model: type[Model] | str) -> AttributeLookup | None:
+    @overload
+    def translate(
+        self, *, model_or_field: type[Model] | str, value: str
+    ) -> int | None: ...
+    @overload
+    def translate(
+        self, *, model_or_field: type[Model] | str, value: int
+    ) -> str | None: ...
+    def translate(
+        self, *, model_or_field: type[Model] | str, value: str | int
+    ) -> str | int | None:
+        if isinstance(model_or_field, str):
+            attribute = get_foreign_attribute(model_or_field)
+        else:
+            attribute = get_attribute(model_or_field)
+        if attribute is None:
+            raise ValueError(f"Model kind {model_or_field} ineligible for lookup")
+
+        lookup = self._get_lookup(self.db, attribute)
+        return lookup.translate(value)
+
+    def attribute[T: Model](self, model: type[T] | str) -> AttributeLookup[T] | None:
         """Get or generate a lookup for a specific attribute."""
         if isinstance(model, str):
             attribute = get_foreign_attribute(model)
         else:
-            attribute = ATTRIBUTES.get(model)
+            attribute = get_attribute(model)
         if attribute is None:
             return None
 
         lookup = LookupManager._get_lookup(self.db, attribute)
         return lookup
 
-    def __getitem__(self, model: type[Model] | str) -> AttributeLookup:
+    def __getitem__[T: Model](self, model: type[T] | str) -> AttributeLookup[T]:
         attribute = self.attribute(model)
         if attribute is None:
-            raise ValueError(f"model {model} is ineligible for attribute lookup")
+            raise KeyError(f"model {model} is ineligible for attribute lookup")
         return attribute
 
-    @property
-    def public_datasets(self):
+    def public_datasets(self) -> AttributeLookup[models.Dataset]:
         key_name_override = "public_datasets"
 
         def query_override(model: type[Model]):
-            return model.objects.filter(Public=True).values_list("Dataset", "pk")
+            return model.objects.filter(Public=True).all()
 
         return self._get_lookup(
-            self.db, ATTRIBUTES[models.Dataset], key_name_override, query_override
+            self.db, get_attribute(models.Dataset), key_name_override, query_override
         )
-
-    @staticmethod
-    def admin_dataset_names():
-        mexer = LookupManager("default")
-        sandbox = LookupManager("sandbox")
-
-        mexer_datasets = mexer[models.Dataset]
-        sandbox_datasets = sandbox[models.Dataset]
-
-        # Combine them and add the sandbox prefix
-        # onto the sandbox datasets to differentiate.
-        return mexer_datasets.names + [
-            settings.SANDBOX_PREFIX + dataset for dataset in sandbox_datasets.names
-        ]
 
     # TODO: This needs to be finished...
     @staticmethod
