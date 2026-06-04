@@ -15,7 +15,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-from utils.data import DatabaseTarget, get_translated_dataframe
+from utils.data import DatabaseTarget, get_userfriendly_dataframe
 
 
 def get_xy(
@@ -44,25 +44,22 @@ def get_xy(
     """
 
     # Create a list of fields to select, always including 'Year' and the efficiency metric
-    fields_to_select = ["Year", efficiency_metric]
+    fields_to_select = ["year", efficiency_metric]
 
-    # Map the names to the actual database field names.
-    field_mapping = {"country": "Country", "energy_type": "EnergyType"}
-
-    for field in {color_by, line_by, facet_col_by, facet_row_by}:
-        if mapped := field_mapping.get(field):
-            fields_to_select.append(mapped)
+    fields_to_select.extend(
+        field for field in {color_by, line_by, facet_col_by, facet_row_by} if field
+    )
 
     # get the respective data from the database
-    df = get_translated_dataframe(target, query, fields_to_select)
+    df = get_userfriendly_dataframe(target, query, fields_to_select)
 
     if df.empty:
         return None  # if no data, return as such
 
     # convert year column to datetime if present
     # and sort on that so that the xy plots come out right
-    df["Year"] = pd.to_datetime(df["Year"], format="%Y")
-    df = df.sort_values(by="Year")
+    df["year"] = pd.to_datetime(df["year"], format="%Y")
+    df = df.sort_values(by="year")
 
     try:
         # Create the line plot using Plotly Express
@@ -70,12 +67,12 @@ def get_xy(
             df,
             x="Year",
             y=efficiency_metric,
-            color=field_mapping.get(color_by),
-            line_dash=field_mapping.get(line_by),
-            facet_col=field_mapping.get(facet_col_by),
-            facet_row=field_mapping.get(facet_row_by),
+            color=color_by,
+            line_dash=line_by,
+            facet_col=facet_col_by,
+            facet_row=facet_row_by,
             facet_col_spacing=0.05,
-            category_orders={"EnergyType": ["Energy", "Exergy"]},
+            category_orders={"energy_type": ["Energy", "Exergy"]},
         )
 
         # Set the y-axis title based on the energy type

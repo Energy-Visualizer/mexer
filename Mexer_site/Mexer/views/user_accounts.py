@@ -21,7 +21,7 @@ from django.core.mail import EmailMultiAlternatives  # for email verification
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from Mexer.forms import LoginForm, ResetForm, ResetRequestForm, SignupForm
-from Mexer.models import EmailAuthCode, EvizUser, Paper, PassResetCode
+from Mexer.models import EmailAuthCode, EvizUser, Papers, PassResetCode
 from Mexer.views import error_pages
 from utils.logging import LOGGER
 from utils.misc import new_email_code, new_reset_code
@@ -51,7 +51,7 @@ def user_signup(request):
         if form.is_valid():
             # Check honeypot and simply stop early if tripped
             if form.cleaned_data.get("honeypot-tripped"):
-                related_papers = Paper.objects.all().order_by("-Year")
+                related_papers = Papers.objects.all().order_by("-Year")
                 return render(
                     request, "index.html", context={"related_papers": related_papers}
                 )

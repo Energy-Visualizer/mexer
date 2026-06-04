@@ -13,7 +13,7 @@
 #####################
 from django.conf import settings
 from django.shortcuts import render
-from Mexer.models import Dataset, Paper, Version, matname
+from Mexer.models import Dataset, Matname, Papers, Version
 from Mexer.views import error_pages
 from utils.logging import LOGGER
 from utils.misc import time_view
@@ -25,7 +25,7 @@ def index(request):
 
     LOGGER.info("Home page visted.")
 
-    related_papers = Paper.objects.all().order_by("-Year")
+    related_papers = Papers.objects.all().order_by("-year")
     return render(request, "index.html", context={"related_papers": related_papers})
 
 
@@ -53,7 +53,7 @@ def data_info(request):
     LOGGER.info("Data info page visted.")
     # Retrieve all Dataset objects from the database
     datasets = Dataset.objects.all()
-    public_versions = Version.objects.filter(Public=True)
+    public_versions = Version.objects.filter(public=True)
     return render(
         request,
         "data_info.html",
@@ -67,7 +67,7 @@ def matrix_info(request):
     """Render the 'Matrix Information' page."""
     LOGGER.info("Matrix info page visted.")
     # Retrieve all Dataset objects from the database
-    matrices = matname.objects.all()
+    matrices = Matname.objects.all()
     return render(request, "matrix_info.html", context={"matrices": matrices})
 
 

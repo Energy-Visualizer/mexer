@@ -18,37 +18,25 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
-from Mexer.models import (
-    AggEtaPFU,
-    AggLevel,
-    Country,
-    Dataset,
-    EnergyType,
-    EvizUser,
-    GrossNet,
-    LastStage,
-    Method,
-    Version,
-    matname,
-)
+from Mexer import models
 from plotly.offline import plot
 from utils.data import (
     AGGETA_COLUMNS,
-    META_COLUMNS,
     PSUT_COLUMNS,
     DatabaseTarget,
     ShapedQuery,
     get_csv_from_query,
+    get_dataset_attributes,
     get_excel_from_query,
     shape_post_request,
     translate_query,
 )
 from utils.history import update_user_history
 from utils.logging import LOGGER
+from utils.lookup import LookupManager
 from utils.matrix import get_matrix, get_ruvy_matrix, visualize_matrix
 from utils.misc import get_plot_title, iea_valid, time_view
 from utils.sankey import get_sankey
-from utils.translator import Translator
 from utils.xy_plot import get_xy
 
 
@@ -73,50 +61,54 @@ def visualizer(request):
 
     # see if the user is an admin to get access to SandboxDB table
     try:
-        admin_user = EvizUser.objects.get_by_natural_key(request.user.username).is_staff
-    except Exception as e:
-        print(e)
+        admin_user = models.EvizUser.objects.get_by_natural_key(
+            request.user.username
+        ).is_staff
+    except Exception:
         admin_user = False
 
-    # Temporary, do not use translator.
-    # TODO: Lookup rewrite should include
-    # descriptions as part of entries.
+    # Fetch all available options for various parameters.
+
+    lookups = LookupManager("default")
+    sandbox_lookups = LookupManager("sandbox")
 
     if admin_user:
-        datasets = list(Dataset.objects.all())
+        datasets = lookups.get_objects(model=models.Dataset)
+        sandbox_datasets = sandbox_lookups.get_objects(model=models.Dataset)
     else:
-        datasets = list(Dataset.objects.filter(Public=True))
+        datasets = lookups.public_datasets().objects
+        sandbox_datasets = None
 
-    versions = Version.objects.all()
-    if admin_user:
-        sandbox_versions = [
-            settings.SANDBOX_PREFIX + ver
-            for ver in Version.objects.using("sandbox").values_list(
-                "Version", flat=True
-            )
-        ]
-    else:
-        sandbox_versions = []
+    countries = lookups.get_objects(model=models.Country)
+    countries.sort(key=lambda c: c.full_name)
 
-    countries = list(Country.objects.all())
-    countries.sort(key=lambda country: country.FullName)
+    versions = lookups.get_objects(model=models.Version)
+    sandbox_versions = sandbox_lookups.get_objects(model=models.Version)
+    versions.sort(key=lambda v: v.version_id)
+    sandbox_versions.sort(key=lambda v: v.version_id)
 
-    methods = list(method for method in Method.objects.all() if method.Method == "PCM")
-    energy_types = list(EnergyType.objects.all())
-    last_stages = list(
-        stage
-        for stage in LastStage.objects.all()
-        if stage.ECCStage in ("Final", "Useful")
-    )
-    grossnets = list(GrossNet.objects.all())
-    agglevels = list(AggLevel.objects.all())
+    methods = [lookups[models.Method]["PCM"]]
 
-    matnames = list(matname.objects.all())
-    matnames.sort(key=lambda mat: mat.matname)
+    energy_types = lookups.get_objects(model=models.EnergyType)
+
+    last_stage_names = ["Final", "Useful"]
+    last_stages = [lookups[models.ECCStage][name] for name in last_stage_names]
+
+    gross_nets = lookups.get_objects(model=models.GrossNet)
+
+    agg_levels = lookups.get_objects(model=models.AggLevel)
+
+    matnames = lookups.get_objects(model=models.Matname)
+    matnames.sort(key=lambda m: m.full_name)
+
+    # TODO: Use AttributeTables description column
+    # for field-level tooltips.
 
     # Prepare the context dictionary for the template
     context = {
+        "SANDBOX_PREFIX": settings.SANDBOX_PREFIX,
         "datasets": datasets,
+        "sandbox_datasets": sandbox_datasets,
         "default_dataset": "CL-PFU MW",
         "versions": versions,
         "default_version": "v2.0",
@@ -125,19 +117,19 @@ def visualizer(request):
         "countries": countries,
         "default_country": "Ghana",
         "methods": methods,
-        "default_method": methods[0].Method,
+        "default_method": methods[0].method,
         "energy_types": energy_types,
-        "default_energy_type": energy_types[0].EnergyType,
+        "default_energy_type": energy_types[0].energy_type,
         "last_stages": last_stages,
-        "default_last_stage": last_stages[0].ECCStage,
-        "grossnets": grossnets,
-        "default_grossnet": grossnets[0].GrossNet,
+        "default_last_stage": last_stages[0].ecc_stage,
+        "gross_nets": gross_nets,
+        "default_gross_net": gross_nets[0].gross_net,
         "matnames": matnames,
         "default_matname": matnames[0].matname,
-        "agglevels": agglevels,
-        "default_agglevel": agglevels[0].AggLevel,
+        "agg_levels": agg_levels,
+        "default_agg_level": agg_levels[0].agg_level,
         "iea_user": iea_user,
-        "site_version": settings.SITE_VERSION,  # version of the site to be displayed to users
+        "site_version": settings.SITE_VERSION,
     }
 
     return render(request, "visualizer.html", context)
@@ -145,10 +137,13 @@ def visualizer(request):
 
 def generate_sankey_html(target: DatabaseTarget, query: ShapedQuery) -> str:
     translated_query = translate_query(target, query)
-    nodes, links, options, num_columns = get_sankey(target, translated_query)
+    sankey = get_sankey(target, translated_query)
 
-    if nodes is None:
+    if sankey is None:
         return "Error: No cooresponding data"
+
+    nodes, links, options, num_columns = sankey
+
     return f"<script>createSankey({nodes},{links},{options},\"{get_plot_title(query)}\",{num_columns})</script>\
                     <button onclick='downloadSankey()' class='absolute top-2 right-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'>Download Sankey</button>"
 
@@ -205,12 +200,12 @@ def generate_matrix_html(target: DatabaseTarget, query: ShapedQuery) -> str:
 
     matname = None
     if matrix_name == "RUVY" and coloring_method == "ruvy":
-        matrix, matname = get_ruvy_matrix(target, translated_query)
+        ruvy_matrix = get_ruvy_matrix(target, translated_query)
+        if ruvy_matrix is None:
+            return "Error: No corresponding data"
+        matrix, matname = ruvy_matrix
     else:
         matrix = get_matrix(target, translated_query)
-
-    if matrix is None:
-        return "Error: No corresponding data"
 
     heatmap = visualize_matrix(target, matrix, matname, color_scale, coloring_method)
     heatmap = heatmap.properties(
@@ -327,11 +322,14 @@ def get_data(request: HttpRequest):
     if request.method != "POST":
         return HttpResponse(status=405)
 
-    data_format = request.POST.get("returnDataType")
+    LOGGER.info(f"Raw data: {request.POST}")
+
+    data_format = request.POST.get("return_data_type")
     if data_format is None:
         return HttpResponse("Data format unspecified", status=400)
 
     query, _, target = shape_post_request(request.POST)
+    dataset_model = target[1]
 
     if not iea_valid(request.user, query):
         LOGGER.warning(
@@ -346,13 +344,13 @@ def get_data(request: HttpRequest):
 
     LOGGER.info(query)
 
-    columns: list[str] = []
-    if target[1] is AggEtaPFU:
+    columns: list[str] = list(get_dataset_attributes(dataset_model).keys())
+    if dataset_model is models.AggEtaPFU:
         # get xy info
-        columns = META_COLUMNS + AGGETA_COLUMNS
+        columns.extend(AGGETA_COLUMNS)
     else:
         # get psut (sankey and matrix) info
-        columns = META_COLUMNS + PSUT_COLUMNS
+        columns.extend(PSUT_COLUMNS)
 
     final_response = HttpResponse()
     filename = f"mexer-data-{time.strftime('%H-%M_%d-%m-%Y')}"

@@ -26,22 +26,26 @@
 #####################
 import io
 from collections.abc import Callable
-from typing import Any, Literal, cast
+from typing import Any, Literal
 
+import Mexer.models as models
 import pandas as pd
-import pandas.io.sql as pd_sql  # for getting data into a pandas dataframe
 from django.conf import settings
-from django.db import connections
+from django.db.models import Model
 from django.http import QueryDict
-from Mexer.models import PSUT, AggEtaPFU, IEAData, models
 
 from utils.logging import LOGGER
-from utils.misc import ShapedQuery, Silent
-from utils.translator import Translator
+from utils.lookup import (
+    Attribute,
+    LookupManager,
+    get_attributes,
+    get_foreign_attribute,
+)
+from utils.misc import ShapedQuery
 
 type DatabaseSource = Literal["sandbox", "users", "default"]
 
-type DatabaseTarget = tuple[DatabaseSource, type[models.Model]]
+type DatabaseTarget = tuple[DatabaseSource, type[Model]]
 
 
 def get_database_target(query: ShapedQuery) -> DatabaseTarget:
@@ -54,9 +58,13 @@ def get_database_target(query: ShapedQuery) -> DatabaseTarget:
 
     plot_type = query.get("plot_type")
     if plot_type == "xy_plot":
-        model = AggEtaPFU
+        model = models.AggEtaPFU
     else:
-        model = IEAData if table_name == "IEAEWEB2022" else PSUT
+        model = (
+            models.IEAData
+            if table_name == "IEAEWEB2022"
+            else models.PSUTReAllChopAllDsAllGrAll
+        )
 
     source = "sandbox" if is_sandbox else "default"
     return source, model
@@ -73,122 +81,122 @@ def query_database(target: DatabaseTarget, query: dict, values: list[str]):
     if not _valid_database(db):
         raise ValueError("Unknown database specified for query")
 
-    data = model.objects.using(db).values_list(*values).filter(**query)
+    LOGGER.info(f"Requested model: {model._meta.model_name}")
+    LOGGER.info(f"Query being passed to filter: {query}")
+    LOGGER.info(f"Requested columns: {values}")
 
-    LOGGER.debug(f"Query is {query}")
+    data = model.objects.using(db).values_list(*values).filter(**query)
 
     return data
 
 
-def get_dataframe(target: DatabaseTarget, query: dict, columns: list) -> pd.DataFrame:
+def get_dataframe(
+    target: DatabaseTarget, query: dict[str, Any], columns: list[str]
+) -> pd.DataFrame:
     db_source, db_model = target
     if not _valid_database(db_source):
         # Invalid database, empty data frame.
         return pd.DataFrame()
 
+    LOGGER.info(f"Requested model: {db_model._meta.model_name}")
     LOGGER.info(f"Query being passed to filter: {query}")
-
-    # Default sort: chronological.
-    # Expand on sorting options in the future.
-    db_query = (
-        db_model.objects.using(db_source)
-        .filter(**query)
-        .values(*columns)
-        .order_by("Year")
-        .query
-    )
+    LOGGER.info(f"Requested columns: {columns}")
 
     try:
-        sql = str(db_query)
+        qs = list(
+            db_model.objects.using(db_source)
+            .filter(**query)
+            .values(*columns)
+            .order_by("year")
+        )
+        if len(qs) < 20:
+            LOGGER.info(f"Raw results: {qs}")
+        else:
+            LOGGER.info(f"Got {len(qs)} rows")
+        return pd.DataFrame.from_records(qs)
     except Exception as e:
-        LOGGER.error(f"Query compilation failed: {e}")
+        LOGGER.error(f"Query failed: {e}")
         LOGGER.error(f"Raw query dict: {query}")
         return pd.DataFrame()
 
-    # Intercept database connection and read query to a pandas data frame.
-    with Silent():
-        df = pd_sql.read_sql_query(
-            sql,
-            con=connections[db_source].cursor().connection,
+
+# TODO: We need to "discover" these columns, not
+# hardcode them.
+
+PSUT_COLUMNS = ["value"]
+AGGETA_COLUMNS = ["gross_net", "ex_p", "ex_f", "ex_u", "etapf", "etafu", "etapu"]
+INCLUDES_NEU_COLUMN = "includes_neu"
+
+
+def get_dataset_attributes(model: type[Model]) -> dict[str, Attribute]:
+    """Get available attribute fields on the given
+    dataset model."""
+
+    def has_field(attr_field: str):
+        return any(field.name == attr_field for field in model._meta.fields)
+
+    # For all foreign fields, which ones does this model have?
+    return {
+        field: attr
+        for attr in get_attributes().values()
+        for field in attr.foreign_fields
+        if has_field(field)
+    }
+
+
+def get_userfriendly_dataframe(
+    target: DatabaseTarget, query: dict[str, Any], columns: list[str]
+) -> pd.DataFrame:
+    """Translate database IDs and other numerical values into
+    named textual counterparts."""
+
+    df = get_dataframe(target, query, columns)
+
+    if df.empty:
+        LOGGER.error("EMPTY: Empty dataframe")
+        return df
+
+    database = target[0]
+    lookups = LookupManager(database)
+
+    # Translate IDs into names when appropriate.
+    for column in df.columns:
+        # For accurate type hints:
+        assert isinstance(column, str)
+        col = column
+
+        if not get_foreign_attribute(col):
+            continue
+
+        def transform(value):
+            return lookups.translate(model_or_field=col, value=value)
+
+        df[col] = df[col].apply(transform)
+
+    # Handle IncludesNEU separately as it's a boolean.
+    if INCLUDES_NEU_COLUMN in df.columns:
+        df[INCLUDES_NEU_COLUMN] = df[INCLUDES_NEU_COLUMN].apply(
+            lambda inc: "Yes" if inc else "No"
         )
 
     return df
 
 
-META_COLUMNS = [
-    "Dataset",
-    "ValidFromVersion",
-    "ValidToVersion",
-    "Country",
-    "Method",
-    "EnergyType",
-    "LastStage",
-    "IncludesNEU",
-    "Year",
-    "ChoppedMat",
-    "ChoppedVar",
-    "ProductAggregation",
-    "IndustryAggregation",
-]
-PSUT_COLUMNS = ["matname", "i", "j", "value"]
-AGGETA_COLUMNS = ["GrossNet", "EXp", "EXf", "EXu", "etapf", "etafu", "etapu"]
-
-
-def get_translated_dataframe(
-    target: DatabaseTarget, query: dict[str, Any], columns: list
-) -> pd.DataFrame:
-    df = get_dataframe(target, query, columns)
-
-    # no need to do work if dataframe is empty (no data was found for the query)
-    if df.empty:
-        return df
-
-    translator = Translator(target[0])  # get a translator for the correct database
-
-    # Translate the DataFrame's column names
-    translate_columns = {
-        "Dataset": translator.dataset_translate,
-        "ValidFromVersion": translator.version_translate,
-        "ValidToVersion": translator.version_translate,
-        "Country": translator.country_translate,
-        "Method": translator.method_translate,
-        "EnergyType": translator.energytype_translate,
-        "LastStage": translator.laststage_translate,
-        "ChoppedMat": translator.matname_translate,
-        "ChoppedVar": translator.index_translate,
-        "ProductAggregation": translator.agglevel_translate,
-        "IndustryAggregation": translator.agglevel_translate,
-        "matname": translator.matname_translate,
-        "grossnet": translator.grossnet_translate,
-        "i": translator.index_translate,
-        "j": translator.index_translate,
-    }
-
-    # Apply the translation functions to each column if it exists in the DataFrame
-    for col, translate_func in translate_columns.items():
-        if col in df.columns:
-            df[col] = df[col].apply(translate_func)
-
-    # Handle IncludesNEU separately as it's a boolean
-    if "IncludesNEU" in df.columns:
-        df["IncludesNEU"] = df["IncludesNEU"].apply(lambda x: "Yes" if x else "No")
-
-    return df
-
-
-def get_csv_from_query(target: DatabaseTarget, query: dict, columns: list) -> str:
-    ROW_NUMS = False
-    return get_translated_dataframe(target, query, columns).to_csv(index=ROW_NUMS)
+def get_csv_from_query(target: DatabaseTarget, query: dict, columns: list[str]) -> str:
+    INCLUDE_ROW_NUMS = False
+    return get_userfriendly_dataframe(target, query, columns).to_csv(
+        index=INCLUDE_ROW_NUMS
+    )
 
 
 def get_excel_from_query(
-    target: DatabaseTarget, query: dict, columns=PSUT_COLUMNS
+    target: DatabaseTarget, query: dict, columns: list[str]
 ) -> bytes:
-    ROW_NUMS = False
+    INCLUDE_ROW_NUMS = False
     buffer = io.BytesIO()
     with pd.ExcelWriter(buffer) as writer:
-        get_translated_dataframe(target, query, columns).to_excel(
-            writer, index=ROW_NUMS
+        get_userfriendly_dataframe(target, query, columns).to_excel(
+            writer, index=INCLUDE_ROW_NUMS
         )
     return buffer.getvalue()
 
@@ -229,26 +237,17 @@ def _str_or_all_list[T](value: str | list[str], op: Callable[[str], T]) -> T | l
         return [op(item) for item in value]
 
 
-# TODO: rewrite this to use a for loop instead
 def translate_query(target: DatabaseTarget, query: ShapedQuery) -> dict[str, Any]:
-    """Turn a query of human readable values from a form into a query read to hit the dataset
+    """Turn a query of human readable values from a form
+    into a query ready to hit the dataset."""
 
-    Input:
-
-        query, a dict: the query that should be translated
-
-    Output:
-
-        a dictionary of a query ready to hit the database
-    """
-
-    translated = dict()
-    db_source, _ = target
+    final_query: dict[str, Any] = dict()
+    db_source, dataset_model = target
 
     if not _valid_database(db_source):
         raise ValueError("Unknown database specified for translating query")
 
-    translator = Translator(db_source)
+    lookups = LookupManager(db_source)
 
     # Clear sandbox prefix from query parameters;
     # translation will not recognize sandbox prefix.
@@ -257,79 +256,51 @@ def translate_query(target: DatabaseTarget, query: ShapedQuery) -> dict[str, Any
         for k in query
     }
 
-    # common query parts
-    if v := query.get("dataset"):
-        translated["Dataset"] = translator.dataset_translate(v)
-    if v := query.get("version"):
-        translated["ValidFromVersion__lte"] = translator.version_translate(v)
-        translated["ValidToVersion__gte"] = translator.version_translate(v)
-    if v := query.get("country"):
-        if isinstance(v, list):
-            translated["Country__in"] = [
-                translator.country_translate(country) for country in v
-            ]
-        else:
-            translated["Country"] = translator.country_translate(v)
-    if v := query.get("method"):
-        if isinstance(v, list):
-            translated["Method__in"] = [
-                translator.method_translate(method) for method in v
-            ]
-        else:
-            translated["Method"] = translator.method_translate(v)
-    if v := query.get("energy_type"):
-        if isinstance(v, list):
-            translated["EnergyType__in"] = [
-                translator.energytype_translate(energy_type) for energy_type in v
-            ]
-        else:
-            translated["EnergyType"] = translator.energytype_translate(v)
-    if v := query.get("last_stage"):
-        translated["LastStage"] = translator.laststage_translate(v)
-    # includes neu either is in the query or not, it's value does need to be more than empty string, though
-    translated["IncludesNEU"] = translator.includesNEU_translate(
-        bool(query.get("including_neu"))
-    )
-    if v := query.get("chopped_mat"):
-        translated["ChoppedMat"] = translator.matname_translate(v)
-    if v := query.get("chopped_var"):
-        translated["ChoppedVar"] = translator.index_translate(v)
-    if v := query.get("product_aggregation"):
-        if isinstance(v, list):
-            translated["ProductAggregation__in"] = [
-                translator.agglevel_translate(agglevel) for agglevel in v
-            ]
-        else:
-            translated["ProductAggregation"] = translator.agglevel_translate(v)
-    if v := query.get("industry_aggregation"):
-        if isinstance(v, list):
-            translated["IndustryAggregation__in"] = [
-                translator.agglevel_translate(agglevel) for agglevel in v
-            ]
-        else:
-            translated["IndustryAggregation"] = translator.agglevel_translate(v)
-    if v := query.get("grossnet"):
-        translated["GrossNet"] = translator.grossnet_translate(v)
-    # plot-specific query parts
-    if (v := query.get("to_year")) and isinstance(v, str):
-        # if year part is a range of years, i.e. to_year present
-        # set up query as range
-        translated["Year__lte"] = int(v)
-        if (v := query.get("year")) and isinstance(v, str):
-            translated["Year__gte"] = int(v)
-    elif (v := query.get("year")) and isinstance(v, str):
-        # else just have year be one year
-        translated["Year"] = int(v)
-    if v := query.get("matname"):
-        if v == "RUVY":
-            translated["matname__in"] = [
-                translator.matname_translate("R"),
-                translator.matname_translate("U"),
-                translator.matname_translate("V"),
-                translator.matname_translate("Y"),
-            ]
-        else:
-            translated["matname"] = translator.matname_translate(v)
+    SPECIAL_CASES: list[type[Model]] = [models.Version, models.Year]
 
-    LOGGER.debug(f"Translated query: {translated}")
-    return translated
+    # Override RUVY for matname query.
+    if "matname" in query and query["matname"] == "RUVY":
+        query["matname"] = list("RUVY")
+
+    # Translate names to IDs for lookup attributes.
+
+    attributes = get_dataset_attributes(dataset_model)
+
+    LOGGER.info(f"TRANSLATEQUERY: Attributes: {list(attributes.keys())}")
+
+    for param, arg in query.items():
+        attribute = attributes.get(param)
+        if attribute is None:
+            LOGGER.info(f"TRANSLATEQUERY: No attribute found for {param}")
+            # Not an attribute; omit from query.
+            continue
+        if attribute.model in SPECIAL_CASES:
+            continue
+        lookup = lookups[attribute.model]
+        LOGGER.info(f"TRANSLATEQUERY: Attribute found for {param}")
+
+        if isinstance(arg, list):
+            param = f"{param}__in"
+
+        final_query[param] = _str_or_all_list(arg, lambda arg: lookup.translator[arg])
+
+    # Special cases handled below.
+
+    final_query["includes_neu"] = int(bool(query.get("includes_neu")))
+
+    # Version range handling.
+    if isinstance(v := query.get("version"), str):
+        version = lookups[models.Version].translator[v]
+        final_query["valid_from_version__lte"] = version
+        final_query["valid_to_version__gte"] = version
+
+    # Year range handling.
+    if isinstance(v := query.get("to_year"), str):
+        final_query["year__lte"] = int(v)
+        if isinstance(v := query.get("year"), str):
+            final_query["year__gte"] = int(v)
+    elif isinstance(v := query.get("year"), str):
+        final_query["year"] = int(v)
+
+    LOGGER.debug(f"Translated query: {final_query}")
+    return final_query

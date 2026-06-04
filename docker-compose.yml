@@ -80,7 +80,12 @@ services:
     volumes:
       - /usr/share/dict/words:/usr/share/dict/words:ro
       - ./Mexer_site/general.log:/app/general.log:rw
-    command: ["python3", "-u", "manage.py", "runserver", "0.0.0.0:8000"]
+    command:
+      - sh
+      - -c
+      - |
+        python3 /app/devscripts/generate_models.py /app/Mexer/models.py /app/internal_resources/base_models.py &&
+        python3 -u manage.py runserver 0.0.0.0:8000
     post_start:
       - command: ["python3", "manage.py", "collectstatic", "--noinput"]
 

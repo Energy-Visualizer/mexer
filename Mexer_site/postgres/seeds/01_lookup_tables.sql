@@ -56,7 +56,9 @@ ON CONFLICT DO NOTHING;
 
 INSERT INTO public."Index" ("IndexID", "Index", "Order", "SankeyColumn") VALUES
     (1, 'Index 1', 1, 1),
-    (2, 'Index 2', 2, 2)
+    (2, 'Index 2', 2, 2),
+    (3, 'Index 3', 3, 3),
+    (4, 'Index 4', 4, 4)
 ON CONFLICT DO NOTHING;
 
 INSERT INTO public."AggLevel" ("AggLevelID", "AggLevel", "FullName", "Description") VALUES

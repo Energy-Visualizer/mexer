@@ -15,11 +15,11 @@ import json
 from collections import Counter
 
 from django.conf import settings
-from Mexer.models import Index
+from Mexer import models
 
 from utils.data import DatabaseTarget, query_database
 from utils.logging import LOGGER
-from utils.translator import Translator
+from utils.lookup import LookupManager
 
 INDUSTRY_COLOR = "midnightblue"
 OVERRIDE_COL = 1  # where to put energy carrier nodes
@@ -82,9 +82,7 @@ def _get_node_info(name: str, node_info_by_name: dict) -> NodeInfo:
     return node_info
 
 
-def get_sankey(
-    target: DatabaseTarget, query: dict
-) -> tuple[str, str, str, int] | tuple[None, None, None, None]:
+def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str, int] | None:
     """Gets a sankey diagram for a query
 
     Input:
@@ -102,45 +100,33 @@ def get_sankey(
     if "matname" in query.keys():
         del query["matname"]
 
-    translator = Translator(target[0])  # get a translator for the correct database
+    lookups = LookupManager(target[0])  # get a translator for the correct database
+    matname_translator = lookups[models.Matname].translator
+    index_translator = lookups[models.Index].translator
 
     # have the query get a full RUVY
-    query.update(
-        {
-            "matname__in": [
-                translator.matname_translate("R"),
-                translator.matname_translate("U"),
-                translator.matname_translate("V"),
-                translator.matname_translate("Y"),
-            ]
-        }
-    )
+    query.update({"matname__in": [matname_translator[mat] for mat in "RUVY"]})
 
     # get all four matrices to make the full RUVY matrix
-    data = query_database(target, query, ["matname", "i", "j", "value"])
+    raw_data = query_database(target, query, ["matname", "i", "j", "value"])
 
     # if no cooresponding data, return as such
     # TODO: would probably be better to raise an exception
-    if not data:
-        return (
-            None,
-            None,
-            None,
-            None,
-        )  # TODO: change this to returning empty strings, etc.
+    if not raw_data:
+        return None
 
     # get rid of any duplicate i,j,x combinations (many exist)
-    data = set(data)
+    data: set[tuple[int, ...]] = set(raw_data)
 
     # get foreign keys from the query results
     foreign_keys = set(row[1] for row in data).union(row[2] for row in data)
 
     # get needed orderings from the db
-    index_records = Index.objects.filter(IndexID__in=foreign_keys).values(
-        "Index", "SankeyColumn"
+    index_records = models.Index.objects.filter(index_id__in=foreign_keys).values(
+        "index", "sankey_column"
     )
     sankey_orders = {
-        record["Index"]: record["SankeyColumn"] for record in index_records
+        record["index"]: record["sankey_column"] for record in index_records
     }
 
     # normalize the values of sankey_orders to remove "empty" columns
@@ -177,14 +163,14 @@ def get_sankey(
     indexes_by_column = Counter()
 
     for matname, i, j, magnitude in data:
-        readable_matname = translator.matname_translate(matname)
+        readable_matname = matname_translator[matname]
 
         # if R or V matrix, then the destination node must be an energy carrier, while the source node must be an industry
         # j not being the carrier inherintly means i is the carrier
         j_is_carrier = readable_matname == "R" or readable_matname == "V"
 
-        i_name = translator.index_translate(i)
-        j_name = translator.index_translate(j)
+        i_name = index_translator[i]
+        j_name = index_translator[j]
 
         # get the column the i (from) and j (to) nodes should go in
         try:
@@ -228,9 +214,7 @@ def get_sankey(
                 "from": dict(column=from_node_info.column, node=from_node_info.index),
                 "to": dict(column=to_node_info.column, node=to_node_info.index),
                 "value": magnitude,
-                "color": _get_sankey_color(
-                    translator.index_translate(j if j_is_carrier else i)
-                ),
+                "color": _get_sankey_color(index_translator[j if j_is_carrier else i]),
             }
         )
 

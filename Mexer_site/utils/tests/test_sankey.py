@@ -2,7 +2,7 @@ import json
 from collections import Counter
 
 from django.test import TransactionTestCase
-from Mexer.models import PSUT
+from Mexer.models import PSUTReAllChopAllDsAllGrAll as PSUT
 
 from utils.sankey import (
     NodeInfo,
@@ -83,22 +83,20 @@ class SankeyTests(TransactionTestCase):
     def test_get_sankey_no_data(self):
         """get_sankey should return None tuple if no data found."""
         target = ("default", PSUT)
-        query = {"Year": 9999}  # Year that doesn't exist in test data
+        query = {"year": 9999}  # Year that doesn't exist in test data
 
         result = get_sankey(target, query)
-
-        self.assertEqual(result[0], None)
-        self.assertEqual(result[1], None)
-        self.assertEqual(result[2], None)
+        self.assertIsNone(result)
 
     def test_get_sankey_returns_json_strings(self):
         """get_sankey should return JSON strings for nodes, links, and options."""
         target = ("default", PSUT)
-        query = {"Year": 2020}
+        query = {"year": 2020}
 
         result = get_sankey(target, query)
 
         # Should return nodes, links, options, max_columns
+        assert result is not None
         self.assertEqual(len(result), 4)
 
         nodes_json, links_json, options_json, max_columns = result
@@ -119,9 +117,11 @@ class SankeyTests(TransactionTestCase):
     def test_get_sankey_nodes_structure(self):
         """get_sankey nodes should have correct structure."""
         target = ("default", PSUT)
-        query = {"Year": 2020}
+        query = {"year": 2020}
 
-        nodes_json, *_ = get_sankey(target, query)
+        sankey = get_sankey(target, query)
+        assert sankey is not None
+        nodes_json, *_ = sankey
 
         nodes = json.loads(nodes_json)
 
@@ -140,9 +140,11 @@ class SankeyTests(TransactionTestCase):
     def test_get_sankey_links_structure(self):
         """get_sankey links should have correct structure."""
         target = ("default", PSUT)
-        query = {"Year": 2020}
+        query = {"year": 2020}
 
-        _, links_json, *_ = get_sankey(target, query)
+        sankey = get_sankey(target, query)
+        assert sankey is not None
+        _, links_json, *_ = sankey
 
         links = json.loads(links_json)
 
@@ -168,9 +170,11 @@ class SankeyTests(TransactionTestCase):
     def test_get_sankey_options_structure(self):
         """get_sankey options should have expected keys."""
         target = ("default", PSUT)
-        query = {"Year": 2020}
+        query = {"year": 2020}
 
-        _, _, options_json, _ = get_sankey(target, query)
+        sankey = get_sankey(target, query)
+        assert sankey is not None
+        _, _, options_json, _ = sankey
 
         options = json.loads(options_json)
 
