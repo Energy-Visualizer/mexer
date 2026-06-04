@@ -12,7 +12,7 @@ from collections.abc import Callable
 from datetime import datetime, timedelta
 from typing import overload
 
-from devscripts.generate_models import column_field_name
+from devscripts.generate_models import column_field_name, table_class_name
 from django.apps import apps
 from django.db.models import Model, QuerySet
 from Mexer import models
@@ -53,12 +53,14 @@ class Attribute[T: Model]:
     foreign_fields: list[str]
     id_field: str
     name_field: str
+    desc_field: str | None
 
     def __init__(
         self,
         *,
         model: type[T],
         name_field: str,
+        desc_field: str | None = None,
         foreign_fields: list[str] | None = None,
         description="",
     ):
@@ -68,6 +70,7 @@ class Attribute[T: Model]:
         self.description = description
         self.id_field = model._meta.pk.name
         self.name_field = name_field
+        self.desc_field = desc_field
 
         def model_has_field(model: type[Model], field_name: str):
             return any(field.name == field_name for field in model._meta.fields)
@@ -99,38 +102,43 @@ class Attribute[T: Model]:
 # Models eligible for LOOKUP are those used to narrow
 # DB queries, called "attributes", i.e. they are the targets
 # of the many foreign-key columns present in data-source tables.
-#
-# TODO: These are hardcoded for now, but should be taken from table of attributes.
-#
-# TODO: foreign_fields can be derived from schema spreadsheet.
-ATTRIBUTES: dict[type[Model], Attribute] = {
-    models.Index: Attribute(
-        model=models.Index, name_field="index", foreign_fields=["i", "j", "chopped_var"]
-    ),
-    models.Dataset: Attribute(model=models.Dataset, name_field="dataset"),
-    models.Version: Attribute(
-        model=models.Version,
-        name_field="version",
-        foreign_fields=["valid_from_version", "valid_to_version"],
-    ),
-    models.Country: Attribute(model=models.Country, name_field=FULLNAME_FIELD_NAME),
-    models.Method: Attribute(model=models.Method, name_field="method"),
-    models.EnergyType: Attribute(
-        model=models.EnergyType, name_field=FULLNAME_FIELD_NAME
-    ),
-    models.ECCStage: Attribute(
-        model=models.ECCStage, name_field="ecc_stage", foreign_fields=["last_stage"]
-    ),
-    models.Matname: Attribute(
-        model=models.Matname, name_field="matname", foreign_fields=["chopped_mat"]
-    ),
-    models.GrossNet: Attribute(model=models.GrossNet, name_field="gross_net"),
-    models.AggLevel: Attribute(
-        model=models.AggLevel,
-        name_field="agg_level",
-        foreign_fields=["product_aggregation", "industry_aggregation"],
-    ),
-}
+
+ATTRIBUTES: dict[type[Model], Attribute] = {}
+
+# Load attributes from database.
+_attribute_tables = models.AttributeTables.objects.all()
+_schema = models.SchemaTable.objects.all()
+for attr_table in _attribute_tables:
+    model_name = table_class_name(attr_table.table_name)
+    model_desc = attr_table.table_description
+    model = mexer_config.get_model(model_name)
+    name_field = column_field_name(attr_table.name_column)
+    desc_field = attr_table.description_column and column_field_name(
+        attr_table.description_column
+    )
+
+    # Determine foreign fields from schema table.
+    foreign_fields: list[str] = []
+    for schema_row in _schema:
+        # Row must have foreign key in this table.
+        if schema_row.fk_table != attr_table.table_name:
+            continue
+        field = column_field_name(schema_row.colname)
+        if field not in foreign_fields:
+            foreign_fields.append(field)
+
+    ATTRIBUTES[model] = Attribute(
+        model=model,
+        name_field=name_field,
+        desc_field=desc_field,
+        description=model_desc,
+        foreign_fields=list(foreign_fields),
+    )
+
+
+LOGGER.info("Attributes generated")
+for attr in ATTRIBUTES.values():
+    LOGGER.info(f" {attr.name} {attr.name_field} {attr.foreign_fields}")
 
 
 def get_attribute[T: Model](model: type[T]) -> Attribute[T]:

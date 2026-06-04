@@ -57,9 +57,6 @@ cur = conn.cursor()
 cur.execute('SELECT * FROM "SchemaTable";')
 schema: list[tuple[str, str, bool, SpreadsheetDataType, str, str]] = cur.fetchall()
 
-for row in schema:
-    print(row)
-
 
 @dataclass
 class Column:
