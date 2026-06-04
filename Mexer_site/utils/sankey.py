@@ -122,11 +122,11 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str, int]
     foreign_keys = set(row[1] for row in data).union(row[2] for row in data)
 
     # get needed orderings from the db
-    index_records = models.Index.objects.filter(IndexID__in=foreign_keys).values(
-        "Index", "SankeyColumn"
+    index_records = models.Index.objects.filter(index_id__in=foreign_keys).values(
+        "index", "sankey_column"
     )
     sankey_orders = {
-        record["Index"]: record["SankeyColumn"] for record in index_records
+        record["index"]: record["sankey_column"] for record in index_records
     }
 
     # normalize the values of sankey_orders to remove "empty" columns

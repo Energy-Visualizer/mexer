@@ -1,7 +1,8 @@
 from django.conf import settings
 from django.http import QueryDict
 from django.test import TransactionTestCase
-from Mexer.models import PSUT, AggEtaPFU, IEAData
+from Mexer.models import AggEtaPFU, IEAData
+from Mexer.models import PSUTReAllChopAllDsAllGrAll as PSUT
 
 from utils.data import (
     get_csv_from_query,
@@ -27,8 +28,8 @@ class DataTests(TransactionTestCase):
 
     def test_query_database_valid(self):
         target = ("default", PSUT)
-        query = {"Year": 2020}
-        values = ["Year", "value"]
+        query = {"year": 2020}
+        values = ["year", "value"]
         data = query_database(target, query, values)
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0][0], 2020)
@@ -36,41 +37,41 @@ class DataTests(TransactionTestCase):
 
     def test_query_database_invalid(self):
         target = ("invalid_db", PSUT)
-        query = {"Year": 2021}
-        values = ["Year", "value"]
+        query = {"year": 2021}
+        values = ["year", "value"]
         with self.assertRaises(ValueError):
             query_database(target, query, values)
 
     def test_get_dataframe(self):
         target = ("default", PSUT)
-        query = {"Year": 2021}
-        columns = ["Year", "value"]
+        query = {"year": 2021}
+        columns = ["year", "value"]
         df = get_dataframe(target, query, columns)
         self.assertEqual(len(df), 1)
-        self.assertEqual(df.iloc[0]["Year"], 2021)
+        self.assertEqual(df.iloc[0]["year"], 2021)
         self.assertEqual(df.iloc[0]["value"], 5.5)
 
     def test_get_translated_dataframe(self):
         target = ("default", PSUT)
-        query = {"Year": 2021}
-        columns = ["Year", "value"]
+        query = {"year": 2021}
+        columns = ["year", "value"]
         df = get_userfriendly_dataframe(target, query, columns)
         self.assertEqual(len(df), 1)
-        self.assertEqual(df.iloc[0]["Year"], 2021)
+        self.assertEqual(df.iloc[0]["year"], 2021)
         self.assertEqual(df.iloc[0]["value"], 5.5)
 
     def test_get_csv_from_query(self):
         target = ("default", PSUT)
-        query = {"Year": 2021}
-        columns = ["Year", "value"]
+        query = {"year": 2021}
+        columns = ["year", "value"]
         csv_data = get_csv_from_query(target, query, columns)
-        self.assertIn("Year,value", csv_data)
+        self.assertIn("year,value", csv_data)
         self.assertIn("2021,5.5", csv_data)
 
     def test_get_excel_from_query(self):
         target = ("default", PSUT)
-        query = {"Year": 2021}
-        columns = ["Year", "value"]
+        query = {"year": 2021}
+        columns = ["year", "value"]
         excel_data = get_excel_from_query(target, query, columns)
         self.assertTrue(isinstance(excel_data, bytes))
 
@@ -88,6 +89,6 @@ class DataTests(TransactionTestCase):
         target = ("default", PSUT)
         query = {"dataset": "Test Dataset", "year": "2021"}
         translated_query = translate_query(target, query)
-        self.assertIn("Dataset", translated_query)
-        self.assertIn("Year", translated_query)
-        self.assertEqual(translated_query["Year"], 2021)
+        self.assertIn("dataset", translated_query)
+        self.assertIn("year", translated_query)
+        self.assertEqual(translated_query["year"], 2021)

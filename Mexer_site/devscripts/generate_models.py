@@ -15,49 +15,6 @@ type SpreadsheetDataType = Literal[
 ]
 
 
-def get_pgpass_password(host, port, dbname, user, pgpass_path):
-    with open(pgpass_path) as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith("#"):
-                continue
-            h, p, d, u, pw = line.split(":")
-            if all(
-                [
-                    h in (host, "*"),
-                    p in (str(port), "*"),
-                    d in (dbname, "*"),
-                    u in (user, "*"),
-                ]
-            ):
-                return pw
-    return None
-
-
-DB = "MexerDB"
-pgpass_file = os.getenv("PGPASSFILE", "./Mexer_site/.pgpass")
-
-password = get_pgpass_password(
-    host="mexer.site",
-    port=6432,
-    dbname=DB,
-    user="evizwebserver",
-    pgpass_path=pgpass_file,
-)
-
-conn = psql.connect(
-    host="mexer.site",
-    port=6432,
-    dbname=DB,
-    user="evizwebserver",
-    password=password,
-)
-cur = conn.cursor()
-
-cur.execute('SELECT * FROM "SchemaTable";')
-schema: list[tuple[str, str, bool, SpreadsheetDataType, str, str]] = cur.fetchall()
-
-
 @dataclass
 class Column:
     pk: bool
@@ -69,6 +26,49 @@ class Column:
 def generate_models(*, dest: str, base_models: str, output: Callable[[str], None]):
     with open(base_models, "r") as file:
         base_code = file.read()
+
+        def get_pgpass_password(host, port, dbname, user, pgpass_path):
+            with open(pgpass_path) as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith("#"):
+                        continue
+                    h, p, d, u, pw = line.split(":")
+                    if all(
+                        [
+                            h in (host, "*"),
+                            p in (str(port), "*"),
+                            d in (dbname, "*"),
+                            u in (user, "*"),
+                        ]
+                    ):
+                        return pw
+            return None
+
+        DB = "MexerDB"
+        pgpass_file = os.getenv("PGPASSFILE", "./Mexer_site/.pgpass")
+
+        password = get_pgpass_password(
+            host="mexer.site",
+            port=6432,
+            dbname=DB,
+            user="evizwebserver",
+            pgpass_path=pgpass_file,
+        )
+
+        conn = psql.connect(
+            host="mexer.site",
+            port=6432,
+            dbname=DB,
+            user="evizwebserver",
+            password=password,
+        )
+        cur = conn.cursor()
+
+        cur.execute('SELECT * FROM "SchemaTable";')
+        schema: list[tuple[str, str, bool, SpreadsheetDataType, str, str]] = (
+            cur.fetchall()
+        )
 
     tables: defaultdict[str, dict[str, Column]] = defaultdict(dict)
 

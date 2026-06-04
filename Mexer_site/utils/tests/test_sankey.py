@@ -2,7 +2,7 @@ import json
 from collections import Counter
 
 from django.test import TransactionTestCase
-from Mexer.models import PSUT
+from Mexer.models import PSUTReAllChopAllDsAllGrAll as PSUT
 
 from utils.sankey import (
     NodeInfo,
@@ -83,7 +83,7 @@ class SankeyTests(TransactionTestCase):
     def test_get_sankey_no_data(self):
         """get_sankey should return None tuple if no data found."""
         target = ("default", PSUT)
-        query = {"Year": 9999}  # Year that doesn't exist in test data
+        query = {"year": 9999}  # Year that doesn't exist in test data
 
         result = get_sankey(target, query)
         self.assertIsNone(result)
@@ -91,7 +91,7 @@ class SankeyTests(TransactionTestCase):
     def test_get_sankey_returns_json_strings(self):
         """get_sankey should return JSON strings for nodes, links, and options."""
         target = ("default", PSUT)
-        query = {"Year": 2020}
+        query = {"year": 2020}
 
         result = get_sankey(target, query)
 
@@ -117,7 +117,7 @@ class SankeyTests(TransactionTestCase):
     def test_get_sankey_nodes_structure(self):
         """get_sankey nodes should have correct structure."""
         target = ("default", PSUT)
-        query = {"Year": 2020}
+        query = {"year": 2020}
 
         sankey = get_sankey(target, query)
         assert sankey is not None
@@ -140,7 +140,7 @@ class SankeyTests(TransactionTestCase):
     def test_get_sankey_links_structure(self):
         """get_sankey links should have correct structure."""
         target = ("default", PSUT)
-        query = {"Year": 2020}
+        query = {"year": 2020}
 
         sankey = get_sankey(target, query)
         assert sankey is not None
@@ -170,7 +170,7 @@ class SankeyTests(TransactionTestCase):
     def test_get_sankey_options_structure(self):
         """get_sankey options should have expected keys."""
         target = ("default", PSUT)
-        query = {"Year": 2020}
+        query = {"year": 2020}
 
         sankey = get_sankey(target, query)
         assert sankey is not None

@@ -103,51 +103,60 @@ class Attribute[T: Model]:
 # DB queries, called "attributes", i.e. they are the targets
 # of the many foreign-key columns present in data-source tables.
 
-ATTRIBUTES: dict[type[Model], Attribute] = {}
-
-# Load attributes from database.
-_attribute_tables = models.AttributeTables.objects.all()
-_schema = models.SchemaTable.objects.all()
-for attr_table in _attribute_tables:
-    model_name = table_class_name(attr_table.table_name)
-    model_desc = attr_table.table_description
-    model = mexer_config.get_model(model_name)
-    name_field = column_field_name(attr_table.name_column)
-    desc_field = attr_table.description_column and column_field_name(
-        attr_table.description_column
-    )
-
-    # Determine foreign fields from schema table.
-    foreign_fields: list[str] = []
-    for schema_row in _schema:
-        # Row must have foreign key in this table.
-        if schema_row.fk_table != attr_table.table_name:
-            continue
-        field = column_field_name(schema_row.colname)
-        if field not in foreign_fields:
-            foreign_fields.append(field)
-
-    ATTRIBUTES[model] = Attribute(
-        model=model,
-        name_field=name_field,
-        desc_field=desc_field,
-        description=model_desc,
-        foreign_fields=list(foreign_fields),
-    )
+_ATTRIBUTES: dict[type[Model], Attribute] = {}
 
 
-LOGGER.info("Attributes generated")
-for attr in ATTRIBUTES.values():
-    LOGGER.info(f" {attr.name} {attr.name_field} {attr.foreign_fields}")
+def _load_attributes():
+    if len(_ATTRIBUTES):
+        return
+
+    # Load attributes from database.
+    _attribute_tables = models.AttributeTables.objects.all()
+    _schema = models.SchemaTable.objects.all()
+    for attr_table in _attribute_tables:
+        model_name = table_class_name(attr_table.table_name)
+        model_desc = attr_table.table_description
+        model = mexer_config.get_model(model_name)
+        name_field = column_field_name(attr_table.name_column)
+        desc_field = attr_table.description_column and column_field_name(
+            attr_table.description_column
+        )
+
+        # Determine foreign fields from schema table.
+        foreign_fields: list[str] = []
+        for schema_row in _schema:
+            # Row must have foreign key in this table.
+            if schema_row.fk_table != attr_table.table_name:
+                continue
+            field = column_field_name(schema_row.colname)
+            if field not in foreign_fields:
+                foreign_fields.append(field)
+
+        _ATTRIBUTES[model] = Attribute(
+            model=model,
+            name_field=name_field,
+            desc_field=desc_field,
+            description=model_desc,
+            foreign_fields=list(foreign_fields),
+        )
+
+    LOGGER.info("Attributes generated")
+    for attr in _ATTRIBUTES.values():
+        LOGGER.info(f" {attr.name} {attr.name_field} {attr.foreign_fields}")
+
+
+def get_attributes() -> dict[type[Model], Attribute]:
+    _load_attributes()
+    return _ATTRIBUTES
 
 
 def get_attribute[T: Model](model: type[T]) -> Attribute[T]:
-    return ATTRIBUTES[model]
+    return get_attributes()[model]
 
 
 def get_foreign_attribute(field_name: str) -> Attribute | None:
     """Whether this DB column name is eligible for attribute lookup."""
-    for attr in ATTRIBUTES.values():
+    for attr in get_attributes().values():
         if field_name in attr.foreign_fields:
             return attr
     return None
@@ -409,7 +418,7 @@ class LookupManager:
         if isinstance(model, str):
             attribute = get_foreign_attribute(model)
         else:
-            attribute = ATTRIBUTES.get(model)
+            attribute = get_attributes().get(model)
         if attribute is None:
             raise ValueError(f"Model kind {model} ineligible for lookup")
 

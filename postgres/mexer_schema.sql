@@ -2,8 +2,10 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 16.9 (Ubuntu 16.9-1.pgdg22.04+1)
--- Dumped by pg_dump version 17.5 (Ubuntu 17.5-1.pgdg22.04+1)
+\restrict kM8THnfXpEAyvNuMxOqEMBRJ2dQ0XGrxI5VRx8UJXuWm4OLxe37UNtw17TLD2w5
+
+-- Dumped from database version 16.13 (Ubuntu 16.13-1.pgdg22.04+1)
+-- Dumped by pg_dump version 18.0
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -136,6 +138,19 @@ CREATE TABLE public."AllMachineData" (
     "Quantity" integer NOT NULL,
     "Year" integer NOT NULL,
     "Value" double precision
+);
+
+
+--
+-- Name: AttributeTables; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."AttributeTables" (
+    "TableName" text NOT NULL,
+    "NameColumn" text,
+    "DescriptionColumn" text,
+    "Multiselect" boolean,
+    "TableDescription" text
 );
 
 
@@ -279,7 +294,8 @@ CREATE TABLE public."Country" (
     "Description" text,
     "IsCountry" boolean,
     "IsAggregation" boolean,
-    "IsContinent" boolean
+    "IsContinent" boolean,
+    "IsCanonicalCountry" boolean
 );
 
 
@@ -1006,6 +1022,20 @@ CREATE TABLE public."RCType" (
 
 
 --
+-- Name: SchemaTable; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."SchemaTable" (
+    "TableName" text NOT NULL,
+    "Colname" text NOT NULL,
+    "IsPK" boolean,
+    "ColDataType" text,
+    "FKTable" text,
+    "FKColname" text
+);
+
+
+--
 -- Name: SectorAggEtaFU; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1235,6 +1265,14 @@ ALTER TABLE ONLY public."AllIEAData"
 
 ALTER TABLE ONLY public."AllMachineData"
     ADD CONSTRAINT "AllMachineData_pkey" PRIMARY KEY ("Dataset", "ValidFromVersion", "ValidToVersion", "Country", "EnergyType", "LastStage", "Method", "Machine", "EuProduct", "Quantity", "Year");
+
+
+--
+-- Name: AttributeTables AttributeTables_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."AttributeTables"
+    ADD CONSTRAINT "AttributeTables_pkey" PRIMARY KEY ("TableName");
 
 
 --
@@ -1651,6 +1689,14 @@ ALTER TABLE ONLY public."Species"
 
 ALTER TABLE ONLY public."SpecifiedIEAData"
     ADD CONSTRAINT "SpecifiedIEAData_pkey" PRIMARY KEY ("Dataset", "ValidFromVersion", "ValidToVersion", "Country", "Method", "EnergyType", "LastStage", "Year", "LedgerSide", "FlowAggregationPoint", "Flow", "Product");
+
+
+--
+-- Name: SchemaTable TableSchema_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."SchemaTable"
+    ADD CONSTRAINT "TableSchema_pkey" PRIMARY KEY ("TableName", "Colname");
 
 
 --
@@ -9025,4 +9071,6 @@ ALTER TABLE ONLY public."matnameRCType"
 --
 -- PostgreSQL database dump complete
 --
+
+\unrestrict kM8THnfXpEAyvNuMxOqEMBRJ2dQ0XGrxI5VRx8UJXuWm4OLxe37UNtw17TLD2w5
 

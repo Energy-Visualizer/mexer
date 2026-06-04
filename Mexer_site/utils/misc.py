@@ -167,8 +167,8 @@ def get_plot_title(query: ShapedQuery, exclude: list[str] | None = None) -> str:
     # get year(s) information
     title_from_year = information.get("year")
     title_to_year = information.get("to_year")
-    assert isinstance(title_from_year, str)
-    assert isinstance(title_to_year, str)
+    assert not isinstance(title_from_year, list)
+    assert not isinstance(title_to_year, list)
 
     # if to-from years are the same,
     # set up to only use from year by

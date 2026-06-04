@@ -9,7 +9,7 @@ class XYTests(TestCase):
         # Define test parameters
         efficiency_metric = "etapf"
         target = ("default", AggEtaPFU)
-        query = {"Country": 1}
+        query = {"country": 1}
         color_by = "country"
         line_by = "energy_type"
         facet_col_by = None

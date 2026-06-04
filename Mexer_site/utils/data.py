@@ -35,7 +35,12 @@ from django.db.models import Model
 from django.http import QueryDict
 
 from utils.logging import LOGGER
-from utils.lookup import ATTRIBUTES, Attribute, LookupManager, get_foreign_attribute
+from utils.lookup import (
+    Attribute,
+    LookupManager,
+    get_attributes,
+    get_foreign_attribute,
+)
 from utils.misc import ShapedQuery
 
 type DatabaseSource = Literal["sandbox", "users", "default"]
@@ -55,7 +60,11 @@ def get_database_target(query: ShapedQuery) -> DatabaseTarget:
     if plot_type == "xy_plot":
         model = models.AggEtaPFU
     else:
-        model = models.IEAData if table_name == "IEAEWEB2022" else models.PSUT
+        model = (
+            models.IEAData
+            if table_name == "IEAEWEB2022"
+            else models.PSUTReAllChopAllDsAllGrAll
+        )
 
     source = "sandbox" if is_sandbox else "default"
     return source, model
@@ -72,9 +81,11 @@ def query_database(target: DatabaseTarget, query: dict, values: list[str]):
     if not _valid_database(db):
         raise ValueError("Unknown database specified for query")
 
-    data = model.objects.using(db).values_list(*values).filter(**query)
+    LOGGER.info(f"Requested model: {model._meta.model_name}")
+    LOGGER.info(f"Query being passed to filter: {query}")
+    LOGGER.info(f"Requested columns: {values}")
 
-    LOGGER.debug(f"Query is {query}")
+    data = model.objects.using(db).values_list(*values).filter(**query)
 
     return data
 
@@ -87,6 +98,7 @@ def get_dataframe(
         # Invalid database, empty data frame.
         return pd.DataFrame()
 
+    LOGGER.info(f"Requested model: {db_model._meta.model_name}")
     LOGGER.info(f"Query being passed to filter: {query}")
     LOGGER.info(f"Requested columns: {columns}")
 
@@ -126,7 +138,7 @@ def get_dataset_attributes(model: type[Model]) -> dict[str, Attribute]:
     # For all foreign fields, which ones does this model have?
     return {
         field: attr
-        for attr in ATTRIBUTES.values()
+        for attr in get_attributes().values()
         for field in attr.foreign_fields
         if has_field(field)
     }

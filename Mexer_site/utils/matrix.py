@@ -54,7 +54,7 @@ def get_matrix(target: DatabaseTarget, query: dict[str, Any]) -> coo_matrix:
 
     # Make and return the sparse matrix
     return coo_matrix(
-        (val, (row, col)),
+        (val, ([r - 1 for r in row], [c - 1 for c in col])),
         shape=(matrix_nrow, matrix_nrow),
     )
 
@@ -69,7 +69,7 @@ def get_ruvy_matrix(
     matrix_nrow = models.Index.objects.all().count()
     row, col, val, matname = zip(*sparse_matrix)
     mat = coo_matrix(
-        (val, (row, col)),
+        (val, ([r - 1 for r in row], [c - 1 for c in col])),
         shape=(matrix_nrow, matrix_nrow),
     )
 
@@ -106,11 +106,11 @@ def visualize_matrix(
     # frame_columns = {
     df = pd.DataFrame(
         {
-            "x": [index_lookup.translator[int(col)] for col in mat.col],
-            "y": [index_lookup.translator[int(row)] for row in mat.row],
+            "x": [index_lookup.translator[int(col) + 1] for col in mat.col],
+            "y": [index_lookup.translator[int(row) + 1] for row in mat.row],
             "value": mat.data,
-            "x_order": [index_orders[int(col)] for col in mat.col],
-            "y_order": [index_orders[int(row)] for row in mat.row],
+            "x_order": [index_orders[int(col) + 1] for col in mat.col],
+            "y_order": [index_orders[int(row) + 1] for row in mat.row],
         }
     )
 
