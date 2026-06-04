@@ -166,6 +166,16 @@ def _format_model(table_name: str, columns: dict[str, Column]) -> str:
 
 
 if __name__ == "__main__":
+    import argparse
+
     DEST = "./Mexer_site/Mexer/models.py"
     BASE_MODELS = "./Mexer_site/internal_resources/base_models.py"
-    generate_models(dest=DEST, base_models=BASE_MODELS, output=print)
+
+    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("dest", nargs="?", default="./Mexer_site/Mexer/models.py")
+    parser.add_argument(
+        "base", nargs="?", default="./Mexer_site/internal_resources/base_models.py"
+    )
+    args = parser.parse_args()
+    generate_models(dest=args.dest, base_models=args.base, output=print)
