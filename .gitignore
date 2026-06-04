@@ -13,3 +13,6 @@ mexer_venv
 .env
 
 .zed
+
+# Automatic model generation.
+**/models.py
