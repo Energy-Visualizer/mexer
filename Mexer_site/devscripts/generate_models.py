@@ -1,10 +1,11 @@
+import os
 import re
 from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Literal
 
-import pandas as pd
+import psycopg2 as psql
 
 type SpreadsheetDataType = Literal[
     "int",
@@ -12,6 +13,52 @@ type SpreadsheetDataType = Literal[
     "boolean",
     "double precision",
 ]
+
+
+def get_pgpass_password(host, port, dbname, user, pgpass_path):
+    with open(pgpass_path) as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            h, p, d, u, pw = line.split(":")
+            if all(
+                [
+                    h in (host, "*"),
+                    p in (str(port), "*"),
+                    d in (dbname, "*"),
+                    u in (user, "*"),
+                ]
+            ):
+                return pw
+    return None
+
+
+DB = "MexerDB"
+pgpass_file = os.getenv("PGPASSFILE", "./Mexer_site/.pgpass")
+
+password = get_pgpass_password(
+    host="mexer.site",
+    port=6432,
+    dbname=DB,
+    user="evizwebserver",
+    pgpass_path=pgpass_file,
+)
+
+conn = psql.connect(
+    host="mexer.site",
+    port=6432,
+    dbname=DB,
+    user="evizwebserver",
+    password=password,
+)
+cur = conn.cursor()
+
+cur.execute('SELECT * FROM "SchemaTable";')
+schema: list[tuple[str, str, bool, SpreadsheetDataType, str, str]] = cur.fetchall()
+
+for row in schema:
+    print(row)
 
 
 @dataclass
@@ -22,18 +69,14 @@ class Column:
     fk_column: str | float  # Can be NaN.
 
 
-def generate_models(
-    *, src: str, dest: str, base_models: str, output: Callable[[str], None]
-):
+def generate_models(*, dest: str, base_models: str, output: Callable[[str], None]):
     with open(base_models, "r") as file:
         base_code = file.read()
 
-    schema = pd.read_excel(src, sheet_name="Schema")
-
     tables: defaultdict[str, dict[str, Column]] = defaultdict(dict)
 
-    for row in schema.itertuples():
-        (_, table, col_name, is_pk, col_data_type, fk_table, fk_column) = row
+    for row in schema:
+        (table, col_name, is_pk, col_data_type, fk_table, fk_column) = row
 
         tables[table][col_name] = Column(
             pk=is_pk,
@@ -44,7 +87,7 @@ def generate_models(
 
     code = (
         base_code
-        + "\n"
+        + "\n\n"
         + "\n\n\n".join(
             _format_model(table, columns) for table, columns in tables.items()
         )
@@ -126,7 +169,6 @@ def _format_model(table_name: str, columns: dict[str, Column]) -> str:
 
 
 if __name__ == "__main__":
-    SRC = "./Mexer_site/internal_resources/SchemaAndFKTables.xlsx"
     DEST = "./Mexer_site/Mexer/models.py"
     BASE_MODELS = "./Mexer_site/internal_resources/base_models.py"
-    generate_models(src=SRC, dest=DEST, base_models=BASE_MODELS, output=print)
+    generate_models(dest=DEST, base_models=BASE_MODELS, output=print)

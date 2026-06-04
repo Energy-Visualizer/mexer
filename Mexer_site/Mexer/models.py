@@ -35,6 +35,37 @@ class PassResetCode(models.Model):
     user = models.ForeignKey(EvizUser, on_delete=models.CASCADE)
 
 
+class SchemaTable(models.Model):
+    """Model for the 'SchemaTable' database table."""
+
+    class Meta:
+        db_table = "SchemaTable"
+        managed = False
+
+    table_name = models.TextField(db_column="TableName")
+    colname = models.TextField(db_column="Colname")
+    is_pk = models.BooleanField(db_column="IsPK")
+    col_data_type = models.TextField(db_column="ColDataType")
+    fk_table = models.TextField(db_column="FKTable")
+    fk_colname = models.TextField(db_column="FKColname")
+
+    pk = models.CompositePrimaryKey("table_name", "colname")
+
+
+class AttributeTables(models.Model):
+    """Model for the 'AttributeTables' database table."""
+
+    class Meta:
+        db_table = "AttributeTables"
+        managed = False
+
+    table_name = models.TextField(db_column="TableName", primary_key=True)
+    name_column = models.TextField(db_column="NameColumn")
+    description_column = models.TextField(db_column="DescriptionColumn")
+    multiselect = models.BooleanField(db_column="Multiselect")
+    table_description = models.TextField(db_column="TableDescription")
+
+
 class Papers(models.Model):
     """Model for the 'Papers' database table."""
 
@@ -156,9 +187,7 @@ class IEALedgerSide(models.Model):
         db_table = "IEALedgerSide"
         managed = False
 
-    iea_ledger_side_id = models.IntegerField(
-        db_column="IEALedgerSideID", primary_key=True
-    )
+    iea_ledger_side_id = models.IntegerField(db_column="IEALedgerSideID", primary_key=True)
     iea_ledger_side = models.TextField(db_column="IEALedgerSide")
 
 
@@ -169,9 +198,7 @@ class IEAFlowAggregationPoint(models.Model):
         db_table = "IEAFlowAggregationPoint"
         managed = False
 
-    iea_flow_aggregation_point_id = models.IntegerField(
-        db_column="IEAFlowAggregationPointID", primary_key=True
-    )
+    iea_flow_aggregation_point_id = models.IntegerField(db_column="IEAFlowAggregationPointID", primary_key=True)
     iea_flow_aggregation_point = models.TextField(db_column="IEAFlowAggregationPoint")
 
 
@@ -347,20 +374,7 @@ class AllIEAData(models.Model):
     unit = models.IntegerField(db_column="Unit")
     edot = models.FloatField(db_column="Edot")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "last_stage",
-        "year",
-        "ledger_side",
-        "flow_aggregation_point",
-        "flow",
-        "product",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "last_stage", "year", "ledger_side", "flow_aggregation_point", "flow", "product")
 
 
 class IEAData(models.Model):
@@ -385,20 +399,7 @@ class IEAData(models.Model):
     unit = models.IntegerField(db_column="Unit")
     edot = models.FloatField(db_column="Edot")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "last_stage",
-        "year",
-        "ledger_side",
-        "flow_aggregation_point",
-        "flow",
-        "product",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "last_stage", "year", "ledger_side", "flow_aggregation_point", "flow", "product")
 
 
 class BalancedIEAData(models.Model):
@@ -423,20 +424,7 @@ class BalancedIEAData(models.Model):
     unit = models.IntegerField(db_column="Unit")
     edot = models.FloatField(db_column="Edot")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "last_stage",
-        "year",
-        "ledger_side",
-        "flow_aggregation_point",
-        "flow",
-        "product",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "last_stage", "year", "ledger_side", "flow_aggregation_point", "flow", "product")
 
 
 class SpecifiedIEAData(models.Model):
@@ -461,20 +449,7 @@ class SpecifiedIEAData(models.Model):
     unit = models.IntegerField(db_column="Unit")
     edot = models.FloatField(db_column="Edot")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "last_stage",
-        "year",
-        "ledger_side",
-        "flow_aggregation_point",
-        "flow",
-        "product",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "last_stage", "year", "ledger_side", "flow_aggregation_point", "flow", "product")
 
 
 class AMWPFUDataRaw(models.Model):
@@ -495,17 +470,7 @@ class AMWPFUDataRaw(models.Model):
     unit = models.IntegerField(db_column="Unit")
     edot = models.FloatField(db_column="Edot")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "year",
-        "species",
-        "stage",
-        "sector",
-        "unit",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "year", "species", "stage", "sector")
 
 
 class AMWPFUData(models.Model):
@@ -526,17 +491,7 @@ class AMWPFUData(models.Model):
     unit = models.IntegerField(db_column="Unit")
     edot = models.FloatField(db_column="Edot")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "year",
-        "species",
-        "stage",
-        "sector",
-        "unit",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "year", "species", "stage", "sector")
 
 
 class HMWPFUDataRaw(models.Model):
@@ -557,17 +512,7 @@ class HMWPFUDataRaw(models.Model):
     unit = models.IntegerField(db_column="Unit")
     edot = models.FloatField(db_column="Edot")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "year",
-        "species",
-        "stage",
-        "sector",
-        "unit",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "year", "species", "stage", "sector")
 
 
 class HMWPFUData(models.Model):
@@ -588,17 +533,7 @@ class HMWPFUData(models.Model):
     unit = models.IntegerField(db_column="Unit")
     edot = models.FloatField(db_column="Edot")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "year",
-        "species",
-        "stage",
-        "sector",
-        "unit",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "year", "species", "stage", "sector")
 
 
 class IncompleteAllocationTables(models.Model):
@@ -625,23 +560,7 @@ class IncompleteAllocationTables(models.Model):
     year = models.IntegerField(db_column="Year")
     value = models.FloatField(db_column="Value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "last_stage",
-        "ledger_side",
-        "flow_aggregation_point",
-        "ef_product",
-        "machine",
-        "eu_product",
-        "destination",
-        "quantity",
-        "year",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "last_stage", "ledger_side", "flow_aggregation_point", "ef_product", "machine", "eu_product", "destination", "quantity", "year")
 
 
 class CompletedAllocationTables(models.Model):
@@ -669,24 +588,7 @@ class CompletedAllocationTables(models.Model):
     value = models.FloatField(db_column="Value")
     c_source = models.IntegerField(db_column="CSource")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "last_stage",
-        "ledger_side",
-        "flow_aggregation_point",
-        "ef_product",
-        "machine",
-        "eu_product",
-        "destination",
-        "quantity",
-        "year",
-        "c_source",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "last_stage", "ledger_side", "flow_aggregation_point", "ef_product", "machine", "eu_product", "destination", "quantity", "year")
 
 
 class Cmats(models.Model):
@@ -709,19 +611,7 @@ class Cmats(models.Model):
     j = models.IntegerField(db_column="j")
     value = models.FloatField(db_column="value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "last_stage",
-        "year",
-        "matname",
-        "i",
-        "j",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "last_stage", "year", "matname", "i", "j")
 
 
 class AllMachineData(models.Model):
@@ -744,19 +634,7 @@ class AllMachineData(models.Model):
     year = models.IntegerField(db_column="Year")
     value = models.FloatField(db_column="Value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "energy_type",
-        "last_stage",
-        "method",
-        "machine",
-        "eu_product",
-        "quantity",
-        "year",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "energy_type", "last_stage", "method", "machine", "eu_product", "quantity", "year")
 
 
 class MachineData(models.Model):
@@ -779,19 +657,7 @@ class MachineData(models.Model):
     year = models.IntegerField(db_column="Year")
     value = models.FloatField(db_column="Value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "energy_type",
-        "last_stage",
-        "method",
-        "machine",
-        "eu_product",
-        "quantity",
-        "year",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "energy_type", "last_stage", "method", "machine", "eu_product", "quantity", "year")
 
 
 class CompletedEfficiencyTables(models.Model):
@@ -815,20 +681,7 @@ class CompletedEfficiencyTables(models.Model):
     value = models.FloatField(db_column="Value")
     etafu_source = models.IntegerField(db_column="etafuSource")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "energy_type",
-        "last_stage",
-        "method",
-        "machine",
-        "eu_product",
-        "quantity",
-        "year",
-        "etafu_source",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "energy_type", "last_stage", "method", "machine", "eu_product", "quantity", "year")
 
 
 class PhiConstants(models.Model):
@@ -845,9 +698,7 @@ class PhiConstants(models.Model):
     phi = models.FloatField(db_column="phi")
     is_useful = models.BooleanField(db_column="IsUseful")
 
-    pk = models.CompositePrimaryKey(
-        "dataset", "valid_from_version", "valid_to_version", "product", "is_useful"
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "product")
 
 
 class CompletedPhiuTables(models.Model):
@@ -871,20 +722,7 @@ class CompletedPhiuTables(models.Model):
     value = models.FloatField(db_column="Value")
     phi_source = models.IntegerField(db_column="PhiSource")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "energy_type",
-        "last_stage",
-        "method",
-        "machine",
-        "eu_product",
-        "quantity",
-        "year",
-        "phi_source",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "energy_type", "last_stage", "method", "machine", "eu_product", "quantity", "year")
 
 
 class EtafuPhiuvecs(models.Model):
@@ -907,19 +745,7 @@ class EtafuPhiuvecs(models.Model):
     j = models.IntegerField(db_column="j")
     value = models.FloatField(db_column="value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "energy_type",
-        "last_stage",
-        "method",
-        "year",
-        "matname",
-        "i",
-        "j",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "energy_type", "last_stage", "method", "year", "matname", "i", "j")
 
 
 class Etafuvecs(models.Model):
@@ -942,19 +768,7 @@ class Etafuvecs(models.Model):
     j = models.IntegerField(db_column="j")
     value = models.FloatField(db_column="value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "energy_type",
-        "last_stage",
-        "method",
-        "year",
-        "matname",
-        "i",
-        "j",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "energy_type", "last_stage", "method", "year", "matname", "i", "j")
 
 
 class Phiuvecs(models.Model):
@@ -977,19 +791,7 @@ class Phiuvecs(models.Model):
     j = models.IntegerField(db_column="j")
     value = models.FloatField(db_column="value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "energy_type",
-        "last_stage",
-        "method",
-        "year",
-        "matname",
-        "i",
-        "j",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "energy_type", "last_stage", "method", "year", "matname", "i", "j")
 
 
 class Phipfvecs(models.Model):
@@ -1012,19 +814,7 @@ class Phipfvecs(models.Model):
     j = models.IntegerField(db_column="j")
     value = models.FloatField(db_column="value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "energy_type",
-        "last_stage",
-        "method",
-        "year",
-        "matname",
-        "i",
-        "j",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "energy_type", "last_stage", "method", "year", "matname", "i", "j")
 
 
 class Phivecs(models.Model):
@@ -1044,16 +834,7 @@ class Phivecs(models.Model):
     j = models.IntegerField(db_column="j")
     value = models.FloatField(db_column="value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "year",
-        "matname",
-        "i",
-        "j",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "year", "matname", "i", "j")
 
 
 class PSUTFinalIEA(models.Model):
@@ -1076,19 +857,7 @@ class PSUTFinalIEA(models.Model):
     j = models.IntegerField(db_column="j")
     value = models.FloatField(db_column="value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "last_stage",
-        "year",
-        "matname",
-        "i",
-        "j",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "last_stage", "year", "matname", "i", "j")
 
 
 class PSUTUsefulIEAWithDetails(models.Model):
@@ -1111,19 +880,7 @@ class PSUTUsefulIEAWithDetails(models.Model):
     j = models.IntegerField(db_column="j")
     value = models.FloatField(db_column="value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "last_stage",
-        "year",
-        "matname",
-        "i",
-        "j",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "last_stage", "year", "matname", "i", "j")
 
 
 class PSUTUsefulIEA(models.Model):
@@ -1146,19 +903,7 @@ class PSUTUsefulIEA(models.Model):
     j = models.IntegerField(db_column="j")
     value = models.FloatField(db_column="value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "last_stage",
-        "year",
-        "matname",
-        "i",
-        "j",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "last_stage", "year", "matname", "i", "j")
 
 
 class YfuUEIOUfudetailsEnergy(models.Model):
@@ -1181,19 +926,7 @@ class YfuUEIOUfudetailsEnergy(models.Model):
     j = models.IntegerField(db_column="j")
     value = models.FloatField(db_column="value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "last_stage",
-        "year",
-        "matname",
-        "i",
-        "j",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "last_stage", "year", "matname", "i", "j")
 
 
 class YfuUEIOUfudetailsExergy(models.Model):
@@ -1216,19 +949,7 @@ class YfuUEIOUfudetailsExergy(models.Model):
     j = models.IntegerField(db_column="j")
     value = models.FloatField(db_column="value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "last_stage",
-        "year",
-        "matname",
-        "i",
-        "j",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "last_stage", "year", "matname", "i", "j")
 
 
 class YfuUEIOUfudetails(models.Model):
@@ -1251,19 +972,7 @@ class YfuUEIOUfudetails(models.Model):
     j = models.IntegerField(db_column="j")
     value = models.FloatField(db_column="value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "last_stage",
-        "year",
-        "matname",
-        "i",
-        "j",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "last_stage", "year", "matname", "i", "j")
 
 
 class PSUTIEA(models.Model):
@@ -1286,19 +995,7 @@ class PSUTIEA(models.Model):
     j = models.IntegerField(db_column="j")
     value = models.FloatField(db_column="value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "last_stage",
-        "year",
-        "matname",
-        "i",
-        "j",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "last_stage", "year", "matname", "i", "j")
 
 
 class PSUTMWEnergy(models.Model):
@@ -1321,19 +1018,7 @@ class PSUTMWEnergy(models.Model):
     j = models.IntegerField(db_column="j")
     value = models.FloatField(db_column="value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "last_stage",
-        "year",
-        "matname",
-        "i",
-        "j",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "last_stage", "year", "matname", "i", "j")
 
 
 class PhivecsMW(models.Model):
@@ -1353,16 +1038,7 @@ class PhivecsMW(models.Model):
     j = models.IntegerField(db_column="j")
     value = models.FloatField(db_column="value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "year",
-        "matname",
-        "i",
-        "j",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "year", "matname", "i", "j")
 
 
 class PSUTMWAllYears(models.Model):
@@ -1385,19 +1061,7 @@ class PSUTMWAllYears(models.Model):
     j = models.IntegerField(db_column="j")
     value = models.FloatField(db_column="value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "last_stage",
-        "year",
-        "matname",
-        "i",
-        "j",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "last_stage", "year", "matname", "i", "j")
 
 
 class PSUTMW(models.Model):
@@ -1420,19 +1084,7 @@ class PSUTMW(models.Model):
     j = models.IntegerField(db_column="j")
     value = models.FloatField(db_column="value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "last_stage",
-        "year",
-        "matname",
-        "i",
-        "j",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "last_stage", "year", "matname", "i", "j")
 
 
 class PSUTIEAMW(models.Model):
@@ -1455,19 +1107,7 @@ class PSUTIEAMW(models.Model):
     j = models.IntegerField(db_column="j")
     value = models.FloatField(db_column="value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "last_stage",
-        "year",
-        "matname",
-        "i",
-        "j",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "last_stage", "year", "matname", "i", "j")
 
 
 class PSUTWithNEU(models.Model):
@@ -1490,19 +1130,7 @@ class PSUTWithNEU(models.Model):
     j = models.IntegerField(db_column="j")
     value = models.FloatField(db_column="value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "last_stage",
-        "year",
-        "matname",
-        "i",
-        "j",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "last_stage", "year", "matname", "i", "j")
 
 
 class PSUTWithoutNEU(models.Model):
@@ -1525,19 +1153,7 @@ class PSUTWithoutNEU(models.Model):
     j = models.IntegerField(db_column="j")
     value = models.FloatField(db_column="value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "last_stage",
-        "year",
-        "matname",
-        "i",
-        "j",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "last_stage", "year", "matname", "i", "j")
 
 
 class PSUT(models.Model):
@@ -1561,20 +1177,7 @@ class PSUT(models.Model):
     j = models.IntegerField(db_column="j")
     value = models.FloatField(db_column="value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "last_stage",
-        "includes_neu",
-        "year",
-        "matname",
-        "i",
-        "j",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "last_stage", "includes_neu", "year", "matname", "i", "j")
 
 
 class CmatsAgg(models.Model):
@@ -1597,19 +1200,7 @@ class CmatsAgg(models.Model):
     j = models.IntegerField(db_column="j")
     value = models.FloatField(db_column="value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "last_stage",
-        "year",
-        "matname",
-        "i",
-        "j",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "last_stage", "year", "matname", "i", "j")
 
 
 class EtafuYEIOU(models.Model):
@@ -1632,19 +1223,7 @@ class EtafuYEIOU(models.Model):
     j = models.IntegerField(db_column="j")
     value = models.FloatField(db_column="value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "last_stage",
-        "year",
-        "matname",
-        "i",
-        "j",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "last_stage", "year", "matname", "i", "j")
 
 
 class EtafuYEIOUagg(models.Model):
@@ -1666,18 +1245,7 @@ class EtafuYEIOUagg(models.Model):
     j = models.IntegerField(db_column="j")
     value = models.FloatField(db_column="value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "year",
-        "matname",
-        "i",
-        "j",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "year", "matname", "i", "j")
 
 
 class Etai(models.Model):
@@ -1701,20 +1269,7 @@ class Etai(models.Model):
     j = models.IntegerField(db_column="j")
     value = models.FloatField(db_column="value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "last_stage",
-        "includes_neu",
-        "year",
-        "matname",
-        "i",
-        "j",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "last_stage", "includes_neu", "year", "matname", "i", "j")
 
 
 class PSUTReAll(models.Model):
@@ -1738,20 +1293,7 @@ class PSUTReAll(models.Model):
     j = models.IntegerField(db_column="j")
     value = models.FloatField(db_column="value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "last_stage",
-        "includes_neu",
-        "year",
-        "matname",
-        "i",
-        "j",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "last_stage", "includes_neu", "year", "matname", "i", "j")
 
 
 class PSUTReAllChopAllDsAllGrAll(models.Model):
@@ -1779,24 +1321,7 @@ class PSUTReAllChopAllDsAllGrAll(models.Model):
     j = models.IntegerField(db_column="j")
     value = models.FloatField(db_column="value")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "last_stage",
-        "includes_neu",
-        "year",
-        "chopped_mat",
-        "chopped_var",
-        "product_aggregation",
-        "industry_aggregation",
-        "matname",
-        "i",
-        "j",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "last_stage", "includes_neu", "year", "chopped_mat", "chopped_var", "product_aggregation", "industry_aggregation", "matname", "i", "j")
 
 
 class SectorAggEtaFU(models.Model):
@@ -1824,22 +1349,7 @@ class SectorAggEtaFU(models.Model):
     useful = models.FloatField(db_column="Useful")
     etafu = models.FloatField(db_column="etafu")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "includes_neu",
-        "year",
-        "chopped_mat",
-        "chopped_var",
-        "product_aggregation",
-        "industry_aggregation",
-        "gross_net",
-        "sector",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "includes_neu", "year", "chopped_mat", "chopped_var", "product_aggregation", "industry_aggregation", "gross_net", "sector")
 
 
 class AggEtaPFU(models.Model):
@@ -1870,19 +1380,4 @@ class AggEtaPFU(models.Model):
     etafu = models.FloatField(db_column="etafu")
     etapu = models.FloatField(db_column="etapu")
 
-    pk = models.CompositePrimaryKey(
-        "dataset",
-        "valid_from_version",
-        "valid_to_version",
-        "country",
-        "method",
-        "energy_type",
-        "last_stage",
-        "includes_neu",
-        "year",
-        "chopped_mat",
-        "chopped_var",
-        "product_aggregation",
-        "industry_aggregation",
-        "gross_net",
-    )
+    pk = models.CompositePrimaryKey("dataset", "valid_from_version", "valid_to_version", "country", "method", "energy_type", "last_stage", "includes_neu", "year", "chopped_mat", "chopped_var", "product_aggregation", "industry_aggregation", "gross_net")

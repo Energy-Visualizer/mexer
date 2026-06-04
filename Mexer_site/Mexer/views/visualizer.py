@@ -111,7 +111,7 @@ def visualizer(request):
         "sandbox_datasets": sandbox_datasets,
         "default_dataset": "CL-PFU MW",
         "versions": versions,
-        "default_version": "current",
+        "default_version": "v2.0",
         "sandbox_versions": sandbox_versions,
         "default_sandbox_version": settings.SANDBOX_PREFIX + "v2.0a7",
         "countries": countries,
