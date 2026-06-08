@@ -101,11 +101,23 @@ def visualizer(request):
     matnames = lookups.get_objects(model=models.Matname)
     matnames.sort(key=lambda m: m.full_name)
 
-    # TODO: Use AttributeTables description column
+    # Use AttributeTables description column
     # for field-level tooltips.
+
+    descriptions = {
+        "dataset": lookups[models.Dataset].attribute.description,
+        "version": lookups[models.Version].attribute.description,
+        "country": lookups[models.Country].attribute.description,
+        "method": lookups[models.Method].attribute.description,
+        "energy_type": lookups[models.EnergyType].attribute.description,
+        "ecc_stage": lookups[models.ECCStage].attribute.description,
+        "agg_level": lookups[models.AggLevel].attribute.description,
+        "gross_net": lookups[models.GrossNet].attribute.description,
+    }
 
     # Prepare the context dictionary for the template
     context = {
+        "descriptions": descriptions,
         "SANDBOX_PREFIX": settings.SANDBOX_PREFIX,
         "datasets": datasets,
         "sandbox_datasets": sandbox_datasets,
