@@ -44,14 +44,14 @@ html {
     color: whitesmoke;
     background-color: #393e46;
     box-shadow: #191b1e 0px 0px 50px;
-    overflow: hidden;
+    /*overflow: hidden;*/
     position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-#plot-section>div {
+#plot-section > div {
     width: 100%;
     height: 100%;
 }
@@ -72,7 +72,6 @@ html {
 #plot-with-extra {
     position: relative;
     height: 100%;
-
 }
 
 #spinner-container {
@@ -150,15 +149,14 @@ html {
 }
 
 .main-button {
-    background-color: #00ADB5;
+    background-color: #00adb5;
     border-radius: 10px;
     border: 0;
     height: 40px;
     width: 150px;
     font-size: 20px;
     color: #191b1e;
-    margin-right: 10px; 
-    
+    margin-right: 10px;
 }
 
 .main-button:hover {
@@ -187,7 +185,7 @@ html {
 /* outer ring + ring setups */
 .loader::after,
 .loader::before {
-    content: '';
+    content: "";
     box-sizing: border-box;
     position: absolute;
     left: 0;
@@ -312,7 +310,7 @@ html {
 .history-toggle-btn {
     position: absolute;
     top: 13vh;
-    left: 10px; 
+    left: 10px;
     z-index: 1001;
     background: #333;
     color: white;
@@ -326,11 +324,11 @@ html {
 .sidebar {
     position: absolute;
     top: 11vh;
-    left: -250px; 
+    left: -250px;
     width: 250px;
     /* height: 100%; */
     background-color: #191b1e;
-    transition: left 0.3s ease; 
+    transition: left 0.3s ease;
     z-index: 1000;
     padding: 20px;
     box-sizing: border-box;
@@ -347,11 +345,11 @@ html {
 }
 
 .sidebar.open {
-    left: 0; 
+    left: 0;
 }
 
 .history-toggle-btn.open {
-    left: 270px; 
+    left: 270px;
 }
 
 .history-button {
@@ -387,8 +385,7 @@ html {
     position: relative;
 }
 
-
-.arrow-section{
+.arrow-section {
     position: absolute;
     top: 20%;
     left: 80%;
@@ -446,7 +443,7 @@ html {
 
 #download-options-button {
     display: inline-block;
-    background-color: #00ADB5;
+    background-color: #00adb5;
     border-radius: 10px;
     border: 0;
     height: 40px;
@@ -469,7 +466,7 @@ html {
     position: relative;
     background-color: #191b1e;
     border-radius: 10px;
-    box-shadow: 0px 0px 10px #00ADB5;
+    box-shadow: 0px 0px 10px #00adb5;
     padding: 10px;
     position: absolute;
     top: 50px;
@@ -489,7 +486,7 @@ html {
 }
 
 #download-options button {
-    background-color: #00ADB5;
+    background-color: #00adb5;
     border-radius: 10px;
     border: 0;
     height: 40px;
