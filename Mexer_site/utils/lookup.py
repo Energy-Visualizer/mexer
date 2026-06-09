@@ -48,8 +48,8 @@ class Attribute[T: Model]:
     """
 
     model: type[T]
+    table_name: str
     name: str
-    description: str
     foreign_fields: list[str]
     id_field: str
     name_field: str
@@ -59,15 +59,15 @@ class Attribute[T: Model]:
         self,
         *,
         model: type[T],
+        table_name: str,
         name_field: str,
         desc_field: str | None = None,
         foreign_fields: list[str] | None = None,
-        description="",
     ):
         self.model = model
+        self.table_name = table_name
         assert model._meta.object_name is not None
         self.name = model._meta.object_name
-        self.description = description
         self.id_field = model._meta.pk.name
         self.name_field = name_field
         self.desc_field = desc_field
@@ -98,6 +98,12 @@ class Attribute[T: Model]:
                     )
             self.foreign_fields.extend(foreign_fields)
 
+    def description(self) -> str | None:
+        attribute_table = models.AttributeTables.objects.filter(
+            table_name=self.table_name
+        ).get()
+        return attribute_table.table_description
+
 
 # Models eligible for LOOKUP are those used to narrow
 # DB queries, called "attributes", i.e. they are the targets
@@ -114,8 +120,8 @@ def _load_attributes():
     _attribute_tables = models.AttributeTables.objects.all()
     _schema = models.SchemaTable.objects.all()
     for attr_table in _attribute_tables:
-        model_name = table_class_name(attr_table.table_name)
-        model_desc = attr_table.table_description
+        table_name: str = attr_table.table_name
+        model_name = table_class_name(table_name)
         model = mexer_config.get_model(model_name)
         name_field = column_field_name(attr_table.name_column)
         desc_field = attr_table.description_column and column_field_name(
@@ -126,7 +132,7 @@ def _load_attributes():
         foreign_fields: list[str] = []
         for schema_row in _schema:
             # Row must have foreign key in this table.
-            if schema_row.fk_table != attr_table.table_name:
+            if schema_row.fk_table != table_name:
                 continue
             field = column_field_name(schema_row.colname)
             if field not in foreign_fields:
@@ -134,9 +140,9 @@ def _load_attributes():
 
         _ATTRIBUTES[model] = Attribute(
             model=model,
+            table_name=table_name,
             name_field=name_field,
             desc_field=desc_field,
-            description=model_desc,
             foreign_fields=list(foreign_fields),
         )
 

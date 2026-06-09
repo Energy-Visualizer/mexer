@@ -105,30 +105,14 @@ def visualizer(request):
     # for field-level tooltips.
 
     descriptions = {
-        "dataset": models.AttributeTables.objects.filter(table_name="Dataset")
-        .get()
-        .table_description,
-        "version": models.AttributeTables.objects.filter(table_name="Version")
-        .get()
-        .table_description,
-        "country": models.AttributeTables.objects.filter(table_name="Country")
-        .get()
-        .table_description,
-        "method": models.AttributeTables.objects.filter(table_name="Method")
-        .get()
-        .table_description,
-        "energy_type": models.AttributeTables.objects.filter(table_name="EnergyType")
-        .get()
-        .table_description,
-        "ecc_stage": models.AttributeTables.objects.filter(table_name="ECCStage")
-        .get()
-        .table_description,
-        "agg_level": models.AttributeTables.objects.filter(table_name="AggLevel")
-        .get()
-        .table_description,
-        "gross_net": models.AttributeTables.objects.filter(table_name="GrossNet")
-        .get()
-        .table_description,
+        "dataset": lookups[models.Dataset].attribute.description(),
+        "version": lookups[models.Version].attribute.description(),
+        "country": lookups[models.Country].attribute.description(),
+        "method": lookups[models.Method].attribute.description(),
+        "energy_type": lookups[models.EnergyType].attribute.description(),
+        "ecc_stage": lookups[models.ECCStage].attribute.description(),
+        "agg_level": lookups[models.AggLevel].attribute.description(),
+        "gross_net": lookups[models.GrossNet].attribute.description(),
     }
 
     # Prepare the context dictionary for the template
