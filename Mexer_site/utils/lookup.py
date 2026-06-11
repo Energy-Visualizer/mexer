@@ -404,7 +404,7 @@ class LookupManager:
         key_name_override = "public_datasets"
 
         def query_override(model: type[Model]):
-            return model.objects.filter(Public=True).all()
+            return model.objects.filter(public=True).all()
 
         return self._get_lookup(
             self.db, get_attribute(models.Dataset), key_name_override, query_override
