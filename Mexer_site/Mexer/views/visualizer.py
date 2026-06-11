@@ -101,11 +101,39 @@ def visualizer(request):
     matnames = lookups.get_objects(model=models.Matname)
     matnames.sort(key=lambda m: m.full_name)
 
-    # TODO: Use AttributeTables description column
+    # Use AttributeTables description column
     # for field-level tooltips.
+
+    descriptions = {
+        "dataset": models.AttributeTables.objects.filter(table_name="Dataset")
+        .get()
+        .table_description,
+        "version": models.AttributeTables.objects.filter(table_name="Version")
+        .get()
+        .table_description,
+        "country": models.AttributeTables.objects.filter(table_name="Country")
+        .get()
+        .table_description,
+        "method": models.AttributeTables.objects.filter(table_name="Method")
+        .get()
+        .table_description,
+        "energy_type": models.AttributeTables.objects.filter(table_name="EnergyType")
+        .get()
+        .table_description,
+        "ecc_stage": models.AttributeTables.objects.filter(table_name="ECCStage")
+        .get()
+        .table_description,
+        "agg_level": models.AttributeTables.objects.filter(table_name="AggLevel")
+        .get()
+        .table_description,
+        "gross_net": models.AttributeTables.objects.filter(table_name="GrossNet")
+        .get()
+        .table_description,
+    }
 
     # Prepare the context dictionary for the template
     context = {
+        "descriptions": descriptions,
         "SANDBOX_PREFIX": settings.SANDBOX_PREFIX,
         "datasets": datasets,
         "sandbox_datasets": sandbox_datasets,

@@ -62,7 +62,7 @@
             <!-- Dataset selection -->
             <div>
                 <div class="flex items-center space-x-2">
-                    {% field_label "From dataset" "Choose the dataset of interest." link_url="/data-info" link_text="Read more." %}
+                    {% field_label "From dataset" descriptions.dataset link_url="/data-info" link_text="Read more." %}
                 </div>
                 <div class="mt-2">
                     <select
@@ -95,7 +95,7 @@
             <!-- Version selection -->
             <div>
                 <div class="flex items-center space-x-2">
-                    {% field_label "Version" "Choose the version of interest." %}
+                    {% field_label "Version" descriptions.version %}
                 </div>
                 <div class="mt-2">
                     <select
@@ -136,7 +136,7 @@
             <!-- Country selection -->
             <div>
                 <div class="flex items-center space-x-2">
-                    {% field_label "Region(s)" "Choose the region(s) of interest. Click \"Add Country\" to enable additional countries." %}
+                    {% field_label "Region(s)" descriptions.country %}
                 </div>
                 <div class="mt-2">
                     <select
@@ -168,7 +168,7 @@
             <!-- Method selection -->
             <div>
                 <div class="flex items-center space-x-2">
-                    {% field_label "Method" "Choose the method of accounting for the primary equivalent of renewable electricity." %}
+                    {% field_label "Method" descriptions.method %}
                 </div>
                 <div class="mt-2">
                     {% for method in methods %}
@@ -198,7 +198,7 @@
             <!-- Energy Type selection -->
             <div>
                 <div class="flex items-center space-x-2">
-                    {% field_label "Energy Type" "Choose one of energy or exergy. Energy is a heat quantification of energy. Exergy is a work quantification of energy." %}
+                    {% field_label "Energy Type" descriptions.energy_type %}
                 </div>
                 <div class="mt-2">
                     {% for energy_type in energy_types %}
@@ -228,7 +228,7 @@
             <!-- Last Stage selection -->
             <div>
                 <div class="flex items-center space-x-2">
-                    {% field_label "Last Stage" "Choose the last stage of the energy conversion chain, either final or useful." %}
+                    {% field_label "Last Stage" descriptions.ecc_stage %}
                 </div>
                 <div class="mt-2">
                     <div class="flex flex-col space-y-2">
@@ -268,7 +268,7 @@
                         class="hidden peer"
                         checked
                     />
-                    {% field_label "Include NEU" "Choose whether to include non-energy uses (NEU) of energy carriers in final demand." %}
+                    {% field_label "Include NEU" "Whether to include non-energy uses (NEU) of energy carriers in final demand." %}
                     <span class="w-5 h-5 inline-block border-2 border-gray-300 rounded-md peer-checked:bg-blue-500 peer-checked:border-blue-500 transition group-hover:scale-110"></span>
                 </label>
             </div>
@@ -276,7 +276,7 @@
             <!-- Product Aggregation selection -->
             <div>
                 <div class="flex items-center space-x-2">
-                    {% field_label "Product Aggregation" "Choose the desired Product Aggregation." %}
+                    {% field_label "Product Aggregation" descriptions.agg_level %}
                 </div>
                 <div class="mt-2">
                     {% for agg_level in agg_levels %}
@@ -306,7 +306,7 @@
             <!-- Sector Aggregation selection -->
             <div>
                 <div class="flex items-center space-x-2">
-                    {% field_label "Sector Aggregation" "Choose the desired Sector Aggregation." %}
+                    {% field_label "Sector Aggregation" descriptions.agg_level %}
                 </div>
                 <div class="mt-2">
                     {% for agg_level in agg_levels %}
@@ -410,7 +410,7 @@
             <!-- GrossNet selection -->
             <div class="query-choice">
                 <div class="flex items-center space-x-2">
-                    {% field_label "Gross/Net" "Gross/Net" %}
+                    {% field_label "Gross/Net" descriptions.gross_net %}
                 </div>
                 <div class="mt-2">
                     <div class="flex flex-col space-y-2" id="gross_net_radio">
