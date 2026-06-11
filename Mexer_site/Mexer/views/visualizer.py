@@ -10,6 +10,7 @@
 #       Kenny Howes - kmh67@calvin.edu
 #       Edom Maru - eam43@calvin.edu
 #####################
+import json
 import time
 
 from altair.utils.data import MaxRowsError  # for catching with matrices are too big
@@ -27,7 +28,11 @@ from utils.data import (
     ShapedQuery,
     get_csv_from_query,
     get_dataset_attributes,
+    get_dataset_mapping,
+    get_dataset_tables,
     get_excel_from_query,
+    get_matrix_mapping,
+    get_matrix_tables,
     shape_post_request,
     translate_query,
 )
@@ -72,6 +77,8 @@ def visualizer(request):
     lookups = LookupManager("default")
     sandbox_lookups = LookupManager("sandbox")
 
+    admin_user = False
+
     if admin_user:
         datasets = lookups.get_objects(model=models.Dataset)
         sandbox_datasets = sandbox_lookups.get_objects(model=models.Dataset)
@@ -101,6 +108,17 @@ def visualizer(request):
     matnames = lookups.get_objects(model=models.Matname)
     matnames.sort(key=lambda m: m.full_name)
 
+    LOGGER.info("Creating table mapping")
+
+    datasets_with_tables = (
+        (dataset, json.dumps(get_dataset_tables(dataset))) for dataset in datasets
+    )
+    matrices_with_tables = (
+        (matname, json.dumps(get_matrix_tables(matname))) for matname in matnames
+    )
+
+    LOGGER.info("Rendering page")
+
     # Use AttributeTables description column
     # for field-level tooltips.
 
@@ -119,7 +137,7 @@ def visualizer(request):
     context = {
         "descriptions": descriptions,
         "SANDBOX_PREFIX": settings.SANDBOX_PREFIX,
-        "datasets": datasets,
+        "datasets": datasets_with_tables,
         "sandbox_datasets": sandbox_datasets,
         "default_dataset": "CL-PFU MW",
         "versions": versions,
@@ -136,7 +154,7 @@ def visualizer(request):
         "default_last_stage": last_stages[0].ecc_stage,
         "gross_nets": gross_nets,
         "default_gross_net": gross_nets[0].gross_net,
-        "matnames": matnames,
+        "matnames": matrices_with_tables,
         "default_matname": matnames[0].matname,
         "agg_levels": agg_levels,
         "default_agg_level": agg_levels[0].agg_level,

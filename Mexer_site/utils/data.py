@@ -25,13 +25,13 @@
 #       Edom Maru - eam43@calvin.edu
 #####################
 import io
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from typing import Any, Literal
 
 import Mexer.models as models
 import pandas as pd
 from django.conf import settings
-from django.db.models import Model
+from django.db.models import Exists, Model, OuterRef
 from django.http import QueryDict
 
 from utils.logging import LOGGER
@@ -46,6 +46,51 @@ from utils.misc import ShapedQuery
 type DatabaseSource = Literal["sandbox", "users", "default"]
 
 type DatabaseTarget = tuple[DatabaseSource, type[Model]]
+
+USER_TABLES: list[type[Model]] = [
+    models.PSUTReAllChopAllDsAllGrAll,
+    models.AggEtaPFU,
+    models.SectorAggEtaFU,
+    models.Phivecs,
+    models.Etai,
+]
+
+
+def get_dataset_tables(dataset: models.Dataset) -> list[str]:
+    """Return the user data tables which include data from the provided dataset."""
+
+    def has_dataset(model: type[Model]) -> bool:
+        return model.objects.filter(dataset=dataset.dataset_id).exists()
+
+    return [str(table._meta.object_name) for table in USER_TABLES if has_dataset(table)]
+
+
+def get_matrix_tables(matrix: models.Matname) -> list[str]:
+    """Return the user data tables which include data from the provided matrix."""
+
+    def has_matrix(model: type[Model]) -> bool:
+        fields = model._meta.fields
+        has_matrix_field = any(field.name == "matname" for field in fields)
+        return (
+            has_matrix_field
+            and model.objects.filter(matname=matrix.matname_id).exists()
+        )
+
+    return [str(table._meta.object_name) for table in USER_TABLES if has_matrix(table)]
+
+
+def get_dataset_mapping(
+    datasets: Iterable[models.Dataset],
+) -> dict[models.Dataset, list[str]]:
+    mapping = {dataset: get_dataset_tables(dataset) for dataset in datasets}
+    return mapping
+
+
+def get_matrix_mapping(
+    matrices: Iterable[models.Matname],
+) -> dict[models.Matname, list[str]]:
+    mapping = {matrix: get_matrix_tables(matrix) for matrix in matrices}
+    return mapping
 
 
 def get_database_target(query: ShapedQuery) -> DatabaseTarget:

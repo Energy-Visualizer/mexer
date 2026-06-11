@@ -71,10 +71,11 @@
                         class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                         required
                     >
-                        {% for dataset in datasets %}
+                        {% for dataset, tables in datasets %}
                         <option
                             value="{{ dataset.dataset }}"
                             title="{{ dataset.description }}"
+                            data-table="{{ tables }}"
                             {% if dataset.dataset == default_dataset %}selected{%endif%}
                         >
                             {{ dataset.dataset }}
@@ -603,10 +604,11 @@
                     class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 >
                     <option value="RUVY" selected>RUVY</option>
-                    {% for matname in matnames %}
+                    {% for matname, tables in matnames %}
                     <option
                         value="{{ matname.matname }}"
                         title="{{ matname.Description }}"
+                        data-table="{{ tables }}"
                     >{{ matname.matname }}</option>
                     {% endfor %}
                 </select>
