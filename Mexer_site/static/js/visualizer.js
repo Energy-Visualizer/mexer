@@ -13,25 +13,47 @@ const initialize = () => {
     error.detail.target.innerHTML = `Error creating plot! Status code ${error.detail.xhr.status}.\nPlease try again later. Contact information on the about page.`;
   });
 
-  // switch version dropdowns if user is looking at a sandbox or regular
-  // dataset
-  document
-    .getElementById("dataset-dropdown")
-    .addEventListener("change", (event) => {
-      if (
-        document.getElementById("dataset-dropdown").value.startsWith("sDB:")
-      ) {
-        document.getElementById("sandbox-version-dropdown").hidden = false;
-        document.getElementById("sandbox-version-dropdown").disabled = false;
-        document.getElementById("version-dropdown").hidden = true;
-        document.getElementById("version-dropdown").disabled = true;
-      } else {
-        document.getElementById("sandbox-version-dropdown").hidden = true;
-        document.getElementById("sandbox-version-dropdown").disabled = true;
-        document.getElementById("version-dropdown").hidden = false;
-        document.getElementById("version-dropdown").disabled = false;
-      }
-    });
+  const datasetDropdown = document.getElementById("dataset-dropdown");
+
+  const setMatrixOptions = () => {
+    const datasetOption = datasetDropdown.selectedOptions[0];
+    const datasetTables = JSON.parse(datasetOption.getAttribute("data-table"));
+
+    // Adjust visibility of matrix list items based on target dataset.
+    const matrixOptions = [...matnameDropdown.children];
+    let found = false;
+    for (let i = 0; i < matrixOptions.length; i++) {
+      const option = matrixOptions[i];
+      const matrixTables = JSON.parse(option.getAttribute("data-table"));
+      const overlap = matrixTables.some((t) => datasetTables.includes(t));
+
+      if (overlap) {
+        option.classList.remove("hidden");
+        if (!found) {
+          found = true;
+          matnameDropdown.selectedIndex = i;
+        }
+      } else option.classList.add("hidden");
+    }
+  };
+
+  datasetDropdown.addEventListener("change", () => {
+    setMatrixOptions();
+
+    // Version dropdown depends on whether we're targeting a sandbox or
+    // non-sandbox dataset.
+    if (document.getElementById("dataset-dropdown").value.startsWith("sDB:")) {
+      document.getElementById("sandbox-version-dropdown").hidden = false;
+      document.getElementById("sandbox-version-dropdown").disabled = false;
+      document.getElementById("version-dropdown").hidden = true;
+      document.getElementById("version-dropdown").disabled = true;
+    } else {
+      document.getElementById("sandbox-version-dropdown").hidden = true;
+      document.getElementById("sandbox-version-dropdown").disabled = true;
+      document.getElementById("version-dropdown").hidden = false;
+      document.getElementById("version-dropdown").disabled = false;
+    }
+  });
 
   assertion_message_instruction =
     " -- ensure this failed input has its id field set properly";
@@ -44,19 +66,19 @@ const initialize = () => {
   menuInputs = []; // collection to keep track of all the items that can be toggled in the menus
 
   // specific metadata
-  singleYearInput = document.getElementById("single-year-input");
+  const singleYearInput = document.getElementById("single-year-input");
   menu_input_assert(singleYearInput, "singleYearInput");
   menuInputs.push(singleYearInput);
-  fromYearInput = document.getElementById("from-year-input");
+  const fromYearInput = document.getElementById("from-year-input");
   menu_input_assert(fromYearInput, "fromYearInput");
   menuInputs.push(fromYearInput);
-  toYearInput = document.getElementById("to-year-input");
+  const toYearInput = document.getElementById("to-year-input");
   menu_input_assert(toYearInput, "toYearInput");
   menuInputs.push(toYearInput);
-  efficiencyDropdown = document.getElementById("efficiency-dropdown");
+  const efficiencyDropdown = document.getElementById("efficiency-dropdown");
   menu_input_assert(efficiencyDropdown, "efficiencyDropdown");
   menuInputs.push(efficiencyDropdown);
-  matnameDropdown = document.getElementById("matname-dropdown");
+  const matnameDropdown = document.getElementById("matname-dropdown");
   menu_input_assert(matnameDropdown, "matnameDropdown");
   menuInputs.push(matnameDropdown);
 
@@ -139,6 +161,8 @@ const initialize = () => {
     plotSection.scrollIntoView();
     closePlotMenu(plotParamsMenu, ppTglButton);
   });
+
+  setMatrixOptions();
 };
 
 /** Enables an input element and displays its container. */

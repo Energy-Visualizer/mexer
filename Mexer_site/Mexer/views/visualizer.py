@@ -110,11 +110,16 @@ def visualizer(request):
 
     LOGGER.info("Creating table mapping")
 
+    # Filter datasets and matrices for those which exist in user tables.
     datasets_with_tables = (
-        (dataset, json.dumps(get_dataset_tables(dataset))) for dataset in datasets
+        (dataset, json.dumps(tables))
+        for dataset in datasets
+        if len(tables := get_dataset_tables(dataset)) > 0
     )
     matrices_with_tables = (
-        (matname, json.dumps(get_matrix_tables(matname))) for matname in matnames
+        (matname, json.dumps(tables))
+        for matname in matnames
+        if len(tables := get_matrix_tables(matname)) > 0
     )
 
     LOGGER.info("Rendering page")

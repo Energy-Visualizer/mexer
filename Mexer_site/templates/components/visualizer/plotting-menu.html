@@ -603,7 +603,11 @@
                     id="matname-dropdown"
                     class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 >
-                    <option value="RUVY" selected>RUVY</option>
+                    <option
+                        value="RUVY"
+                        data-table='["PSUTReAllChopAllDsAllGrAll"]'
+                        selected
+                    >RUVY</option>
                     {% for matname, tables in matnames %}
                     <option
                         value="{{ matname.matname }}"
