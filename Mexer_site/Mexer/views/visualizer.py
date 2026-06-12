@@ -175,7 +175,7 @@ def generate_sankey_html(target: DatabaseTarget, query: ShapedQuery) -> str:
     sankey = get_sankey(target, translated_query)
 
     if sankey is None:
-        return "Error: No cooresponding data"
+        return "Error: No corresponding data"
 
     nodes, links, options, num_columns = sankey
 

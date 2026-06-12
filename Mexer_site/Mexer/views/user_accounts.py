@@ -238,7 +238,7 @@ def forgot_password(request):
     elif request.method == "POST":
         # a user has submitted their username for a password reset
         # get the username given and try to send an email to the
-        # account cooresponding inbox
+        # account corresponding inbox
         form = ResetRequestForm(request.POST)
         if not form.is_valid():
             return render(request, "reset.html", context={"form": form})
@@ -338,7 +338,7 @@ def reset_password(request):
         # if no errors, set up the new password
         user.set_password(form.cleaned_data.get("password1"))
         user.save()
-        pass_reset_row.delete()  # if no errors getting the user, delete the cooresponding row
+        pass_reset_row.delete()  # if no errors getting the user, delete the corresponding row
 
         return redirect("login")
 

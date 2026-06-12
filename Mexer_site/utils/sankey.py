@@ -93,7 +93,7 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str, int]
 
         a plotly Figure with the sankey data
 
-        or None if there is no cooresponding data for the query
+        or None if there is no corresponding data for the query
     """
 
     # we do a little shaping
@@ -110,7 +110,7 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str, int]
     # get all four matrices to make the full RUVY matrix
     raw_data = query_database(target, query, ["matname", "i", "j", "value"])
 
-    # if no cooresponding data, return as such
+    # if no corresponding data, return as such
     # TODO: would probably be better to raise an exception
     if not raw_data:
         return None
