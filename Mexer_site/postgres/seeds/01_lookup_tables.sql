@@ -4,7 +4,7 @@ BEGIN;
 
 -- Dataset
 INSERT INTO public."Dataset" ("DatasetID", "Dataset", "Public", "FullName", "Description") VALUES
-    (1, 'Test Dataset', true, 'Test Dataset Full Name', 'This is a test dataset for unit testing purposes.'),
+    (1, 'CL-PFU IEA', true, 'Test Dataset Full Name', 'This is a test dataset for unit testing purposes.'),
     (2, 'Another Dataset', false, 'Another Dataset Full Name', 'This is another dataset for testing.')
 ON CONFLICT DO NOTHING;
 

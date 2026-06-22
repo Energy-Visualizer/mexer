@@ -134,7 +134,9 @@ def get_database_target(query: ShapedQuery) -> DatabaseTarget:
                 model = table
                 break
             else:
-                raise ValueError("no qualifying dataset for query")
+                raise ValueError(
+                    f"no qualifying table with dataset {dataset_name} matrix {matrix_name}"
+                )
         else:
             for table in DATA_TABLES:
                 has_dataset = table.objects.filter(dataset=dataset_id).exists()
@@ -143,7 +145,9 @@ def get_database_target(query: ShapedQuery) -> DatabaseTarget:
                 model = table
                 break
             else:
-                raise ValueError("no qualifying dataset for query")
+                raise ValueError(
+                    f"no qualifying table with dataset {dataset_name} {dataset_id}"
+                )
     else:
         raise ValueError("dataset not provided")
 
