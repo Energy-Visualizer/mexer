@@ -71,10 +71,11 @@
                         class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                         required
                     >
-                        {% for dataset in datasets %}
+                        {% for dataset, tables in datasets %}
                         <option
                             value="{{ dataset.dataset }}"
                             title="{{ dataset.description }}"
+                            data-table="{{ tables }}"
                             {% if dataset.dataset == default_dataset %}selected{%endif%}
                         >
                             {{ dataset.dataset }}
@@ -133,34 +134,70 @@
                 </div>
             </div>
 
-            <!-- Country selection -->
+            <!-- Region(s) selection -->
             <div>
                 <div class="flex items-center space-x-2">
                     {% field_label "Region(s)" descriptions.country %}
                 </div>
                 <div class="mt-2">
-                    <select
-                        name="country"
-                        id="country-dropdown"
-                        class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        required
-                    >
-                        {% for country in countries %}
-                        <option
-                            value="{{ country.full_name }}"
-                            title="{{ country.description }}"
-                            {% if country.full_name == default_country %}selected{% endif %}
+
+                    <!-- All / Select region mode toggle -->
+                    <div class="flex flex-col space-y-2 mb-3">
+                        <p class="text-xs text-gray-600">
+                            Note: all-region queries may take a long time.
+                        </p>
+                        <label class="flex items-center space-x-3 cursor-pointer group">
+                            <input
+                                type="radio"
+                                name="region-mode"
+                                value="all"
+                                class="hidden peer"
+                                onchange="handleRegionMode(this)"
+                            />
+                            <span class="w-5 h-5 inline-block border-2 border-gray-300 rounded-full peer-checked:bg-blue-500 peer-checked:border-blue-500 transition group-hover:scale-110"></span>
+                            <span class="text-gray-800 peer-checked:text-blue-500 font-medium group-hover:text-blue-400 transition">All regions</span>
+                        </label>
+                        <label class="flex items-center space-x-3 cursor-pointer group">
+                            <input
+                                type="radio"
+                                name="region-mode"
+                                value="select"
+                                class="hidden peer"
+                                checked
+                                onchange="handleRegionMode(this)"
+                            />
+                            <span class="w-5 h-5 inline-block border-2 border-gray-300 rounded-full peer-checked:bg-blue-500 peer-checked:border-blue-500 transition group-hover:scale-110"></span>
+                            <span class="text-gray-800 peer-checked:text-blue-500 font-medium group-hover:text-blue-400 transition">Select regions</span>
+                        </label>
+                    </div>
+
+                    <!-- Country dropdowns container -->
+                    <div id="country-dropdowns">
+                        <select
+                            name="country"
+                            id="country-dropdown"
+                            class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                            required
                         >
-                            {{ country.full_name }}
-                        </option>
-                        {% endfor %}
-                    </select>
+                            {% for country in countries %}
+                            <option
+                                value="{{ country.full_name }}"
+                                title="{{ country.description }}"
+                                {% if country.full_name == default_country %}selected{% endif %}
+                            >
+                                {{ country.full_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
                     <button
-                        class="add-dropdown-button"
+                        class="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
                         onclick="showDropdown('country')"
                         type="button"
+                        id="add-country-btn"
                     >
-                        Add Country
+                        + Add region
                     </button>
                 </div>
             </div>
@@ -356,8 +393,7 @@
                             name="plot_type"
                             type="radio"
                             value="sankey"
-                            class="hidden peer"
-                            id="plot-type-input"
+                            class="hidden peer plot-type-input"
                             checked
                         />
                         <span
@@ -375,8 +411,7 @@
                             name="plot_type"
                             type="radio"
                             value="xy_plot"
-                            class="hidden peer"
-                            id="plot-type-input"
+                            class="hidden peer plot-type-input"
                         />
                         <span
                             class="w-5 h-5 inline-block border-2 border-gray-300 rounded-full peer-checked:bg-red-500 peer-checked:border-red-500 transition group-hover:scale-110"
@@ -393,8 +428,7 @@
                             name="plot_type"
                             type="radio"
                             value="matrices"
-                            class="hidden peer"
-                            id="plot-type-input"
+                            class="hidden peer plot-type-input"
                         />
                         <span
                             class="w-5 h-5 inline-block border-2 border-gray-300 rounded-full peer-checked:bg-yellow-500 peer-checked:border-yellow-500 transition group-hover:scale-110"
@@ -602,11 +636,16 @@
                     id="matname-dropdown"
                     class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 >
-                    <option value="RUVY" selected>RUVY</option>
-                    {% for matname in matnames %}
+                    <option
+                        value="RUVY"
+                        data-table='["PSUTReAllChopAllDsAllGrAll"]'
+                        selected
+                    >RUVY</option>
+                    {% for matname, tables in matnames %}
                     <option
                         value="{{ matname.matname }}"
                         title="{{ matname.Description }}"
+                        data-table="{{ tables }}"
                     >{{ matname.matname }}</option>
                     {% endfor %}
                 </select>

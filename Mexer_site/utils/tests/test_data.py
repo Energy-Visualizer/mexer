@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.http import QueryDict
 from django.test import TransactionTestCase
-from Mexer.models import AggEtaPFU, IEAData
+from Mexer.models import AggEtaPFU, IEAData, PSUTReAllChopAllDsAllGrAll
 from Mexer.models import PSUTReAllChopAllDsAllGrAll as PSUT
 
 from utils.data import (
@@ -18,13 +18,13 @@ from utils.data import (
 
 class DataTests(TransactionTestCase):
     def test_get_database_target(self):
-        query = {"dataset": "IEAEWEB2022", "plot_type": "xy_plot"}
+        query = {"dataset": "CL-PFU IEA", "plot_type": "xy_plot"}
         target = get_database_target(query)
         self.assertEqual(target, ("default", AggEtaPFU))
 
-        query = {"dataset": f"{settings.SANDBOX_PREFIX}IEAEWEB2022"}
+        query = {"dataset": f"{settings.SANDBOX_PREFIX}CL-PFU IEA"}
         target = get_database_target(query)
-        self.assertEqual(target, ("sandbox", IEAData))
+        self.assertEqual(target, ("sandbox", PSUTReAllChopAllDsAllGrAll))
 
     def test_query_database_valid(self):
         target = ("default", PSUT)
@@ -78,7 +78,7 @@ class DataTests(TransactionTestCase):
     def test_shape_post_request(self):
         q = QueryDict("", mutable=True)
         q["csrfmiddlewaretoken"] = "dummy_token"
-        q["dataset"] = "IEAEWEB2022"
+        q["dataset"] = "CL-PFU IEA"
         q["plot_type"] = "xy_plot"
         shaped_query, plot_type, db_target = shape_post_request(q)
         self.assertNotIn("csrfmiddlewaretoken", shaped_query)
@@ -87,7 +87,7 @@ class DataTests(TransactionTestCase):
 
     def test_translate_query(self):
         target = ("default", PSUT)
-        query = {"dataset": "Test Dataset", "year": "2021"}
+        query = {"dataset": "CL-PFU IEA", "year": "2021"}
         translated_query = translate_query(target, query)
         self.assertIn("dataset", translated_query)
         self.assertIn("year", translated_query)
