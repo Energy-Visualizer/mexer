@@ -15,6 +15,12 @@ const initialize = () => {
 
   const datasetDropdown = document.getElementById("dataset-dropdown");
 
+  document.addEventListener("DOMContentLoaded", function () {
+    document
+      .getElementById("matname-dropdown")
+      .addEventListener("change", function () {});
+  });
+
   const setMatrixOptions = () => {
     const datasetOption = datasetDropdown.selectedOptions[0];
     const datasetTables = JSON.parse(datasetOption.getAttribute("data-table"));
@@ -35,6 +41,8 @@ const initialize = () => {
         }
       } else option.classList.add("hidden");
     }
+
+    showColors();
   };
 
   datasetDropdown.addEventListener("change", () => {
@@ -124,7 +132,7 @@ const initialize = () => {
 
   // have specifics show differently for different plots
   let selectedValue = null; // to be filled in the following loop
-  const plotTypeButtons = document.querySelectorAll("#plot-type-input");
+  const plotTypeButtons = document.querySelectorAll(".plot-type-input");
   plotTypeButtons.forEach((plotTypeButton) => {
     // Add approptiate event listener based on plot type
     if (plotTypeButton.checked) selectedValue = plotTypeButton.value; // if a button is already selected, remember its value
@@ -162,6 +170,17 @@ const initialize = () => {
     closePlotMenu(plotParamsMenu, ppTglButton);
   });
 
+  const showColors = () => {
+    if (matnameDropdown.value === "RUVY") {
+      inputRadioOn(coloringMethod);
+    } else {
+      inputRadioOff(coloringMethod);
+    }
+  };
+
+  matnameDropdown.onchange = showColors;
+  showColors();
+
   setMatrixOptions();
 };
 
@@ -178,6 +197,7 @@ const inputOff = (element) => {
   if (element === null) return;
 
   element.disabled = true;
+  console.log("Hide", element);
   element.closest(".query-choice").style.display = "none"; // the closest ancestor has the associated text and input itself
 };
 
@@ -200,6 +220,7 @@ const inputRadioOff = (element) => {
   radioButtons.forEach((radio) => {
     radio.disabled = true;
   });
+  console.log("Hide", element);
   element.closest(".query-choice").style.display = "none";
 };
 
@@ -230,45 +251,57 @@ const handleMatrices = () => {
   inputRadioOn(coloringMethod);
 };
 
-/** Add a new dropdown for a specified category */
+const setRegionMode = (isAll) => {
+  let countryDropdownsContainer = document.getElementById("country-dropdowns");
+  let addCountryBtn = document.getElementById("add-country-btn");
+  countryDropdownsContainer
+    .querySelectorAll("select")
+    .forEach((sel) => (sel.disabled = isAll));
+  countryDropdownsContainer.style.opacity = isAll ? "0.4" : "";
+  countryDropdownsContainer.style.pointerEvents = isAll ? "none" : "";
+  addCountryBtn.disabled = isAll;
+};
+
+const handleRegionMode = (radio) => setRegionMode(radio.value === "all");
+
 const showDropdown = (name) => {
-  // figure out which dropdown we want to add
-  let desiredDropdown;
+  let countryDropdown = document.getElementById("country-dropdown");
+  let countryDropdownsContainer = document.getElementById("country-dropdowns");
+  let templateDropdown;
   switch (name) {
     case "country":
-      desiredDropdown = countryDropdown;
+      templateDropdown = countryDropdown;
       break;
-    // case ("method"):
-    //     desiredDropdown = methodDropdown;
-    //     break;
   }
 
-  // set up the new dropdown
-  // needs to be constant or the remove buttons will get confused on which to delete
-  const newDropdown = desiredDropdown.cloneNode((deep = true));
-  newDropdown.required = "required";
-  newDropdown.disabled = false;
+  const newSelect = templateDropdown.cloneNode(true);
+  newSelect.id = "";
+  newSelect.required = true;
+  newSelect.disabled = false;
+  newSelect.name = templateDropdown.name;
 
-  // set up the button to remove the new dropdown if need be
-  const delButton = document.createElement("button");
-  delButton.onclick = () => {
-    newDropdown.remove();
-    delButton.remove();
-  };
-  delButton.type = "button";
-  delButton.innerHTML = '<i class="fas fa-trash-alt"></i>';
-  delButton.classList.add("remove-button");
+  const removeBtn = document.createElement("button");
+  removeBtn.type = "button";
+  removeBtn.textContent = "Remove";
+  removeBtn.className =
+    "px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-md bg-white text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-400 flex-shrink-0";
 
-  // put the dropdown and button together so they act as one block
-  const wholeDropdown = document.createElement("div");
-  wholeDropdown.classList.add("new-country-dropdown");
-  wholeDropdown.appendChild(delButton);
-  wholeDropdown.appendChild(newDropdown);
+  const row = document.createElement("div");
+  row.className = "flex items-center gap-2 mt-2";
+  row.appendChild(newSelect);
+  row.appendChild(removeBtn);
 
-  // add the dropdown and button to the dom
-  // in the collection of dropdowns for that query piece
-  desiredDropdown.parentNode.appendChild(wholeDropdown);
+  removeBtn.addEventListener("click", () => row.remove());
+
+  countryDropdownsContainer.appendChild(row);
 };
+
+document.addEventListener("DOMContentLoaded", () => {
+  const initialMode = document.querySelector(
+    'input[name="region-mode"]:checked',
+  );
+  if (initialMode) setRegionMode(initialMode.value === "all");
+});
 
 let plotWindow = null;
 let plotWindowLoaded = false;
