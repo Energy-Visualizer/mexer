@@ -29,30 +29,23 @@ def example_can_all_users_access(query: ShapedQuery) -> bool:
     # Only queries in the UK region are allowed.
     # TODO: region aggregation info could allow
     # narrowing to the UK.
-    valid_country = False
 
-    # country__in is the Django query keyword for lists of selected options.
-    # This constrains the country to just the UK.
-    if "country__in" in query and "United Kingdom" in query["country__in"]:
-        valid_country = True
+    # If country is omitted or UK is present,
+    # restrict to just UK.
+    if "country" not in query or "United Kingdom" in query["country"]:
         query["country__in"] = ["United Kingdom"]
+    else:
+        # Invalid country specified; no data.
+        return False
 
-    if "country" in query and "United Kingdom" == query["country"]:
-        valid_country = True
+    # Also restrict year range.
+    if "year" in query:
+        from_year = int(query["year"])
+        if from_year < 2016:
+            query["year"] = "2016"
+    if "to_year" in query:
+        to_year = int(query["to_year"])
+        if to_year > 2019:
+            query["year"] = "2019"
 
-    # Also, only queries from the years 2016-2019 are allowed.
-    valid_year = False
-
-    if "year" in query and query["year"] in ("2016", "2017", "2018", "2019"):
-        valid_year = True
-
-    # year__gte and year__lte are the Django query keywords for ranges of numbers.
-    if "year__gte" in query and "year__lte" in query:
-        if int(query["year__gte"]) < 2016:
-            query["year__gte"] = "2016"  # Query values must be strings.
-        if int(query["year__lte"]) > 2019:
-            query["year__lte"] = "2019"
-        valid_year = True
-
-    valid = valid_country and valid_year
-    return valid
+    return True
