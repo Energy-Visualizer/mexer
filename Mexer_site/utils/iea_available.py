@@ -20,6 +20,9 @@ def can_all_users_access(query: ShapedQuery) -> bool:
 
 
 # See example access conditions below.
+#
+# Names of fields (query keys) are provided in the plotting-menu.html file.
+# Search for name="" attributes on input elements.
 
 
 def example_can_all_users_access(query: ShapedQuery) -> bool:
@@ -33,12 +36,14 @@ def example_can_all_users_access(query: ShapedQuery) -> bool:
     # If country is omitted or UK is present,
     # restrict to just UK.
     if "country" not in query or "United Kingdom" in query["country"]:
-        query["country__in"] = ["United Kingdom"]
+        query["country"] = "United Kingdom"
     else:
         # Invalid country specified; no data.
         return False
 
     # Also restrict year range.
+    # "year" and "to_year" are the keys that
+    # make up the year range in the query.
     if "year" in query:
         from_year = int(query["year"])
         if from_year < 2016:
@@ -46,6 +51,21 @@ def example_can_all_users_access(query: ShapedQuery) -> bool:
     if "to_year" in query:
         to_year = int(query["to_year"])
         if to_year > 2019:
-            query["year"] = "2019"
+            query["to_year"] = "2019"
 
     return True
+
+
+query = {
+    "country": ["Spain", "United Kingdom"],
+    "year": "2014",
+    "to_year": "2020",
+}
+
+# Output
+
+query = {
+    "country": ["United Kingdom"],
+    "year": "2016",
+    "to_year": "2019",
+}
