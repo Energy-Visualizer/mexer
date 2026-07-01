@@ -13,7 +13,7 @@
 #####################
 
 import sys
-from collections.abc import Mapping
+from collections.abc import MutableMapping
 from os import devnull
 from time import time
 from uuid import uuid4
@@ -24,7 +24,9 @@ from django.contrib.auth.models import AnonymousUser, User
 from Mexer.forms import SignupForm
 from Mexer.models import EmailAuthCode, EvizUser, PassResetCode
 
-type ShapedQuery = Mapping[str, str | list[str]]
+from .iea_available import can_all_users_access
+
+type ShapedQuery = MutableMapping[str, str | list[str]]
 
 
 def time_view(v):
@@ -141,11 +143,17 @@ def iea_valid(user: AbstractBaseUser | AnonymousUser, query: ShapedQuery) -> boo
         return True
 
     # User must be authorized for proprietary data.
-    return (
+    is_iea_user = (
         isinstance(user, User)
         and user.is_authenticated
         and user.has_perm("eviz.get_iea")
     )
+    if is_iea_user:
+        return True
+
+    # Query forms a superset of freely available IEA data.
+    free_data = can_all_users_access(query)
+    return free_data
 
 
 def get_plot_title(query: ShapedQuery, exclude: list[str] | None = None) -> str:

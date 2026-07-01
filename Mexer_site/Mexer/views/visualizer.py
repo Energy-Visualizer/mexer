@@ -12,11 +12,12 @@
 #####################
 import json
 import time
+from copy import deepcopy
 
 from altair.utils.data import MaxRowsError  # for catching with matrices are too big
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from Mexer import models
@@ -335,6 +336,30 @@ def get_plot(request: HttpRequest):
     response.set_cookie("user_history", serialized_data.hex(), max_age=7 * 24 * 60 * 60)
 
     return response
+
+
+def check_data_iea(request: HttpRequest):
+    if request.method != "POST":
+        return HttpResponse(status=405)
+
+    LOGGER.info(f"Raw data: {request.POST}")
+
+    data_format = request.POST.get("return_data_type")
+    if data_format is None:
+        return HttpResponse("Data format unspecified", status=400)
+
+    query = shape_post_request(request.POST)[0]
+    original_query = deepcopy(query)
+    valid = iea_valid(request.user, query)
+
+    # Return modified query.
+    return JsonResponse(
+        {
+            "original": original_query,
+            "modified": query,
+            "valid": valid,
+        }
+    )
 
 
 @time_view
