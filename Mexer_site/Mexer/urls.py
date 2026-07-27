@@ -21,6 +21,7 @@ __urlpatterns = [
     # visualizer tool pages
     path("plot", visualizer_views.get_plot),
     path("data", visualizer_views.get_data),
+    path("data-check", visualizer_views.check_data_iea),
     # history tool pages
     path("history", history_views.render_history),
     path(
