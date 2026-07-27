@@ -8,6 +8,9 @@ tags:
   - Data Visualization
   - Docker
 authors:
+  - name: Adam Byle
+    orcid: https://orcid.org/0009-0000-2983-1906
+    affiliation: 1
   - name: Edom Maru
     orcid: https://orcid.org/0009-0006-9527-9615
     affiliation: 1
