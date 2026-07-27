@@ -10,12 +10,14 @@
 #       Kenny Howes - kmh67@calvin.edu
 #       Edom Maru - eam43@calvin.edu
 #####################
+import json
 import time
+from copy import deepcopy
 
 from altair.utils.data import MaxRowsError  # for catching with matrices are too big
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from Mexer import models
@@ -27,7 +29,9 @@ from utils.data import (
     ShapedQuery,
     get_csv_from_query,
     get_dataset_attributes,
+    get_dataset_tables,
     get_excel_from_query,
+    get_matrix_tables,
     shape_post_request,
     translate_query,
 )
@@ -72,6 +76,8 @@ def visualizer(request):
     lookups = LookupManager("default")
     sandbox_lookups = LookupManager("sandbox")
 
+    admin_user = False
+
     if admin_user:
         datasets = lookups.get_objects(model=models.Dataset)
         sandbox_datasets = sandbox_lookups.get_objects(model=models.Dataset)
@@ -101,41 +107,41 @@ def visualizer(request):
     matnames = lookups.get_objects(model=models.Matname)
     matnames.sort(key=lambda m: m.full_name)
 
+    LOGGER.info("Creating table mapping")
+
+    # Filter datasets and matrices for those which exist in user tables.
+    datasets_with_tables = (
+        (dataset, json.dumps(tables))
+        for dataset in datasets
+        if len(tables := get_dataset_tables(dataset)) > 0
+    )
+    matrices_with_tables = (
+        (matname, json.dumps(tables))
+        for matname in matnames
+        if len(tables := get_matrix_tables(matname)) > 0
+    )
+
+    LOGGER.info("Rendering page")
+
     # Use AttributeTables description column
     # for field-level tooltips.
 
     descriptions = {
-        "dataset": models.AttributeTables.objects.filter(table_name="Dataset")
-        .get()
-        .table_description,
-        "version": models.AttributeTables.objects.filter(table_name="Version")
-        .get()
-        .table_description,
-        "country": models.AttributeTables.objects.filter(table_name="Country")
-        .get()
-        .table_description,
-        "method": models.AttributeTables.objects.filter(table_name="Method")
-        .get()
-        .table_description,
-        "energy_type": models.AttributeTables.objects.filter(table_name="EnergyType")
-        .get()
-        .table_description,
-        "ecc_stage": models.AttributeTables.objects.filter(table_name="ECCStage")
-        .get()
-        .table_description,
-        "agg_level": models.AttributeTables.objects.filter(table_name="AggLevel")
-        .get()
-        .table_description,
-        "gross_net": models.AttributeTables.objects.filter(table_name="GrossNet")
-        .get()
-        .table_description,
+        "dataset": lookups[models.Dataset].attribute.description(),
+        "version": lookups[models.Version].attribute.description(),
+        "country": lookups[models.Country].attribute.description(),
+        "method": lookups[models.Method].attribute.description(),
+        "energy_type": lookups[models.EnergyType].attribute.description(),
+        "ecc_stage": lookups[models.ECCStage].attribute.description(),
+        "agg_level": lookups[models.AggLevel].attribute.description(),
+        "gross_net": lookups[models.GrossNet].attribute.description(),
     }
 
     # Prepare the context dictionary for the template
     context = {
         "descriptions": descriptions,
         "SANDBOX_PREFIX": settings.SANDBOX_PREFIX,
-        "datasets": datasets,
+        "datasets": datasets_with_tables,
         "sandbox_datasets": sandbox_datasets,
         "default_dataset": "CL-PFU MW",
         "versions": versions,
@@ -152,7 +158,7 @@ def visualizer(request):
         "default_last_stage": last_stages[0].ecc_stage,
         "gross_nets": gross_nets,
         "default_gross_net": gross_nets[0].gross_net,
-        "matnames": matnames,
+        "matnames": matrices_with_tables,
         "default_matname": matnames[0].matname,
         "agg_levels": agg_levels,
         "default_agg_level": agg_levels[0].agg_level,
@@ -168,7 +174,7 @@ def generate_sankey_html(target: DatabaseTarget, query: ShapedQuery) -> str:
     sankey = get_sankey(target, translated_query)
 
     if sankey is None:
-        return "Error: No cooresponding data"
+        return "Error: No corresponding data"
 
     nodes, links, options, num_columns = sankey
 
@@ -330,6 +336,30 @@ def get_plot(request: HttpRequest):
     response.set_cookie("user_history", serialized_data.hex(), max_age=7 * 24 * 60 * 60)
 
     return response
+
+
+def check_data_iea(request: HttpRequest):
+    if request.method != "POST":
+        return HttpResponse(status=405)
+
+    LOGGER.info(f"Raw data: {request.POST}")
+
+    data_format = request.POST.get("return_data_type")
+    if data_format is None:
+        return HttpResponse("Data format unspecified", status=400)
+
+    query = shape_post_request(request.POST)[0]
+    original_query = deepcopy(query)
+    valid = iea_valid(request.user, query)
+
+    # Return modified query.
+    return JsonResponse(
+        {
+            "original": original_query,
+            "modified": query,
+            "valid": valid,
+        }
+    )
 
 
 @time_view

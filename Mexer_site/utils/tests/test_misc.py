@@ -100,9 +100,9 @@ class MiscTests(TransactionTestCase):
 
     def test_get_plot_title(self):
         """get_plot_title should format query dict into title string."""
-        query = {"dataset": "IEAEWEB2022", "year": "2020", "country": "USA"}
+        query = {"dataset": "CL-PFU IEA", "year": "2020", "country": "USA"}
         title = get_plot_title(query)
 
-        self.assertIn("IEAEWEB2022", title)
+        self.assertIn("CL-PFU IEA", title)
         self.assertIn("2020", title)
         self.assertIn("USA", title)

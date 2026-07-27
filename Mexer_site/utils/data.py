@@ -25,13 +25,14 @@
 #       Edom Maru - eam43@calvin.edu
 #####################
 import io
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from typing import Any, Literal
 
 import Mexer.models as models
 import pandas as pd
 from django.conf import settings
-from django.db.models import Model
+from django.core.exceptions import FieldDoesNotExist
+from django.db.models import Exists, Model, OuterRef
 from django.http import QueryDict
 
 from utils.logging import LOGGER
@@ -47,26 +48,111 @@ type DatabaseSource = Literal["sandbox", "users", "default"]
 
 type DatabaseTarget = tuple[DatabaseSource, type[Model]]
 
+DATA_TABLES: list[type[Model]] = [
+    models.PSUTReAllChopAllDsAllGrAll,
+    models.AggEtaPFU,
+    models.SectorAggEtaFU,
+    models.Phivecs,
+    models.Etai,
+]
+HAS_MATRIX_TABLES: list[type[Model]] = [
+    models.PSUTReAllChopAllDsAllGrAll,
+    models.Phivecs,
+    models.Etai,
+]
+
+
+def get_dataset_tables(dataset: models.Dataset) -> list[str]:
+    """Return the user data tables which include data from the provided dataset."""
+
+    def has_dataset(model: type[Model]) -> bool:
+        return model.objects.filter(dataset=dataset.dataset_id).exists()
+
+    return [str(table._meta.object_name) for table in DATA_TABLES if has_dataset(table)]
+
+
+def get_matrix_tables(matrix: models.Matname) -> list[str]:
+    """Return the user data tables which include data from the provided matrix."""
+
+    def has_matrix(model: type[Model]) -> bool:
+        fields = model._meta.fields
+        has_matrix_field = any(field.name == "matname" for field in fields)
+        return (
+            has_matrix_field
+            and model.objects.filter(matname=matrix.matname_id).exists()
+        )
+
+    return [str(table._meta.object_name) for table in DATA_TABLES if has_matrix(table)]
+
+
+def get_dataset_mapping(
+    datasets: Iterable[models.Dataset],
+) -> dict[models.Dataset, list[str]]:
+    mapping = {dataset: get_dataset_tables(dataset) for dataset in datasets}
+    return mapping
+
+
+def get_matrix_mapping(
+    matrices: Iterable[models.Matname],
+) -> dict[models.Matname, list[str]]:
+    mapping = {matrix: get_matrix_tables(matrix) for matrix in matrices}
+    return mapping
+
 
 def get_database_target(query: ShapedQuery) -> DatabaseTarget:
-    dataset = query.get("dataset")
-    table_name = None
+    dataset_name = query.get("dataset")
+    matrix_name = query.get("matname")
+
+    # The matrix name is only used to determine valid database targets.
+    # For "RUVY" (which is not an entry but multiple entries), just check "R".
+    if matrix_name == "RUVY":
+        matrix_name = "R"
+
     is_sandbox = False
-    if isinstance(dataset, str):
-        is_sandbox = dataset.startswith(settings.SANDBOX_PREFIX)
-        table_name = dataset.removeprefix(settings.SANDBOX_PREFIX)
+    if isinstance(dataset_name, str):
+        is_sandbox = dataset_name.startswith(settings.SANDBOX_PREFIX)
+        dataset_name = dataset_name.removeprefix(settings.SANDBOX_PREFIX)
+    else:
+        dataset_name = None
 
     plot_type = query.get("plot_type")
     if plot_type == "xy_plot":
         model = models.AggEtaPFU
+    elif dataset_name is not None:
+        # Determine qualifying data tables.
+        lookups = LookupManager()
+        dataset_id = lookups[models.Dataset].translate(dataset_name)
+        if isinstance(matrix_name, str):
+            matrix_id = lookups[models.Matname].translate(matrix_name)
+            for table in HAS_MATRIX_TABLES:
+                has_dataset = table.objects.filter(dataset=dataset_id).exists()
+                if not has_dataset:
+                    continue
+                has_matrix = table.objects.filter(matname=matrix_id).exists()
+                if not has_matrix:
+                    continue
+                model = table
+                break
+            else:
+                raise ValueError(
+                    f"no qualifying table with dataset {dataset_name} matrix {matrix_name}"
+                )
+        else:
+            for table in DATA_TABLES:
+                has_dataset = table.objects.filter(dataset=dataset_id).exists()
+                if not has_dataset:
+                    continue
+                model = table
+                break
+            else:
+                raise ValueError(
+                    f"no qualifying table with dataset {dataset_name} {dataset_id}"
+                )
     else:
-        model = (
-            models.IEAData
-            if table_name == "IEAEWEB2022"
-            else models.PSUTReAllChopAllDsAllGrAll
-        )
+        raise ValueError("dataset not provided")
 
     source = "sandbox" if is_sandbox else "default"
+    LOGGER.info(f"Using {model._meta.object_name}")
     return source, model
 
 

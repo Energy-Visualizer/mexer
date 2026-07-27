@@ -56,8 +56,6 @@ def example_can_all_users_access(query: ShapedQuery) -> bool:
     return True
 
 
-# Example input
-
 query = {
     "country": ["Spain", "United Kingdom"],
     "year": "2014",
