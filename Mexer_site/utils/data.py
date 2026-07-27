@@ -123,7 +123,7 @@ def get_dataframe(
 # TODO: We need to "discover" these columns, not
 # hardcode them.
 
-PSUT_COLUMNS = ["value"]
+PSUT_COLUMNS = ["year", "value"]
 AGGETA_COLUMNS = ["gross_net", "ex_p", "ex_f", "ex_u", "etapf", "etafu", "etapu"]
 INCLUDES_NEU_COLUMN = "includes_neu"
 
