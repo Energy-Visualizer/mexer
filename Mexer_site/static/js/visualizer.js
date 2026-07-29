@@ -3,6 +3,8 @@
  * This function is called when the page loads.
  */
 const initialize = () => {
+  initRegionDropdown();
+
   // let htmx give a general error response when something goes wrong with
   // some data
   document.body.addEventListener("htmx:responseError", (error) => {
@@ -67,9 +69,6 @@ const initialize = () => {
     " -- ensure this failed input has its id field set properly";
   const menu_input_assert = (input_element, input_name) =>
     console.assert(input_element, input_name + assertion_message_instruction);
-  // main metadata
-  countryDropdown = document.getElementById("country-dropdown");
-  menu_input_assert(countryDropdown, "countryDropdown");
 
   menuInputs = []; // collection to keep track of all the items that can be toggled in the menus
 
@@ -250,58 +249,6 @@ const handleMatrices = () => {
   for (let item of matrixMenuInputs) inputOn(item);
   inputRadioOn(coloringMethod);
 };
-
-const setRegionMode = (isAll) => {
-  let countryDropdownsContainer = document.getElementById("country-dropdowns");
-  let addCountryBtn = document.getElementById("add-country-btn");
-  countryDropdownsContainer
-    .querySelectorAll("select")
-    .forEach((sel) => (sel.disabled = isAll));
-  countryDropdownsContainer.style.opacity = isAll ? "0.4" : "";
-  countryDropdownsContainer.style.pointerEvents = isAll ? "none" : "";
-  addCountryBtn.disabled = isAll;
-};
-
-const handleRegionMode = (radio) => setRegionMode(radio.value === "all");
-
-const showDropdown = (name) => {
-  let countryDropdown = document.getElementById("country-dropdown");
-  let countryDropdownsContainer = document.getElementById("country-dropdowns");
-  let templateDropdown;
-  switch (name) {
-    case "country":
-      templateDropdown = countryDropdown;
-      break;
-  }
-
-  const newSelect = templateDropdown.cloneNode(true);
-  newSelect.id = "";
-  newSelect.required = true;
-  newSelect.disabled = false;
-  newSelect.name = templateDropdown.name;
-
-  const removeBtn = document.createElement("button");
-  removeBtn.type = "button";
-  removeBtn.textContent = "Remove";
-  removeBtn.className =
-    "px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-md bg-white text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-400 flex-shrink-0";
-
-  const row = document.createElement("div");
-  row.className = "flex items-center gap-2 mt-2";
-  row.appendChild(newSelect);
-  row.appendChild(removeBtn);
-
-  removeBtn.addEventListener("click", () => row.remove());
-
-  countryDropdownsContainer.appendChild(row);
-};
-
-document.addEventListener("DOMContentLoaded", () => {
-  const initialMode = document.querySelector(
-    'input[name="region-mode"]:checked',
-  );
-  if (initialMode) setRegionMode(initialMode.value === "all");
-});
 
 let plotWindow = null;
 let plotWindowLoaded = false;
