@@ -14,7 +14,7 @@ def can_all_users_access(query: ShapedQuery) -> bool:
         returning True, which means "allow".
       - Reject the query, returning False, which means "disallow"."""
 
-    # Currently, no IEA data is known to be available
+    # Currently, no IEA data are known to be available
     # to all users.
     return False
 

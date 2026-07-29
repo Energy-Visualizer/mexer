@@ -167,7 +167,7 @@
                         title="{{ country.description }}"
                         class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0"
                         {% if country.full_name == default_country %}checked{% endif %} />
-                      <span>{{ country.full_name }}</span>
+                      <span>{{ country.full_name }} ({{country.country}})</span>
                     </label>
                     {% endfor %}
                   </div>
@@ -729,7 +729,7 @@
                     class="bg-green-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 transform hover:scale-105 transition-transform duration-300"
                     onclick="
                         return confirm(
-                            'By accepting you confirm that you understand IEA data is proprietary and cannot be shared with those not authorized to see it.',
+                            'By accepting you confirm that you understand IEA data are proprietary and cannot be shared with those not authorized to see it.',
                         );
                     "
                 >
