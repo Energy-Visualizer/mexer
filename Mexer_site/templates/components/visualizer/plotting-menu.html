@@ -3,7 +3,7 @@
 <form method="post" action="/data" id="query-form">
     {% csrf_token %}
     <div
-        class="flex gap-3 max-w-[80%] max-h-[80%] mx-auto right-16 fixed z-10 transition-transform duration-150"
+        class="fixed right-16 z-10 flex w-[65vw] max-w-screen-2xl gap-3 max-h-[80%] transition-transform duration-150"
         id="plot-params-panel"
         data-open="true"
     >
@@ -53,7 +53,7 @@
 
         <!-- Query panel -->
         <div
-            class="w-3/4 bg-gray-100 text-gray-800 p-6 shadow-lg flex flex-col overflow-scroll"
+            class="flex-1 bg-gray-100 text-gray-800 p-6 shadow-lg flex flex-col overflow-scroll"
         >
             <h2 class="text-2xl font-bold text-cyan-500 mb-4 text-center">
                 Query
@@ -347,16 +347,36 @@
 
         <!-- Plotting panel -->
         <div
-            class="w-3/4 bg-gray-100 text-gray-800 p-6 shadow-lg overflow-scroll"
+            class="flex-1 bg-gray-100 text-gray-800 p-6 shadow-lg overflow-scroll"
         >
             <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">
-                Plot & Download
+                Plot or Download
             </h2>
+
+            <!-- Plot / Download action tabs -->
+            <div class="flex border-b border-gray-300 mb-4">
+                <button
+                    type="button"
+                    id="plot-tab-btn"
+                    class="flex-1 py-2 text-center font-medium border-b-2 border-blue-500 text-blue-500 focus:outline-none"
+                    onclick="switchActionTab('plot')"
+                >
+                    Plot
+                </button>
+                <button
+                    type="button"
+                    id="download-tab-btn"
+                    class="flex-1 py-2 text-center font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none"
+                    onclick="switchActionTab('download')"
+                >
+                    Download
+                </button>
+            </div>
 
             <!-- Visualization selection -->
             <div>
-                <div class="flex items-center space-x-2">
-                    {% field_label "Visualization" "Select the type of plot you want to display." %}
+                <div class="flex items-center space-x-2" id="viz-type-label-wrapper">
+                    {% field_label "Visualization" "Select the type of visualization. This also determines the shape of the data you'll get if you switch to the Download tab." %}
                 </div>
                 <div class="mt-2 flex justify-evenly">
                     <label
@@ -390,6 +410,7 @@
                             class="w-5 h-5 inline-block border-2 border-gray-300 rounded-full peer-checked:bg-red-500 peer-checked:border-red-500 transition group-hover:scale-110"
                         ></span>
                         <span
+                            id="xy-plot-type-label"
                             class="text-gray-800 peer-checked:text-red-500 font-medium group-hover:text-red-400 transition"
                             >X-Y plot</span
                         >
@@ -431,7 +452,7 @@
                                 name="gross_net"
                                 class="hidden peer"
                                 required
-                                {% if gross_net.gross_net == default_grossnet %}checked{% endif %}
+                                {% if gross_net.gross_net == default_grossnet or forloop.first %}checked{% endif %}
                             />
                             <span
                                 class="w-5 h-5 inline-block border-2 border-gray-300 rounded-full peer-checked:bg-blue-500 peer-checked:border-blue-500 transition group-hover:scale-110"
@@ -460,7 +481,7 @@
                         required
                     >
                         <!-- TODO: don't hardcode these -->
-                        <option value="ex_P" checked>EXp</option>
+                        <option value="ex_p" checked>EXp</option>
                         <option value="ex_f">EXf</option>
                         <option value="ex_u">EXu</option>
                         <option value="etapf">etapf</option>
@@ -710,41 +731,52 @@
             <input type="checkbox" name="separate_window" class="w-5 h-5 border-2 border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" disabled>
         </div> -->
 
-            <!-- Buttons for plot generation and data download -->
-            <div class="flex justify-center space-x-4 mt-6">
-                <button
-                    hx-post="/plot"
-                    hx-swap="innerHTML"
-                    hx-target="#plot-section"
-                    hx-indicator="#plot-spinner"
-                    type="button"
-                    id="get"
-                    class="bg-blue-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 transform hover:scale-105 transition-transform duration-300"
-                >
-                    Make Plot
-                </button>
-                <button
-                    type="submit"
-                    id="download"
-                    class="bg-green-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 transform hover:scale-105 transition-transform duration-300"
-                    onclick="
-                        return confirm(
-                            'By accepting you confirm that you understand IEA data are proprietary and cannot be shared with those not authorized to see it.',
-                        );
-                    "
-                >
-                    Download Data
-                </button>
+            <!-- Plot tab: generate a visualization from the settings above -->
+            <div id="plot-tab-panel">
+                <div class="flex justify-center mt-6">
+                    <button
+                        hx-post="/plot"
+                        hx-swap="innerHTML"
+                        hx-target="#plot-section"
+                        hx-indicator="#plot-spinner"
+                        type="button"
+                        id="get"
+                        class="bg-blue-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 transform hover:scale-105 transition-transform duration-300"
+                    >
+                        Make Plot
+                    </button>
+                </div>
             </div>
-            <div class="mt-4">
-                <label class="block text-lg font-medium mb-2">File Format (for Downloads)</label>
-                <select
-                    name="return_data_type"
-                    class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                >
-                    <option value="csv" selected>CSV</option>
-                    <option value="excel">Excel</option>
-                </select>
+
+            <!-- Download tab: export the underlying data as a file -->
+            <div id="download-tab-panel" class="hidden">
+                <div>
+                    <label class="block text-lg font-medium mb-2">File Format</label>
+                    <select
+                        name="return_data_type"
+                        class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    >
+                        <option value="csv" selected>CSV</option>
+                        <option value="excel">Excel</option>
+                    </select>
+                </div>
+                <div class="flex justify-center mt-6">
+                    <button
+                        type="submit"
+                        id="download"
+                        class="bg-green-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 transform hover:scale-105 transition-transform duration-300"
+                        onclick="
+                            return (
+                                guardFormSubmit(this.form) &&
+                                confirm(
+                                    'By accepting you confirm that you understand IEA data is proprietary and cannot be shared with those not authorized to see it.',
+                                )
+                            );
+                        "
+                    >
+                        Download Data
+                    </button>
+                </div>
             </div>
         </div>
     </div>

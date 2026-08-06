@@ -1,3 +1,114 @@
+const openFieldTooltip = (button, tip) => {
+  if (!tip._homeParent) {
+    tip._homeParent = tip.parentElement;
+    tip._homeNext = tip.nextSibling;
+  }
+  document.body.appendChild(tip);
+  tip.classList.remove("hidden");
+
+  const btnRect = button.getBoundingClientRect();
+  tip.style.left = btnRect.left + "px";
+  tip.style.width = "16rem";
+  const spaceAbove = btnRect.top;
+  if (spaceAbove > 100) {
+    tip.style.top = "";
+    tip.style.bottom = window.innerHeight - btnRect.top + 4 + "px";
+  } else {
+    tip.style.bottom = "";
+    tip.style.top = btnRect.bottom + 4 + "px";
+  }
+};
+
+/** Hides a field-info tooltip and returns it to its original spot in the DOM. */
+const closeFieldTooltip = (tip) => {
+  tip.classList.add("hidden");
+  if (tip._homeParent) tip._homeParent.insertBefore(tip, tip._homeNext);
+};
+
+/** Toggles a field-info tooltip open/closed. Bound to the (i) button's onclick. */
+const toggleFieldTooltip = (button) => {
+  const wrapper = button.parentElement;
+  const tip =
+    wrapper._tip || (wrapper._tip = wrapper.querySelector(".field-tooltip"));
+
+  if (tip.classList.contains("hidden")) openFieldTooltip(button, tip);
+  else closeFieldTooltip(tip);
+};
+
+const closeAllFieldTooltips = () => {
+  document
+    .querySelectorAll(".field-tooltip:not(.hidden)")
+    .forEach(closeFieldTooltip);
+};
+
+let currentActionTab = "plot";
+
+const switchActionTab = (tab) => {
+  currentActionTab = tab;
+
+  const plotBtn = document.getElementById("plot-tab-btn");
+  const downloadBtn = document.getElementById("download-tab-btn");
+  const plotPanel = document.getElementById("plot-tab-panel");
+  const downloadPanel = document.getElementById("download-tab-panel");
+
+  const activate = (btn) => {
+    btn.classList.add("border-blue-500", "text-blue-500");
+    btn.classList.remove("border-transparent", "text-gray-500");
+  };
+  const deactivate = (btn) => {
+    btn.classList.remove("border-blue-500", "text-blue-500");
+    btn.classList.add("border-transparent", "text-gray-500");
+  };
+
+  const showPlot = tab === "plot";
+  plotPanel.classList.toggle("hidden", !showPlot);
+  downloadPanel.classList.toggle("hidden", showPlot);
+  showPlot ? activate(plotBtn) : activate(downloadBtn);
+  showPlot ? deactivate(downloadBtn) : deactivate(plotBtn);
+
+  // "Visualization" / "X-Y plot" read oddly when nothing is being plotted.
+  const vizLabel = document.querySelector(
+    "#viz-type-label-wrapper .font-semibold",
+  );
+  const xyLabel = document.getElementById("xy-plot-type-label");
+  if (vizLabel) vizLabel.textContent = showPlot ? "Visualization" : "Data Type";
+  if (xyLabel) xyLabel.textContent = showPlot ? "X-Y plot" : "X-Y data";
+
+  applyPlotTypeVisibility();
+};
+
+const findMissingRequiredFields = (form) => {
+  const missingNames = new Set();
+  form.querySelectorAll("[required]").forEach((field) => {
+    if (field.disabled) return;
+    const container = field.closest(".query-choice") || field;
+    if (container.offsetParent === null) return; // not visible
+
+    if (field.type === "radio") {
+      const group = form.querySelectorAll(
+        `input[type="radio"][name="${field.name}"]`,
+      );
+      const anyChecked = [...group].some((radio) => radio.checked);
+      if (!anyChecked) missingNames.add(field.name);
+    } else if (!field.value) {
+      missingNames.add(field.name);
+    }
+  });
+  return [...missingNames];
+};
+
+/** Blocks submission with a clear message if a visible required field is unfilled. */
+const guardFormSubmit = (form) => {
+  const missing = findMissingRequiredFields(form);
+  if (missing.length > 0) {
+    alert(
+      "Please fill in the following before continuing: " + missing.join(", "),
+    );
+    return false;
+  }
+  return true;
+};
+
 /**
  * Initializes the application UI and sets up event listeners.
  * This function is called when the page loads.
@@ -129,29 +240,24 @@ const initialize = () => {
   ];
   matrixMenuInputs = [fromYearInput, toYearInput, matnameDropdown, colorScale];
 
+  plotOnlyInputs = [
+    efficiencyDropdown,
+    colorBy,
+    lineBy,
+    facetColBy,
+    facetRowBy,
+    colorScale,
+    labelThreshold,
+  ];
+
   // have specifics show differently for different plots
-  let selectedValue = null; // to be filled in the following loop
   const plotTypeButtons = document.querySelectorAll(".plot-type-input");
   plotTypeButtons.forEach((plotTypeButton) => {
-    // Add approptiate event listener based on plot type
-    if (plotTypeButton.checked) selectedValue = plotTypeButton.value; // if a button is already selected, remember its value
-
-    if (plotTypeButton.value === "xy_plot")
-      plotTypeButton.addEventListener("change", handleXYPlot);
-    else if (plotTypeButton.value === "sankey")
-      plotTypeButton.addEventListener("change", handleSankey);
-    else if (plotTypeButton.value === "matrices")
-      plotTypeButton.addEventListener("change", handleMatrices);
+    plotTypeButton.addEventListener("change", applyPlotTypeVisibility);
   });
 
-  // if there is an already selected plot, set up the query section accordingly
-  if (selectedValue === "xy_plot") handleXYPlot();
-  else if (selectedValue === "sankey") handleSankey();
-  else if (selectedValue === "matrices") handleMatrices();
-  // if not, hide all specifics
-  else {
-    startMenuSwitch();
-  }
+  // set up the query section for whichever plot type (and tab) is active
+  applyPlotTypeVisibility();
 
   // Let users select what form of data they would like to download
   // No download options present in HTML
@@ -170,7 +276,9 @@ const initialize = () => {
   });
 
   const showColors = () => {
-    if (matnameDropdown.value === "RUVY") {
+    // Coloring Method is plot-only, so it never applies on the Download tab
+    // regardless of which matrix is selected.
+    if (matnameDropdown.value === "RUVY" && currentActionTab === "plot") {
       inputRadioOn(coloringMethod);
     } else {
       inputRadioOff(coloringMethod);
@@ -249,6 +357,71 @@ const handleMatrices = () => {
   for (let item of matrixMenuInputs) inputOn(item);
   inputRadioOn(coloringMethod);
 };
+
+const applyPlotTypeVisibility = () => {
+  const selected = document.querySelector(".plot-type-input:checked")?.value;
+  if (selected === "xy_plot") handleXYPlot();
+  else if (selected === "sankey") handleSankey();
+  else if (selected === "matrices") handleMatrices();
+  else startMenuSwitch();
+
+  if (currentActionTab === "download") {
+    for (let item of plotOnlyInputs) inputOff(item);
+    inputRadioOff(coloringMethod);
+  }
+};
+
+const setRegionMode = (isAll) => {
+  let countryDropdownsContainer = document.getElementById("country-dropdowns");
+  let addCountryBtn = document.getElementById("add-country-btn");
+  countryDropdownsContainer
+    .querySelectorAll("select")
+    .forEach((sel) => (sel.disabled = isAll));
+  countryDropdownsContainer.style.opacity = isAll ? "0.4" : "";
+  countryDropdownsContainer.style.pointerEvents = isAll ? "none" : "";
+  addCountryBtn.disabled = isAll;
+};
+
+const handleRegionMode = (radio) => setRegionMode(radio.value === "all");
+
+const showDropdown = (name) => {
+  let countryDropdown = document.getElementById("country-dropdown");
+  let countryDropdownsContainer = document.getElementById("country-dropdowns");
+  let templateDropdown;
+  switch (name) {
+    case "country":
+      templateDropdown = countryDropdown;
+      break;
+  }
+
+  const newSelect = templateDropdown.cloneNode(true);
+  newSelect.id = "";
+  newSelect.required = true;
+  newSelect.disabled = false;
+  newSelect.name = templateDropdown.name;
+
+  const removeBtn = document.createElement("button");
+  removeBtn.type = "button";
+  removeBtn.textContent = "Remove";
+  removeBtn.className =
+    "px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-md bg-white text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-400 flex-shrink-0";
+
+  const row = document.createElement("div");
+  row.className = "flex items-center gap-2 mt-2";
+  row.appendChild(newSelect);
+  row.appendChild(removeBtn);
+
+  removeBtn.addEventListener("click", () => row.remove());
+
+  countryDropdownsContainer.appendChild(row);
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+  const initialMode = document.querySelector(
+    'input[name="region-mode"]:checked',
+  );
+  if (initialMode) setRegionMode(initialMode.value === "all");
+});
 
 let plotWindow = null;
 let plotWindowLoaded = false;

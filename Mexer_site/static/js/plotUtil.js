@@ -1,107 +1,132 @@
 const plotSection = document.getElementById("plot-section");
 
-import {PlotCreator} from './SanKEY_script.js'
+// Requires Plotly to be loaded globally, e.g. via:
+//   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+// If you'd rather bundle it, `npm install plotly.js-dist-min` and
+// `import Plotly from "plotly.js-dist-min";` instead of relying on the global.
+
+// keep a handle to the current plot div so download/threshold logic can reach it
+let currentGraphDiv = null;
+let currentNodes = null; // flat {label, color, x} from the backend, kept for label-threshold recompute
 
 const createSankey = (nodes, links, options, title, num_columns) => {
-    // plotSection.innerHTML = ""; // clear the plot section first
-    let sankeyPlot = new PlotCreator(
-        plotSection, // container in the dom
-        nodes,
-        links,
-        plotSection.clientWidth, // plot width
-        plotSection.clientHeight, // plot height
-        0, // first column to show
-        num_columns, // number of columns to show (e.g. 0, 4 declares columns 0-3)
+  currentNodes = nodes;
 
-        // further options
-        // combination of "options" param and options defined here
-        Object.assign(options, {
-            on_link_hover_function: (link_info,link_data_reference,link_element,event) => {
-                return `${link_info["from_label"]}<br>${Math.round(link_info["value"])} TJ<br>${link_info["to_label"]}`
-            },
-            // on_node_hover_function: (node_info,node_data_reference,node_element,event) => {
-            //     return `${node_info["label"]}<br>${Math.round(node_info["value"])} TJ`
-            // }
-        })
-    )
+  const data = [
+    {
+      type: "sankey",
+      orientation: "h",
+      arrangement: options.arrangement || "snap",
+      node: {
+        label: nodes.label,
+        color: nodes.color,
+        x: nodes.x,
+        pad: 15,
+        thickness: 20,
+        line: { color: "black", width: 0.5 },
+      },
+      link: {
+        source: links.source,
+        target: links.target,
+        value: links.value,
+        color: links.color,
+        // stash the readable from/to labels so the hovertemplate below can use them
+        customdata: links.from_label.map((from_label, idx) => [
+          from_label,
+          links.to_label[idx],
+        ]),
+        hovertemplate:
+          "%{customdata[0]}<br>%{value:.0f} TJ<br>%{customdata[1]}<extra></extra>",
+      },
+    },
+  ];
 
-    /* Generating the labels and title for the sankey diagram
+  const layout = {
+    title: { text: title, font: { size: 16 } },
+    font: { size: 12 },
+    paper_bgcolor: options.plot_background_color || "#f4edf7",
+    plot_bgcolor: options.plot_background_color || "#f4edf7",
+    width: plotSection.clientWidth,
+    height: plotSection.clientHeight,
+    margin: { l: 4, r: 4, t: 32, b: 4 },
+  };
 
-    The above code will generate an svg in the dom to 
-    represent the sankey diagram. It is always given the ID
-    "sankey_field". Getting into that svg allows for the addition
-    of various HTML elements that will be our nodes labels and plot title */
-    const sankeySvg = document.getElementById("sankey_field");
-    
-    // text elements must be created under the svg namespace to work
-    const plotTitle = document.createElementNS("http://www.w3.org/2000/svg","text");
-    plotTitle.setAttribute("y", 16); // top left
-    plotTitle.setAttribute("x", 4);
-    plotTitle.textContent = title;
-    sankeySvg.appendChild(plotTitle);
+  Plotly.newPlot(plotSection, data, layout, {
+    responsive: true,
+    displaylogo: false,
+  }).then((graphDiv) => {
+    currentGraphDiv = graphDiv;
+    applyLabelThreshold();
+  });
+};
 
-    // threshold for how big a node has to be to get a label
-    // subtract from 1 to "flip" the input
-    // so big numbers come from the left of the input, and smaller numbers from the right
-    const labelThreshold = Math.pow(1 - document.getElementById("label-threshold").value, 5);
+// The old SanKEY.js renderer measured each node's rendered pixel height and
+// hid the label if the node was too small. Plotly doesn't expose that hook
+// directly, so we approximate "size" using each node's flow value relative
+// to the largest node in the diagram, which is what actually drives a
+// sankey node's rendered height.
+const applyLabelThreshold = () => {
+  if (!currentGraphDiv || !currentNodes) return;
 
-    // get all the nodes ('g' tags) and put the proper labels on them
-    for (const node of sankeySvg.getElementsByTagNameNS("http://www.w3.org/2000/svg", "g")) {
+  const thresholdInput = document.getElementById("label-threshold");
+  if (!thresholdInput) return;
 
-        let node_info = node.children[0]; // get the rect child element, which contains all the info about the node
+  // same "flip" as before: small slider values -> low threshold -> most labels show
+  const labelThreshold = Math.pow(1 - thresholdInput.value, 5);
 
-        // only apply the label if the passes a certain size threshold
-        if (node_info.getAttribute("height") < plotSection.clientHeight * labelThreshold)
-            continue;
+  const trace = currentGraphDiv.data[0];
+  const nodeValues = computeNodeValues(trace.link, currentNodes.label.length);
+  const maxValue = Math.max(...nodeValues, 0);
 
-        // with the "nodes" json argument to this function, get the label for the node in question
-        // nodes labels are kept column by row (aka position). which column and which row to use
-        // is kept as html attributes in the "node_info" element
-        let label = document.createElementNS("http://www.w3.org/2000/svg","text"); // text element to represent label
-        label.textContent = nodes[node_info.getAttribute("column")][node_info.getAttribute("position")]["label"];
-        node.appendChild(label)
-    }
+  const displayLabels = currentNodes.label.map((label, idx) => {
+    const relativeSize = maxValue > 0 ? nodeValues[idx] / maxValue : 0;
+    return relativeSize >= labelThreshold ? label : "";
+  });
 
-    updateSankeyDownload(sankeySvg);
-}
+  Plotly.restyle(currentGraphDiv, { "node.label": [displayLabels] }).then(() =>
+    updateSankeyDownload(),
+  );
+};
+
+// a node's rendered size is proportional to max(sum of incoming, sum of outgoing)
+const computeNodeValues = (link, nodeCount) => {
+  const incoming = new Array(nodeCount).fill(0);
+  const outgoing = new Array(nodeCount).fill(0);
+
+  link.source.forEach((sourceIdx, i) => {
+    outgoing[sourceIdx] += link.value[i];
+  });
+  link.target.forEach((targetIdx, i) => {
+    incoming[targetIdx] += link.value[i];
+  });
+
+  return incoming.map((val, idx) => Math.max(val, outgoing[idx]));
+};
 
 let sankeyDownloadURL;
-const updateSankeyDownload = (sankeySVG) => {
-    // insert a white rectangle into the plot.
-    // this will act as the background when the plot is downloaded
-    const bg = document.createElementNS("http://www.w3.org/2000/svg","rect");
-    bg.setAttribute("fill", "#FFFFFF");
-    bg.setAttribute("width", plotSection.clientWidth);
-    bg.setAttribute("height", plotSection.clientHeight);
-    sankeySVG.insertBefore(bg, sankeySVG.firstChild);
+const updateSankeyDownload = () => {
+  if (!currentGraphDiv) return;
 
-    // add the style to the svg for displaying in other apps
-    sankeySVG.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-
-    // turn the html of the plot into a data blob
-    // with mime set up for svg. This will let the textual svg in the html
-    // be used by image processors to display an actual image
-    const downloadBlob = new Blob([sankeySVG.outerHTML], {type: "image/svg"});
-
-    // if the link was already populated, revoke it
-    // as a new link is going to be used
-    if (sankeyDownloadURL != null)
-        URL.revokeObjectURL(sankeyDownloadURL);
-
-    // set up the link with the plot data
-    sankeyDownloadURL = URL.createObjectURL(downloadBlob);
-}
+  Plotly.toImage(currentGraphDiv, {
+    format: "svg",
+    width: plotSection.clientWidth,
+    height: plotSection.clientHeight,
+  }).then((dataUrl) => {
+    // Plotly.toImage returns a data: URL directly, not an object URL,
+    // so there's nothing to revoke here (unlike the old Blob-based approach)
+    sankeyDownloadURL = dataUrl;
+  });
+};
 
 const downloadSankey = () => {
-    // create a link that uses the object url for the sankey blob
-    // then click it to start a download
-    // this function is meant to be used as a button element's onclick event
-    const a = document.createElement("a");
-    a.href = sankeyDownloadURL;
-    a.download = "sankey.svg";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-}
+  if (!sankeyDownloadURL) return;
 
-export {downloadSankey, createSankey};
+  const a = document.createElement("a");
+  a.href = sankeyDownloadURL;
+  a.download = "sankey.svg";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+};
+
+export { downloadSankey, createSankey };
