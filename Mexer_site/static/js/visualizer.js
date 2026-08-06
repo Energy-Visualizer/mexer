@@ -114,6 +114,8 @@ const guardFormSubmit = (form) => {
  * This function is called when the page loads.
  */
 const initialize = () => {
+  initRegionDropdown();
+
   // let htmx give a general error response when something goes wrong with
   // some data
   document.body.addEventListener("htmx:responseError", (error) => {
@@ -178,9 +180,6 @@ const initialize = () => {
     " -- ensure this failed input has its id field set properly";
   const menu_input_assert = (input_element, input_name) =>
     console.assert(input_element, input_name + assertion_message_instruction);
-  // main metadata
-  countryDropdown = document.getElementById("country-dropdown");
-  menu_input_assert(countryDropdown, "countryDropdown");
 
   menuInputs = []; // collection to keep track of all the items that can be toggled in the menus
 
