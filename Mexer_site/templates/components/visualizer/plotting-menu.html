@@ -3,7 +3,7 @@
 <form method="post" action="/data" id="query-form">
     {% csrf_token %}
     <div
-        class="flex gap-3 max-w-5xl max-h-[80%] mx-auto right-16 fixed z-10 transition-transform duration-150"
+        class="fixed right-16 z-10 flex w-[65vw] max-w-screen-2xl gap-3 max-h-[80%] transition-transform duration-150"
         id="plot-params-panel"
         data-open="true"
     >
@@ -53,7 +53,7 @@
 
         <!-- Query panel -->
         <div
-            class="w-1/2 bg-gray-100 text-gray-800 p-6 shadow-lg flex flex-col overflow-scroll"
+            class="flex-1 bg-gray-100 text-gray-800 p-6 shadow-lg flex flex-col overflow-scroll"
         >
             <h2 class="text-2xl font-bold text-cyan-500 mb-4 text-center">
                 Query
@@ -347,7 +347,7 @@
 
         <!-- Plotting panel -->
         <div
-            class="w-1/2 bg-gray-100 text-gray-800 p-6 shadow-lg overflow-scroll"
+            class="flex-1 bg-gray-100 text-gray-800 p-6 shadow-lg overflow-scroll"
         >
             <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">
                 Plot or Download
