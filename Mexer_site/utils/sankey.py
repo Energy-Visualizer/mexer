@@ -30,9 +30,10 @@ with open(settings.SANKEY_COLORS_PATH) as f:
 
 
 class NodeInfo:
-    def __init__(self, column: int, index: int):
+    def __init__(self, column: int, index: int, flat_index: int):
         self.column = column
         self.index = index
+        self.flat_index = flat_index  # position in the flat node list Plotly expects
 
 
 def _get_sankey_color(node_name: str) -> str:
@@ -59,14 +60,18 @@ def _get_sankey_color(node_name: str) -> str:
 # ]
 ###
 def _create_new_node(
-    name: str, node_info_by_name: dict, indexes_by_col: Counter, sankey_orders: dict
+    name: str,
+    node_info_by_name: dict,
+    indexes_by_col: Counter,
+    sankey_orders: dict,
+    next_flat_index: int,
 ) -> NodeInfo:
     """Creates a new node info for a given name"""
     node_column = sankey_orders.get(name, -1)  # -1 represents an error state
 
     node_info = NodeInfo(
-        node_column, indexes_by_col[node_column]
-    )  # store column and next index in column
+        node_column, indexes_by_col[node_column], next_flat_index
+    )  # store column, next index in column, and flat (global) index
     indexes_by_col[node_column] += 1  # update next index in column for next node
 
     node_info_by_name[name] = node_info  # save node info
@@ -137,29 +142,27 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str, int]
         max(column_mapping.values()) + 1
     )  # get how many columns the plot will have
 
-    # these three variables are what ultimately get json dumped
-    # and sent to the javascript renderer
-    nodes = [
-        list() for _ in range(max_columns)
-    ]  # n columns for the sankey diagram, found from database values
-    links = list()
-    options = dict(
-        plot_background_color="#f4edf7",
-        default_links_opacity=0.8,
-        default_gradient_links_opacity=0.8,
-        show_column_lines=False,
-        show_column_names=False,
-        linear_gradient_links=False,
-    )
+    # Plotly's sankey trace wants a *flat* node list (label/color/x arrays all
+    # indexed the same way) and links that reference nodes by that flat index
+    # via "source"/"target" - rather than the {column, node} pairs the old
+    # SanKEY.js renderer used. We still track column per-node (for x position)
+    # and a per-column counter (kept in case you want vertical ordering later).
+    node_labels: list[str] = []
+    node_colors: list[str] = []
+    node_columns: list[int] = []
+
+    link_sources: list[int] = []
+    link_targets: list[int] = []
+    link_values: list[float] = []
+    link_colors: list[str] = []
+    link_from_labels: list[str] = []
+    link_to_labels: list[str] = []
 
     # track node information by node name
-    node_info_by_name = dict()
+    node_info_by_name = {}
 
-    # keep track of the index a new label is added to
-    # this prevents having to repeatedly calculate the length of the
-    # column lists
-    # keys = column lists by index in nodes list above
-    # values = index at which a new label will be added to a column list
+    # keeps track of the next index a node will occupy within its column
+    # (retained for parity with the old structure / potential future use)
     indexes_by_column = Counter()
 
     for matname, i, j, magnitude in data:
@@ -176,47 +179,76 @@ def get_sankey(target: DatabaseTarget, query: dict) -> tuple[str, str, str, int]
         try:
             from_node_info = _get_node_info(i_name, node_info_by_name)
         except KeyError:
-            # if we didn't already have it, make a new node and log it in the nodes dictionary
+            # if we didn't already have it, make a new node and log it in the flat lists
             from_node_info = _create_new_node(
-                i_name, node_info_by_name, indexes_by_column, sankey_orders
+                i_name,
+                node_info_by_name,
+                indexes_by_column,
+                sankey_orders,
+                len(node_labels),
             )
-            nodes[from_node_info.column].append(
-                dict(
-                    label=i_name,
-                    color=_get_sankey_color(i_name) or "red"
-                    if not j_is_carrier
-                    else INDUSTRY_COLOR,
-                )
+            node_labels.append(i_name)
+            node_colors.append(
+                _get_sankey_color(i_name) or "red"
+                if not j_is_carrier
+                else INDUSTRY_COLOR
             )
+            node_columns.append(from_node_info.column)
 
         try:
             to_node_info = _get_node_info(j_name, node_info_by_name)
         except KeyError:
             to_node_info = _create_new_node(
-                j_name, node_info_by_name, indexes_by_column, sankey_orders
+                j_name,
+                node_info_by_name,
+                indexes_by_column,
+                sankey_orders,
+                len(node_labels),
             )
-            nodes[to_node_info.column].append(
-                dict(
-                    label=j_name,
-                    color=_get_sankey_color(j_name) or "red"
-                    if j_is_carrier
-                    else INDUSTRY_COLOR,
-                )
+            node_labels.append(j_name)
+            node_colors.append(
+                _get_sankey_color(j_name) or "red" if j_is_carrier else INDUSTRY_COLOR
             )
+            node_columns.append(to_node_info.column)
 
         # if the column values were not filled in above
         if from_node_info.column < 0 or to_node_info.column < 0:
             raise ValueError("Unknown node name processed")
 
-        # set up the flow from the two labels above
-        links.append(
-            {
-                "from": dict(column=from_node_info.column, node=from_node_info.index),
-                "to": dict(column=to_node_info.column, node=to_node_info.index),
-                "value": magnitude,
-                "color": _get_sankey_color(index_translator[j if j_is_carrier else i]),
-            }
+        # set up the flow from the two labels above, using flat indices
+        link_sources.append(from_node_info.flat_index)
+        link_targets.append(to_node_info.flat_index)
+        link_values.append(magnitude)
+        link_colors.append(
+            _get_sankey_color(index_translator[j if j_is_carrier else i])
         )
+        link_from_labels.append(i_name)
+        link_to_labels.append(j_name)
+
+    # x position per node, spread evenly across the available columns (0..1)
+    # so Plotly keeps the same left-to-right column layout the old renderer had
+    node_x = [
+        0.001 if max_columns <= 1 else round(col / (max_columns - 1), 4)
+        for col in node_columns
+    ]
+
+    nodes = {
+        "label": node_labels,
+        "color": node_colors,
+        "x": node_x,
+    }
+    links = {
+        "source": link_sources,
+        "target": link_targets,
+        "value": link_values,
+        "color": link_colors,
+        "from_label": link_from_labels,
+        "to_label": link_to_labels,
+    }
+    options = {
+        "plot_background_color": "#f4edf7",
+        "arrangement": "snap",  # lets Plotly resolve vertical spacing within each x column
+    }
 
     # convert everything to json to send it to the javascript renderer
     return json.dumps(nodes), json.dumps(links), json.dumps(options), max_columns
