@@ -26,18 +26,19 @@ class SankeyTests(TransactionTestCase):
         self.assertEqual(color, "")
 
     def test_create_new_node(self):
-        """_create_new_node should create and register a new node."""
+        """_create_new_node should create and register a new node with a flat index."""
         node_info_by_name = {}
         indexes_by_col = Counter()
         sankey_orders = {"test_node": 0}
 
         node_info = _create_new_node(
-            "test_node", node_info_by_name, indexes_by_col, sankey_orders
+            "test_node", node_info_by_name, indexes_by_col, sankey_orders, 0
         )
 
-        # Node should be created with correct column
+        # Node should be created with correct column, in-column index, and flat index
         self.assertEqual(node_info.column, 0)
         self.assertEqual(node_info.index, 0)
+        self.assertEqual(node_info.flat_index, 0)
 
         # Node should be registered
         self.assertIn("test_node", node_info_by_name)
@@ -47,31 +48,36 @@ class SankeyTests(TransactionTestCase):
         self.assertEqual(indexes_by_col[0], 1)
 
     def test_create_new_node_multiple_in_column(self):
-        """_create_new_node should assign incrementing indices in same column."""
+        """_create_new_node should assign incrementing in-column indices and
+        distinct flat indices for nodes added to the same column."""
         node_info_by_name = {}
         indexes_by_col = Counter()
         sankey_orders = {"node1": 0, "node2": 0}
 
         node1 = _create_new_node(
-            "node1", node_info_by_name, indexes_by_col, sankey_orders
+            "node1", node_info_by_name, indexes_by_col, sankey_orders, 0
         )
         node2 = _create_new_node(
-            "node2", node_info_by_name, indexes_by_col, sankey_orders
+            "node2", node_info_by_name, indexes_by_col, sankey_orders, 1
         )
 
         self.assertEqual(node1.column, 0)
         self.assertEqual(node1.index, 0)
+        self.assertEqual(node1.flat_index, 0)
+
         self.assertEqual(node2.column, 0)
         self.assertEqual(node2.index, 1)
+        self.assertEqual(node2.flat_index, 1)
 
     def test_get_node_info_existing(self):
         """_get_node_info should return existing node."""
-        node_info_by_name = {"existing_node": NodeInfo(0, 1)}
+        node_info_by_name = {"existing_node": NodeInfo(0, 1, 5)}
 
         result = _get_node_info("existing_node", node_info_by_name)
 
         self.assertEqual(result.column, 0)
         self.assertEqual(result.index, 1)
+        self.assertEqual(result.flat_index, 5)
 
     def test_get_node_info_missing(self):
         """_get_node_info should raise KeyError for missing node."""
@@ -81,7 +87,7 @@ class SankeyTests(TransactionTestCase):
             _get_node_info("nonexistent_node", node_info_by_name)
 
     def test_get_sankey_no_data(self):
-        """get_sankey should return None tuple if no data found."""
+        """get_sankey should return None if no data found."""
         target = ("default", PSUT)
         query = {"year": 9999}  # Year that doesn't exist in test data
 
@@ -89,7 +95,8 @@ class SankeyTests(TransactionTestCase):
         self.assertIsNone(result)
 
     def test_get_sankey_returns_json_strings(self):
-        """get_sankey should return JSON strings for nodes, links, and options."""
+        """get_sankey should return JSON strings for nodes, links, and options,
+        plus an integer max_columns."""
         target = ("default", PSUT)
         query = {"year": 2020}
 
@@ -102,10 +109,10 @@ class SankeyTests(TransactionTestCase):
         nodes_json, links_json, options_json, max_columns = result
 
         nodes = json.loads(nodes_json)
-        self.assertIsInstance(nodes, list)
+        self.assertIsInstance(nodes, dict)
 
         links = json.loads(links_json)
-        self.assertIsInstance(links, list)
+        self.assertIsInstance(links, dict)
 
         options = json.loads(options_json)
         self.assertIsInstance(options, dict)
@@ -115,7 +122,7 @@ class SankeyTests(TransactionTestCase):
         self.assertGreater(max_columns, 0)
 
     def test_get_sankey_nodes_structure(self):
-        """get_sankey nodes should have correct structure."""
+        """get_sankey nodes should be a flat dict of parallel label/color/x lists."""
         target = ("default", PSUT)
         query = {"year": 2020}
 
@@ -125,50 +132,79 @@ class SankeyTests(TransactionTestCase):
 
         nodes = json.loads(nodes_json)
 
-        # Nodes should be a list of columns
-        self.assertIsInstance(nodes, list)
+        # Nodes should be a dict with parallel lists
+        self.assertIsInstance(nodes, dict)
+        self.assertIn("label", nodes)
+        self.assertIn("color", nodes)
+        self.assertIn("x", nodes)
 
-        # Each column should be a list of node dicts
-        for column in nodes:
-            self.assertIsInstance(column, list)
-            for node in column:
-                self.assertIn("label", node)
-                self.assertIn("color", node)
-                self.assertIsInstance(node["label"], str)
-                self.assertIsInstance(node["color"], str)
+        self.assertIsInstance(nodes["label"], list)
+        self.assertIsInstance(nodes["color"], list)
+        self.assertIsInstance(nodes["x"], list)
+
+        # All three lists should be the same length (parallel arrays)
+        num_nodes = len(nodes["label"])
+        self.assertEqual(len(nodes["color"]), num_nodes)
+        self.assertEqual(len(nodes["x"]), num_nodes)
+        self.assertGreater(num_nodes, 0)
+
+        for label in nodes["label"]:
+            self.assertIsInstance(label, str)
+        for color in nodes["color"]:
+            self.assertIsInstance(color, str)
+        for x in nodes["x"]:
+            self.assertIsInstance(x, (int, float))
+            self.assertGreaterEqual(x, 0)
+            self.assertLessEqual(x, 1)
 
     def test_get_sankey_links_structure(self):
-        """get_sankey links should have correct structure."""
+        """get_sankey links should be a flat dict referencing nodes by index."""
         target = ("default", PSUT)
         query = {"year": 2020}
 
         sankey = get_sankey(target, query)
         assert sankey is not None
-        _, links_json, *_ = sankey
+        nodes_json, links_json, *_ = sankey
 
+        nodes = json.loads(nodes_json)
         links = json.loads(links_json)
+        num_nodes = len(nodes["label"])
 
-        # Links should be a list
-        self.assertIsInstance(links, list)
+        # Links should be a dict with parallel lists
+        self.assertIsInstance(links, dict)
+        for key in ("source", "target", "value", "color", "from_label", "to_label"):
+            self.assertIn(key, links)
 
-        # Each link should have from, to, value, color
-        for link in links:
-            self.assertIn("from", link)
-            self.assertIn("to", link)
-            self.assertIn("value", link)
-            self.assertIn("color", link)
+        num_links = len(links["source"])
+        for key in ("target", "value", "color", "from_label", "to_label"):
+            self.assertEqual(len(links[key]), num_links)
+        self.assertGreater(num_links, 0)
 
-            # from and to should have column and node
-            self.assertIn("column", link["from"])
-            self.assertIn("node", link["from"])
-            self.assertIn("column", link["to"])
-            self.assertIn("node", link["to"])
+        for source, target_idx, value, color, from_label, to_label in zip(
+            links["source"],
+            links["target"],
+            links["value"],
+            links["color"],
+            links["from_label"],
+            links["to_label"],
+        ):
+            # source/target are flat indices into the node lists
+            self.assertIsInstance(source, int)
+            self.assertIsInstance(target_idx, int)
+            self.assertGreaterEqual(source, 0)
+            self.assertLess(source, num_nodes)
+            self.assertGreaterEqual(target_idx, 0)
+            self.assertLess(target_idx, num_nodes)
 
             # value should be numeric
-            self.assertIsInstance(link["value"], (int, float))
+            self.assertIsInstance(value, (int, float))
+
+            self.assertIsInstance(color, str)
+            self.assertIsInstance(from_label, str)
+            self.assertIsInstance(to_label, str)
 
     def test_get_sankey_options_structure(self):
-        """get_sankey options should have expected keys."""
+        """get_sankey options should have expected keys for the Plotly renderer."""
         target = ("default", PSUT)
         query = {"year": 2020}
 
@@ -178,10 +214,7 @@ class SankeyTests(TransactionTestCase):
 
         options = json.loads(options_json)
 
-        # Check for expected option keys
         self.assertIn("plot_background_color", options)
-        self.assertIn("default_links_opacity", options)
-        self.assertIn("default_gradient_links_opacity", options)
-        self.assertIn("show_column_lines", options)
-        self.assertIn("show_column_names", options)
-        self.assertIn("linear_gradient_links", options)
+        self.assertIn("arrangement", options)
+        self.assertIsInstance(options["plot_background_color"], str)
+        self.assertIsInstance(options["arrangement"], str)
