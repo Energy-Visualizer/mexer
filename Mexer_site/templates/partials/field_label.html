@@ -3,27 +3,11 @@
         type="button"
         class="info-toggle text-blue-500 focus:outline-none"
         title="Click for field details"
-        onclick="
-        const tip = this.nextElementSibling;
-        const hidden = tip.classList.toggle('hidden');
-        if (!hidden) {
-            const btnRect = this.getBoundingClientRect();
-            tip.style.left = btnRect.left + 'px';
-            tip.style.width = '16rem';
-            const spaceAbove = btnRect.top;
-            if (spaceAbove > 100) {
-                tip.style.top = '';
-                tip.style.bottom = (window.innerHeight - btnRect.top + 4) + 'px';
-            } else {
-                tip.style.bottom = '';
-                tip.style.top = (btnRect.bottom + 4) + 'px';
-            }
-        }
-        "
+        onclick="toggleFieldTooltip(this)"
     >
         &#9432;
     </button>
-    <div class="hidden fixed w-64 bg-gray-800 text-white text-sm rounded-md p-2 shadow-lg z-50">
+    <div class="hidden fixed field-tooltip w-64 bg-gray-800 text-white text-sm rounded-md p-2 shadow-lg z-50">
         {{ tooltip }}
         {% if link_url %}<a href="{{ link_url }}" class="text-blue-400 underline">{{ link_text }}</a>{% endif %}
     </div>

@@ -178,8 +178,17 @@ def generate_sankey_html(target: DatabaseTarget, query: ShapedQuery) -> str:
 
     nodes, links, options, num_columns = sankey
 
-    return f"<script>createSankey({nodes},{links},{options},\"{get_plot_title(query)}\",{num_columns})</script>\
-                    <button onclick='downloadSankey()' class='absolute top-2 right-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'>Download Sankey</button>"
+    download_button = (
+        "<button onclick='downloadSankey()' title='Download Sankey diagram as SVG' "
+        "aria-label='Download Sankey diagram as SVG' "
+        "class='absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full "
+        "bg-white/90 hover:bg-gray-100 text-gray-700 shadow-md focus:outline-none "
+        "focus:ring-2 focus:ring-blue-400'>"
+        "<i class='fas fa-ellipsis-v'></i>"
+        "</button>"
+    )
+
+    return f'<script>createSankey({nodes},{links},{options},"{get_plot_title(query)}",{num_columns})</script>{download_button}'
 
 
 def generate_xy_html(target: DatabaseTarget, query: ShapedQuery) -> str:
@@ -249,7 +258,16 @@ def generate_matrix_html(target: DatabaseTarget, query: ShapedQuery) -> str:
 
     try:
         LOGGER.info("Matrix visualization made")
-        return heatmap.to_html()
+        return heatmap.to_html(
+            embed_options={
+                "actions": {
+                    "export": True,
+                    "source": False,
+                    "compiled": False,
+                    "editor": False,
+                }
+            }
+        )
     except MaxRowsError:
         LOGGER.error("Overly large matrix attempted")
         return "Error: Query results in overly large dataset. Please try a different visualization method or download the raw data."

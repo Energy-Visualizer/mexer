@@ -46,6 +46,14 @@ def get_xy(
     # Create a list of fields to select, always including 'Year' and the efficiency metric
     fields_to_select = ["year", efficiency_metric]
 
+    def _none_if_unselected(value: str | None) -> str | None:
+        return None if not value or value.lower() == "none" else value
+
+    color_by = _none_if_unselected(color_by)
+    line_by = _none_if_unselected(line_by)
+    facet_col_by = _none_if_unselected(facet_col_by)
+    facet_row_by = _none_if_unselected(facet_row_by)
+
     fields_to_select.extend(
         field for field in {color_by, line_by, facet_col_by, facet_row_by} if field
     )
@@ -65,7 +73,7 @@ def get_xy(
         # Create the line plot using Plotly Express
         fig = px.line(
             df,
-            x="Year",
+            x="year",
             y=efficiency_metric,
             color=color_by,
             line_dash=line_by,
