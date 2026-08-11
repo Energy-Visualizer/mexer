@@ -76,8 +76,6 @@ def visualizer(request):
     lookups = LookupManager("default")
     sandbox_lookups = LookupManager("sandbox")
 
-    admin_user = False
-
     if admin_user:
         datasets = lookups.get_objects(model=models.Dataset)
         sandbox_datasets = sandbox_lookups.get_objects(model=models.Dataset)
