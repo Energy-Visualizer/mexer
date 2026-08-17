@@ -35,7 +35,6 @@ from utils.data import (
     shape_post_request,
     translate_query,
 )
-from utils.history import update_user_history
 from utils.logging import LOGGER
 from utils.lookup import LookupManager
 from utils.matrix import get_matrix, get_ruvy_matrix, visualize_matrix
@@ -342,14 +341,9 @@ def get_plot(request: HttpRequest):
         return HttpResponse(plot_div.encode())
 
     # Add functions to call on the client side
-    plot_div = plot_div + "<script>refreshHistory();</script>"
     if separate_window:
         plot_div = plot_div + "<script>plotInNewWindow();</script>"
     response = HttpResponse(plot_div.encode())  # the final response to be returned
-
-    # Set ploy history cookie to expire in 7 days
-    serialized_data = update_user_history(request, plot_type, query)
-    response.set_cookie("user_history", serialized_data.hex(), max_age=7 * 24 * 60 * 60)
 
     return response
 

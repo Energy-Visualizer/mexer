@@ -109,6 +109,23 @@ const guardFormSubmit = (form) => {
   return true;
 };
 
+const handleDownloadClick = (button) => {
+  const form = button.form;
+  if (!guardFormSubmit(form)) return false;
+
+  const confirmed = confirm(
+    "By accepting you confirm that you understand IEA data is proprietary and cannot be shared with those not authorized to see it.",
+  );
+  if (!confirmed) return false;
+
+  const plotType = form.querySelector(".plot-type-input:checked")?.value;
+  if (plotType) {
+    addHistoryEntry(plotType, captureHistoryFields(form));
+  }
+
+  return true;
+};
+
 /**
  * Initializes the application UI and sets up event listeners.
  * This function is called when the page loads.
@@ -124,6 +141,20 @@ const initialize = () => {
 
   document.body.addEventListener("htmx:sendError", (error) => {
     error.detail.target.innerHTML = `Error creating plot! Status code ${error.detail.xhr.status}.\nPlease try again later. Contact information on the about page.`;
+  });
+
+  document.body.addEventListener("htmx:afterRequest", (event) => {
+    if (event.detail.target?.id !== "plot-section") return;
+    if (!event.detail.successful) return;
+
+    const responseText = event.detail.xhr.responseText || "";
+    if (responseText.startsWith("Error")) return;
+
+    const form = document.getElementById("query-form");
+    const plotType = form?.querySelector(".plot-type-input:checked")?.value;
+    if (!plotType) return;
+
+    addHistoryEntry(plotType, captureHistoryFields(form));
   });
 
   const datasetDropdown = document.getElementById("dataset-dropdown");
