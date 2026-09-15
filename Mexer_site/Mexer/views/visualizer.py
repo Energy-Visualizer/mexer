@@ -74,22 +74,17 @@ def visualizer(request):
     # Fetch all available options for various parameters.
 
     lookups = LookupManager("default")
-    sandbox_lookups = LookupManager("sandbox")
 
     if admin_user:
         datasets = lookups.get_objects(model=models.Dataset)
-        sandbox_datasets = sandbox_lookups.get_objects(model=models.Dataset)
     else:
         datasets = lookups.public_datasets().objects
-        sandbox_datasets = None
 
     countries = lookups.get_objects(model=models.Country)
     countries.sort(key=lambda c: c.full_name)
 
     versions = lookups.get_objects(model=models.Version)
-    sandbox_versions = sandbox_lookups.get_objects(model=models.Version)
     versions.sort(key=lambda v: v.version_id)
-    sandbox_versions.sort(key=lambda v: v.version_id)
 
     methods = [lookups[models.Method]["PCM"]]
 
@@ -138,14 +133,10 @@ def visualizer(request):
     # Prepare the context dictionary for the template
     context = {
         "descriptions": descriptions,
-        "SANDBOX_PREFIX": settings.SANDBOX_PREFIX,
         "datasets": datasets_with_tables,
-        "sandbox_datasets": sandbox_datasets,
         "default_dataset": "CL-PFU MW",
         "versions": versions,
         "default_version": "v2.0",
-        "sandbox_versions": sandbox_versions,
-        "default_sandbox_version": settings.SANDBOX_PREFIX + "v2.0a7",
         "countries": countries,
         "default_country": "Ghana",
         "methods": methods,
