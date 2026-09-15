@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.urls import path, re_path
 
-import Mexer.views.history as history_views
 import Mexer.views.misc as misc_views
 import Mexer.views.user_accounts as accounts_views
 import Mexer.views.visualizer as visualizer_views
@@ -22,13 +21,6 @@ __urlpatterns = [
     path("plot", visualizer_views.get_plot),
     path("data", visualizer_views.get_data),
     path("data-check", visualizer_views.check_data_iea),
-    # history tool pages
-    path("history", history_views.render_history),
-    path(
-        "delete-history-item/",
-        history_views.delete_history_item,
-        name="delete_history_item",
-    ),
     # misc pages
     path("about/", misc_views.about, name="about"),
     path(

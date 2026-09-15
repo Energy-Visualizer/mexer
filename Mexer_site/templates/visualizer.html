@@ -21,7 +21,7 @@
     <!-- Startup Script -->
     <script>
     window.onload = () => {
-        initialize(); refreshHistory();
+        initialize(); renderHistory();
     };
     </script>
 
@@ -41,6 +41,7 @@
 
     <!-- Internal JS -->
     <script src="{% static 'js/region-dropdown.js' %}"></script>
+    <script src="{% static 'js/history.js' %}"></script>
     <script src="{% static 'js/visualizer.js' %}"></script>
 
     <!-- Make the plot utility imports available throughout the window -->
