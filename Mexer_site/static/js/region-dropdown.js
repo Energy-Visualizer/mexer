@@ -88,7 +88,9 @@ const initRegionDropdown = () => {
     const q = query.trim().toLowerCase();
     getCheckboxes().forEach((cb) => {
       const row = cb.closest("label");
-      const match = cb.value.toLowerCase().includes(q);
+      // Match on full name ("United States") or abbreviation ("USA")
+      const abbr = (cb.dataset.abbr || "").toLowerCase();
+      const match = cb.value.toLowerCase().includes(q) || abbr.includes(q);
       row.style.display = match ? "" : "none";
     });
   };

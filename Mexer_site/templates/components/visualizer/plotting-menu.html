@@ -139,6 +139,7 @@
                     {% for country in countries %}
                     <label for="opt-{{ forloop.counter }}" class="flex items-center gap-2.5 px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm text-gray-700 select-none">
                       <input type="checkbox" id="opt-{{ forloop.counter }}" name="country" value="{{ country.full_name }}"
+                        data-abbr="{{ country.country }}"
                         title="{{ country.description }}"
                         class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0"
                         {% if country.full_name == default_country %}checked{% endif %} />
