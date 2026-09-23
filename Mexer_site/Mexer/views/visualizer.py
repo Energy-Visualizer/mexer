@@ -411,6 +411,11 @@ def get_data(request: HttpRequest):
         # get psut (sankey and matrix) info
         columns.extend(PSUT_COLUMNS)
 
+    # Order columns as they are in the table, not in attribute lookup order.
+    columns = [
+        field.name for field in dataset_model._meta.fields if field.name in columns
+    ]
+
     final_response = HttpResponse()
     filename = f"mexer-data-{time.strftime('%H-%M_%d-%m-%Y')}"
 

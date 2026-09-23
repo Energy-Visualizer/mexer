@@ -210,7 +210,7 @@ def get_dataframe(
 # hardcode them.
 
 PSUT_COLUMNS = ["year", "value"]
-AGGETA_COLUMNS = ["gross_net", "ex_p", "ex_f", "ex_u", "etapf", "etafu", "etapu"]
+AGGETA_COLUMNS = ["year", "gross_net","ex_p", "ex_f", "ex_u", "etapf", "etafu", "etapu"]
 INCLUDES_NEU_COLUMN = "includes_neu"
 
 
